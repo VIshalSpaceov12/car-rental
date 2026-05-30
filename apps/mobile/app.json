@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Car Rental",
+    "slug": "car-rental-mobile",
+    "scheme": "carrental",
+    "version": "0.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": false,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.carrental.mobile"
+    },
+    "android": {
+      "package": "com.carrental.mobile"
+    },
+    "plugins": ["expo-dev-client"]
+  }
+}

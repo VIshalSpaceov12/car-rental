@@ -1,0 +1,26 @@
+# dependencies
+node_modules/
+
+# builds
+dist/
+build/
+coverage/
+
+# env
+.env
+.env.local
+.env.*.local
+
+# expo / react-native
+.expo/
+.expo-shared/
+*.orig.*
+apps/mobile/ios/
+apps/mobile/android/
+
+# misc
+*.log
+.DS_Store
+
+# claude code runtime
+.claude/
