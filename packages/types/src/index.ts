@@ -1,5 +1,6 @@
 export * from './auth'
 export * from './booking'
+export * from './fleet'
 export * from './vehicle'
 export * from './otp'
 export * from './user'

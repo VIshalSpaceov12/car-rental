@@ -1,7 +1,11 @@
 import express, { type Express } from 'express'
 import cors from 'cors'
 import { healthRouter } from './modules/health/health.routes'
-import { fleetRouter } from './modules/fleet/fleet.routes'
+import {
+  branchesRouter,
+  categoriesRouter,
+  vehiclesRouter,
+} from './modules/fleet/fleet.routes'
 import { authRouter } from './modules/auth/auth.routes'
 
 /**
@@ -17,7 +21,9 @@ export function createApp(): Express {
 
   app.use('/health', healthRouter)
   app.use('/auth', authRouter)
-  app.use('/vehicles', fleetRouter)
+  app.use('/vehicles', vehiclesRouter)
+  app.use('/categories', categoriesRouter)
+  app.use('/branches', branchesRouter)
 
   return app
 }

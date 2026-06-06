@@ -8,12 +8,13 @@ describe('GET /vehicles', () => {
 
     expect(res.status).toBe(200)
     expect(Array.isArray(res.body)).toBe(true)
-    expect(res.body.length).toBe(6)
+    expect(res.body.length).toBeGreaterThanOrEqual(6) // ≥ seeded set (CRUD tests add more)
 
     const v = res.body[0]
     expect(typeof v.id).toBe('string')
     expect(typeof v.providerId).toBe('string')
     expect(typeof v.name).toBe('string')
+    expect(typeof v.categoryId).toBe('string')
     expect(typeof v.category).toBe('string')
     expect(typeof v.pricePerDay).toBe('number') // Decimal must serialize to number
     expect(Array.isArray(v.images)).toBe(true)

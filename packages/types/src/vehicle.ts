@@ -6,7 +6,9 @@ export interface Vehicle {
   id: string
   providerId: string
   name: string
-  category: VehicleCategory
+  categoryId: string
+  /** Display name of the category (provider-defined, not constrained to the union). */
+  category: string
   transmission: Transmission
   fuelType: FuelType
   seats: number

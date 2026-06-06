@@ -8,7 +8,7 @@ import { useAppDispatch, useAppSelector } from './src/store/hooks'
 import { hydrate } from './src/store/authSlice'
 import { loadAuth } from './src/storage/authStorage'
 import { AuthScreen } from './src/features/auth/AuthScreen'
-import { HomeScreen } from './src/features/home/HomeScreen'
+import { AppNavigator } from './src/navigation/AppNavigator'
 
 function Root() {
   const theme = useTheme()
@@ -30,7 +30,7 @@ function Root() {
 
   return (
     <>
-      {token ? <HomeScreen /> : <AuthScreen />}
+      {token ? <AppNavigator /> : <AuthScreen />}
       <StatusBar style="auto" />
     </>
   )
