@@ -13,11 +13,14 @@
   "dependencies": {
     "@car-rental/tokens": "*",
     "@car-rental/types": "*",
+    "@reduxjs/toolkit": "^2.12.0",
     "expo": "~51.0.39",
     "expo-dev-client": "~4.0.29",
+    "expo-secure-store": "~13.0.2",
     "expo-status-bar": "~1.12.1",
     "react": "18.2.0",
-    "react-native": "0.74.5"
+    "react-native": "0.74.5",
+    "react-redux": "^9.3.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.0",

@@ -1,10 +1,12 @@
 import { render, screen } from '@testing-library/react'
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { App } from './App'
 
 describe('dashboard App', () => {
-  it('renders the heading using shared tokens', () => {
+  beforeEach(() => localStorage.clear())
+
+  it('shows the provider sign-in screen when unauthenticated', () => {
     render(<App />)
-    expect(screen.getByText('Car Rental — dashboard')).toBeInTheDocument()
+    expect(screen.getByText('Provider Sign In')).toBeInTheDocument()
   })
 })

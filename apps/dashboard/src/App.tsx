@@ -1,31 +1,21 @@
-import { ThemeProvider, useTheme, defaultTheme } from '@car-rental/tokens'
+import { Provider } from 'react-redux'
+import { ThemeProvider, defaultTheme } from '@car-rental/tokens'
+import { store } from './store/store'
+import { useAppSelector } from './store/hooks'
+import { AuthScreen } from './features/auth/AuthScreen'
+import { DashboardHome } from './features/dashboard/DashboardHome'
 
-function Home() {
-  const theme = useTheme()
-  return (
-    <div
-      style={{
-        minHeight: '100vh',
-        display: 'grid',
-        placeItems: 'center',
-        background: theme.color.background,
-        fontFamily: theme.typography.body.fontFamily,
-      }}
-    >
-      <div style={{ textAlign: 'center' }}>
-        <h1 style={{ color: theme.color.primary, fontSize: theme.typography.heading.fontSize }}>
-          Car Rental — dashboard
-        </h1>
-        <p style={{ color: theme.color.textMuted }}>Skeleton booting via @car-rental/tokens</p>
-      </div>
-    </div>
-  )
+function Root() {
+  const token = useAppSelector((s) => s.auth.token)
+  return token ? <DashboardHome /> : <AuthScreen />
 }
 
 export function App() {
   return (
-    <ThemeProvider theme={defaultTheme}>
-      <Home />
-    </ThemeProvider>
+    <Provider store={store}>
+      <ThemeProvider theme={defaultTheme}>
+        <Root />
+      </ThemeProvider>
+    </Provider>
   )
 }

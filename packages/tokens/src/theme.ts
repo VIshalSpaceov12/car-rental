@@ -20,6 +20,7 @@ export interface Theme {
   color: {
     primary: string
     primaryDark: string
+    onPrimary: string
     background: string
     surface: string
     text: string
@@ -50,6 +51,7 @@ export const defaultTheme: Theme = {
   color: {
     primary: palette.blue500,
     primaryDark: palette.blue600,
+    onPrimary: palette.white,
     background: palette.white,
     surface: palette.gray100,
     text: palette.gray900,
