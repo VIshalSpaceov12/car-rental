@@ -4,6 +4,7 @@ import { z } from 'zod'
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().positive().default(4000),
+  DATABASE_URL: z.string().url(),
 })
 
 /** Validated, typed environment. Fails fast at boot on bad config. */

@@ -1,0 +1,279 @@
+// Car Rental — Prisma schema (Phase 0: booking-spine entities).
+// Only tables exist this phase; auth/booking/payment/OTP LOGIC comes in later phases.
+//
+// Prisma enum identifiers can't contain '-'. DB stores UPPER_SNAKE; @car-rental/types
+// wire strings are kebab-case. Map at the repo/DTO boundary:
+//   SERVICE_PROVIDER<->service-provider  VEHICLE_PREPARED<->vehicle-prepared
+//   PICKED_UP<->picked-up  LONG_TERM<->long-term  CARD_MOCK<->card-mock
+//   CASH_ON_DELIVERY<->cash-on-delivery  (all others are simple lowercase)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  SERVICE_PROVIDER
+  STAFF
+}
+
+enum Locale {
+  EN
+  AR
+}
+
+enum Transmission {
+  AUTOMATIC
+  MANUAL
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  ELECTRIC
+  HYBRID
+}
+
+enum VehicleStatus {
+  ACTIVE
+  MAINTENANCE
+  RETIRED
+}
+
+enum RentalPlan {
+  DAILY
+  WEEKLY
+  MONTHLY
+  LONG_TERM
+}
+
+enum BookingStatus {
+  RESERVED
+  CONFIRMED
+  VEHICLE_PREPARED
+  PICKED_UP
+  RETURNED
+  COMPLETED
+  REJECTED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CARD_MOCK
+  CASH_ON_DELIVERY
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Provider {
+  id            String   @id @default(cuid())
+  name          String
+  logoUrl       String?
+  colors        Json
+  defaultLocale Locale   @default(EN)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  branches         Branch[]
+  categories       VehicleCategory[]
+  vehicles         Vehicle[]
+  bookings         Booking[]
+  users            User[]
+  businessSettings BusinessSettings?
+}
+
+model BusinessSettings {
+  id                 String   @id @default(cuid())
+  providerId         String   @unique
+  taxRatePct         Decimal  @db.Decimal(5, 2)
+  currency           String
+  minRentalDays      Int      @default(1)
+  cancellationPolicy String
+  // Keyed by wire RentalPlan: { "daily": 1, "weekly": 0.9, "monthly": 0.8, "long-term": 0.7 }
+  planMultipliers    Json
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String   @id @default(cuid())
+  providerId    String?
+  role          UserRole
+  email         String   @unique
+  passwordHash  String
+  name          String
+  phone         String?
+  locale        Locale   @default(EN)
+  licenseNumber String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  provider Provider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  bookings Booking[] @relation("CustomerBookings")
+  ratings  Rating[]
+
+  @@index([providerId])
+  @@index([role])
+}
+
+model Branch {
+  id         String   @id @default(cuid())
+  providerId String
+  name       String
+  address    String
+  lat        Float
+  lng        Float
+  hours      String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  provider        Provider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  pickupBookings  Booking[] @relation("PickupBranch")
+  dropoffBookings Booking[] @relation("DropoffBranch")
+
+  @@index([providerId])
+}
+
+model VehicleCategory {
+  id         String   @id @default(cuid())
+  providerId String
+  name       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  provider Provider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  vehicles Vehicle[]
+
+  @@unique([providerId, name])
+  @@index([providerId])
+}
+
+model Vehicle {
+  id           String        @id @default(cuid())
+  providerId   String
+  categoryId   String
+  name         String
+  transmission Transmission
+  fuelType     FuelType
+  seats        Int
+  images       String[]
+  pricePerDay  Decimal       @db.Decimal(10, 2)
+  currency     String
+  available    Boolean       @default(true)
+  status       VehicleStatus @default(ACTIVE)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  provider Provider        @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  category VehicleCategory @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  bookings Booking[]
+  otps     Otp[]
+
+  @@index([providerId])
+  @@index([categoryId])
+  @@index([available])
+}
+
+model Booking {
+  id              String        @id @default(cuid())
+  customerId      String
+  providerId      String
+  vehicleId       String
+  pickupBranchId  String
+  dropoffBranchId String
+  plan            RentalPlan
+  startAt         DateTime
+  endAt           DateTime
+  status          BookingStatus @default(RESERVED)
+  subtotal        Decimal       @db.Decimal(10, 2)
+  tax             Decimal       @db.Decimal(10, 2)
+  total           Decimal       @db.Decimal(10, 2)
+  currency        String
+  discountCode    String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  customer      User     @relation("CustomerBookings", fields: [customerId], references: [id], onDelete: Restrict)
+  provider      Provider @relation(fields: [providerId], references: [id], onDelete: Restrict)
+  vehicle       Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  pickupBranch  Branch   @relation("PickupBranch", fields: [pickupBranchId], references: [id], onDelete: Restrict)
+  dropoffBranch Branch   @relation("DropoffBranch", fields: [dropoffBranchId], references: [id], onDelete: Restrict)
+
+  otps     Otp[]
+  payments Payment[]
+  contract Contract?
+  rating   Rating?
+
+  @@index([customerId])
+  @@index([providerId])
+  @@index([vehicleId])
+  @@index([status])
+}
+
+model Otp {
+  id         String    @id @default(cuid())
+  bookingId  String
+  vehicleId  String
+  codeHash   String
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+
+  @@index([bookingId])
+  @@index([vehicleId])
+  @@index([expiresAt])
+}
+
+model Payment {
+  id         String        @id @default(cuid())
+  bookingId  String
+  method     PaymentMethod
+  status     PaymentStatus @default(PENDING)
+  amount     Decimal       @db.Decimal(10, 2)
+  gatewayRef String?
+  createdAt  DateTime      @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([bookingId])
+}
+
+model Contract {
+  id        String    @id @default(cuid())
+  bookingId String    @unique
+  signedAt  DateTime?
+  content   String
+  createdAt DateTime  @default(now())
+
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model Rating {
+  id            String   @id @default(cuid())
+  bookingId     String   @unique
+  customerId    String
+  vehicleRating Int
+  serviceRating Int
+  comment       String?
+  createdAt     DateTime @default(now())
+
+  booking  Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  customer User    @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  @@index([customerId])
+}

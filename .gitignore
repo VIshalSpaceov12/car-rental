@@ -8,8 +8,8 @@ coverage/
 
 # env
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # expo / react-native
 .expo/
