@@ -7,6 +7,7 @@ import {
   vehiclesRouter,
 } from './modules/fleet/fleet.routes'
 import { authRouter } from './modules/auth/auth.routes'
+import { bookingsRouter } from './modules/bookings/booking.routes'
 
 /**
  * Modular monolith: one Express app, domain modules mounted as routers.
@@ -24,6 +25,7 @@ export function createApp(): Express {
   app.use('/vehicles', vehiclesRouter)
   app.use('/categories', categoriesRouter)
   app.use('/branches', branchesRouter)
+  app.use('/bookings', bookingsRouter)
 
   return app
 }

@@ -58,6 +58,18 @@ export function BrowseScreen({ navigation }: Props) {
           Log out
         </Text>
       </View>
+      <Pressable
+        onPress={() => navigation.navigate('Booking')}
+        style={{
+          backgroundColor: theme.color.primary,
+          borderRadius: theme.radius.md,
+          paddingVertical: theme.spacing.sm,
+          alignItems: 'center',
+          marginBottom: theme.spacing.md,
+        }}
+      >
+        <Text style={{ color: theme.color.onPrimary }}>Book a car</Text>
+      </Pressable>
       <FlatList
         data={vehicles}
         keyExtractor={(v) => v.id}
