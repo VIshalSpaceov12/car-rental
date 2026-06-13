@@ -1,5 +1,11 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import type { AuthResponse, AuthUser, LoginRequest, RegisterRequest } from '@car-rental/types'
+import type {
+  AuthResponse,
+  AuthUser,
+  LoginRequest,
+  ProviderBranding,
+  RegisterRequest,
+} from '@car-rental/types'
 import { API_URL } from '../api/config'
 import type { RootState } from './store'
 
@@ -20,7 +26,7 @@ export const authApi = createApi({
     register: builder.mutation<AuthResponse, RegisterRequest>({
       query: (body) => ({ url: '/auth/register', method: 'POST', body }),
     }),
-    me: builder.query<{ user: AuthUser }, void>({
+    me: builder.query<{ user: AuthUser; branding: ProviderBranding | null }, void>({
       query: () => '/auth/me',
     }),
   }),

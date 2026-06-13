@@ -13,6 +13,20 @@ const DROPOFF = 'branch-airport'
 
 const DATES = { startAt: '2026-07-01T10:00:00.000Z', endAt: '2026-07-04T10:00:00.000Z' } // 3 days
 
+// The overlap guard forbids double-booking the same vehicle/range. Each
+// helper-created booking gets its own 3-day window with a 4-day stride. Each run
+// picks a random base band (years from 2027) so re-runs against the persistent
+// test DB never collide with a prior run's bookings.
+const DAY = 86_400_000
+// Random band within ~2027–9000 (4-digit year, so the ISO string stays datetime-valid).
+const RUN_BASE = Date.UTC(2027, 0, 1, 10) + Math.floor(Math.random() * 25_000) * 100 * DAY
+let windowCursor = 0
+function nextDates() {
+  const base = RUN_BASE + windowCursor * 4 * DAY // 4-day stride, no overlap
+  windowCursor += 1
+  return { startAt: new Date(base).toISOString(), endAt: new Date(base + 3 * DAY).toISOString() }
+}
+
 let customerToken: string
 let providerToken: string
 
@@ -30,7 +44,14 @@ async function createBooking(token: string, overrides: Record<string, unknown> =
   return request(app)
     .post('/bookings')
     .set(bearer(token))
-    .send({ vehicleId: VEHICLE, plan: 'daily', pickupBranchId: PICKUP, dropoffBranchId: DROPOFF, ...DATES, ...overrides })
+    .send({
+      vehicleId: VEHICLE,
+      plan: 'daily',
+      pickupBranchId: PICKUP,
+      dropoffBranchId: DROPOFF,
+      ...nextDates(),
+      ...overrides,
+    })
 }
 
 beforeAll(async () => {
@@ -112,6 +133,48 @@ describe('bookings — create', () => {
   it('forbids a provider from creating a booking (403)', async () => {
     const res = await createBooking(providerToken)
     expect(res.status).toBe(403)
+  })
+
+  it('rejects a startAt in the past with 400', async () => {
+    const res = await createBooking(customerToken, {
+      startAt: '2020-01-01T10:00:00.000Z',
+      endAt: '2020-01-04T10:00:00.000Z',
+    })
+    expect(res.status).toBe(400)
+  })
+})
+
+describe('bookings — availability & overlap', () => {
+  // veh-sunny belongs to the demo provider; toggle its availability via the fleet API.
+  const SUNNY = 'veh-sunny'
+  const setAvailable = (available: boolean) =>
+    request(app).patch(`/vehicles/${SUNNY}`).set(bearer(providerToken)).send({ available })
+
+  it('409s when booking a vehicle marked unavailable', async () => {
+    const off = await setAvailable(false)
+    expect(off.status).toBe(200)
+    try {
+      const res = await createBooking(customerToken, { vehicleId: SUNNY })
+      expect(res.status).toBe(409)
+    } finally {
+      await setAvailable(true)
+    }
+  })
+
+  it('409s when a date range overlaps an existing booking on the same vehicle', async () => {
+    const window = nextDates()
+    const first = await createBooking(customerToken, { vehicleId: SUNNY, ...window })
+    expect(first.status).toBe(201)
+
+    // Same range → overlap.
+    const dup = await createBooking(customerToken, { vehicleId: SUNNY, ...window })
+    expect(dup.status).toBe(409)
+
+    // A cancelled booking frees the vehicle: cancel the first, then the range books.
+    const cancelled = await request(app).post(`/bookings/${first.body.id}/cancel`).set(bearer(customerToken))
+    expect(cancelled.status).toBe(200)
+    const reused = await createBooking(customerToken, { vehicleId: SUNNY, ...window })
+    expect(reused.status).toBe(201)
   })
 })
 
@@ -203,5 +266,42 @@ describe('bookings — authorization', () => {
 
     const res = await request(app).post(`/bookings/${booking.id}/accept`).set(bearer(otherToken))
     expect(res.status).toBe(404)
+  })
+})
+
+describe('bookings — provider cancel & prepare timestamp', () => {
+  it('lets the owning provider cancel a confirmed booking (confirmed → cancelled)', async () => {
+    const { body: booking } = await createBooking(customerToken)
+    const accepted = await request(app).post(`/bookings/${booking.id}/accept`).set(bearer(providerToken))
+    expect(accepted.body.status).toBe('confirmed')
+
+    const cancelled = await request(app).post(`/bookings/${booking.id}/provider-cancel`).set(bearer(providerToken))
+    expect(cancelled.status).toBe(200)
+    expect(cancelled.body.status).toBe('cancelled')
+  })
+
+  it('forbids a customer from using provider-cancel (403); customer /cancel still works', async () => {
+    const { body: a } = await createBooking(customerToken)
+    const forbidden = await request(app).post(`/bookings/${a.id}/provider-cancel`).set(bearer(customerToken))
+    expect(forbidden.status).toBe(403)
+
+    const { body: b } = await createBooking(customerToken)
+    const ok = await request(app).post(`/bookings/${b.id}/cancel`).set(bearer(customerToken))
+    expect(ok.status).toBe(200)
+    expect(ok.body.status).toBe('cancelled')
+  })
+
+  it('persists prepReadyAt when the provider prepares the vehicle', async () => {
+    const { body: booking } = await createBooking(customerToken)
+    await request(app).post(`/bookings/${booking.id}/accept`).set(bearer(providerToken))
+
+    const prepReadyAt = '2027-12-01T09:00:00.000Z'
+    const prepared = await request(app)
+      .post(`/bookings/${booking.id}/prepare`)
+      .set(bearer(providerToken))
+      .send({ prepReadyAt })
+    expect(prepared.status).toBe(200)
+    expect(prepared.body.status).toBe('vehicle-prepared')
+    expect(prepared.body.prepReadyAt).toBe(prepReadyAt)
   })
 })

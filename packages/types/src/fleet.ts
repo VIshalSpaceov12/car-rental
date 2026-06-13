@@ -46,6 +46,7 @@ export interface VehicleFilters {
   categoryId?: string
   transmission?: Transmission
   fuelType?: FuelType
+  minPrice?: number
   maxPrice?: number
   available?: boolean
 }

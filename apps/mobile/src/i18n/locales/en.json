@@ -1,0 +1,129 @@
+{
+  "common": {
+    "loading": "Loading…",
+    "cancel": "Cancel",
+    "back": "Back",
+    "done": "Done",
+    "search": "Search",
+    "filter": "Filter",
+    "save": "Save",
+    "goBack": "Go back",
+    "perDay": "per day",
+    "pricePerDay": "{{price}} {{currency}} / day",
+    "seeAll": "See all",
+    "trips": "({{count}} trips)"
+  },
+  "onboarding": {
+    "headline": "Find the\nNearest Car",
+    "subtitle": "Luxury cars, own drivers and instant delivery of cars anywhere in the world.",
+    "getStarted": "Get Started"
+  },
+  "auth": {
+    "signInTitle": "Sign in",
+    "signInAction": "Sign in",
+    "signingIn": "Signing in…",
+    "switchToRegister": "New here? Create an account",
+    "invalidCredentials": "Invalid email or password",
+    "registerTitle": "Create account",
+    "registerAction": "Create account",
+    "registering": "Creating…",
+    "switchToLogin": "Already have an account? Sign in",
+    "registerError": "Could not create account — the email may already be registered.",
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "Password (min 8 chars)",
+    "logout": "Log out"
+  },
+  "browse": {
+    "greeting": "Hello, {{name}}",
+    "greetingFallback": "there",
+    "tagline": "Start your timeless adventure",
+    "topTrends": "Top trends",
+    "chooseACar": "Choose a car",
+    "noVehicles": "No vehicles available."
+  },
+  "detail": {
+    "title": "Details",
+    "save": "Save",
+    "gearBox": "Gear box",
+    "seats": "Seats",
+    "fuelType": "Fuel type",
+    "class": "Class",
+    "bookNow": "Book now",
+    "noImage": "No image available"
+  },
+  "booking": {
+    "title": "Book a car",
+    "chooseVehicle": "Choose a vehicle",
+    "vehicleSubtitle": "{{category}} · {{price}} {{currency}}/day",
+    "loadVehiclesError": "Could not load vehicles.",
+    "plan": "Plan",
+    "plans": {
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "long-term": "Long-term"
+    },
+    "startDateLabel": "Start date (YYYY-MM-DD)",
+    "endDateLabel": "End date (YYYY-MM-DD)",
+    "pickupBranch": "Pickup branch",
+    "dropoffBranch": "Drop-off branch",
+    "discountCodeLabel": "Discount code (optional)",
+    "getQuote": "Get quote",
+    "pricing": "Pricing…",
+    "reviewTitle": "Review your booking",
+    "lineItem": "{{days}} day(s) × {{pricePerDay}} ({{plan}})",
+    "discountLine": "Discount {{code}}",
+    "taxLine": "Tax ({{rate}}%)",
+    "total": "Total",
+    "minRentalNotice": "Minimum {{days}} day(s) applied.",
+    "confirm": "Confirm booking",
+    "booking": "Booking…",
+    "reservedTitle": "Booking reserved!",
+    "reservedBody": "The provider will review and confirm it shortly.",
+    "priceError": "Could not price this booking. Check your dates and try again.",
+    "createError": "Could not create the booking. Please try again."
+  },
+  "bookings": {
+    "title": "My bookings",
+    "empty": "Your bookings will appear here.",
+    "loadError": "Could not load your bookings.",
+    "dateRange": "{{start}} → {{end}}",
+    "cancel": "Cancel booking",
+    "cancelling": "Cancelling…",
+    "cancelError": "Could not cancel this booking. Please try again.",
+    "status": {
+      "reserved": "Reserved",
+      "confirmed": "Confirmed",
+      "vehicle-prepared": "Vehicle prepared",
+      "picked-up": "Picked up",
+      "returned": "Returned",
+      "completed": "Completed",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    }
+  },
+  "filters": {
+    "title": "Filters",
+    "category": "Category",
+    "anyCategory": "Any",
+    "transmission": "Transmission",
+    "transmissionAutomatic": "Automatic",
+    "transmissionManual": "Manual",
+    "fuelType": "Fuel type",
+    "fuelPetrol": "Petrol",
+    "fuelDiesel": "Diesel",
+    "fuelElectric": "Electric",
+    "fuelHybrid": "Hybrid",
+    "minPrice": "Min price / day",
+    "maxPrice": "Max price / day",
+    "apply": "Apply filters",
+    "reset": "Reset",
+    "any": "Any"
+  },
+  "settings": {
+    "title": "Settings",
+    "guest": "Guest"
+  }
+}

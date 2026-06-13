@@ -20,6 +20,22 @@ export function findBranch(id: string) {
   return prisma.branch.findUnique({ where: { id } })
 }
 
+/**
+ * Bookings on `vehicleId` whose date range overlaps [start, end). Excludes
+ * REJECTED/CANCELLED (those free the vehicle). Half-open overlap test:
+ * existing.startAt < end AND existing.endAt > start.
+ */
+export function findOverlappingBookings(vehicleId: string, start: Date, end: Date) {
+  return prisma.booking.findMany({
+    where: {
+      vehicleId,
+      status: { notIn: ['REJECTED', 'CANCELLED'] },
+      startAt: { lt: end },
+      endAt: { gt: start },
+    },
+  })
+}
+
 export function listBranchesByProvider(providerId: string) {
   return prisma.branch.findMany({ where: { providerId }, orderBy: { name: 'asc' } })
 }
@@ -45,6 +61,6 @@ export function findByIdForCustomer(id: string, customerId: string) {
   return prisma.booking.findFirst({ where: { id, customerId } })
 }
 
-export function updateStatus(id: string, status: DbBookingStatus) {
-  return prisma.booking.update({ where: { id }, data: { status } })
+export function updateStatus(id: string, status: DbBookingStatus, data: { prepReadyAt?: Date } = {}) {
+  return prisma.booking.update({ where: { id }, data: { status, ...data } })
 }

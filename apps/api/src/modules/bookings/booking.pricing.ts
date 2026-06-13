@@ -34,8 +34,9 @@ interface ProviderPricing {
  * then tax. Server-authoritative — the client never sends amounts.
  */
 export function computeQuote(req: QuoteRequest, vehicle: VehiclePricing, settings: ProviderPricing): Quote {
-  const rawDays = Math.ceil((new Date(req.endAt).getTime() - new Date(req.startAt).getTime()) / MS_PER_DAY)
-  const days = Math.max(settings.minRentalDays, rawDays)
+  const requestedDays = Math.ceil((new Date(req.endAt).getTime() - new Date(req.startAt).getTime()) / MS_PER_DAY)
+  const days = Math.max(settings.minRentalDays, requestedDays)
+  const minRentalDaysApplied = days > requestedDays
 
   const planMultiplier = settings.planMultipliers[req.plan] ?? 1
   const subtotal = round2(vehicle.pricePerDay * days * planMultiplier)
@@ -55,6 +56,8 @@ export function computeQuote(req: QuoteRequest, vehicle: VehiclePricing, setting
     startAt: req.startAt,
     endAt: req.endAt,
     days,
+    requestedDays,
+    minRentalDaysApplied,
     pricePerDay: vehicle.pricePerDay,
     planMultiplier,
     subtotal,

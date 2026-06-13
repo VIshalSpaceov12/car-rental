@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import type { Vehicle, VehicleFilters } from '@car-rental/types'
+import type { Category, Vehicle, VehicleFilters } from '@car-rental/types'
 import { API_URL } from '../api'
 import type { RootState } from './store'
 
@@ -10,6 +10,7 @@ function toQuery(f?: VehicleFilters): string {
   if (f.categoryId) p.set('categoryId', f.categoryId)
   if (f.transmission) p.set('transmission', f.transmission)
   if (f.fuelType) p.set('fuelType', f.fuelType)
+  if (f.minPrice !== undefined) p.set('minPrice', String(f.minPrice))
   if (f.maxPrice !== undefined) p.set('maxPrice', String(f.maxPrice))
   const s = p.toString()
   return s ? `?${s}` : ''
@@ -32,7 +33,10 @@ export const fleetApi = createApi({
     vehicle: b.query<Vehicle, string>({
       query: (id) => `/vehicles/${id}`,
     }),
+    categories: b.query<Category[], void>({
+      query: () => '/vehicles/categories',
+    }),
   }),
 })
 
-export const { useVehiclesQuery, useVehicleQuery } = fleetApi
+export const { useVehiclesQuery, useVehicleQuery, useCategoriesQuery } = fleetApi

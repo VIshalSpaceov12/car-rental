@@ -47,6 +47,29 @@ describe('computeQuote', () => {
     expect(q.days).toBe(1)
   })
 
+  it('reports the pre-floor requestedDays and flags when minRentalDays raises the charge', () => {
+    const floored = { ...settings, minRentalDays: 3 }
+    // 1-day span billed at the 3-day floor → flag set, requestedDays preserves the selection.
+    const raised = computeQuote(
+      { vehicleId: 'v1', plan: 'daily', startAt: '2026-07-01T10:00:00.000Z', endAt: '2026-07-02T10:00:00.000Z' },
+      { pricePerDay: 100 },
+      floored,
+    )
+    expect(raised.requestedDays).toBe(1)
+    expect(raised.days).toBe(3)
+    expect(raised.minRentalDaysApplied).toBe(true)
+
+    // A span at/above the floor is not raised.
+    const notRaised = computeQuote(
+      { vehicleId: 'v1', plan: 'daily', startAt: '2026-07-01T10:00:00.000Z', endAt: '2026-07-05T10:00:00.000Z' },
+      { pricePerDay: 100 },
+      floored,
+    )
+    expect(notRaised.requestedDays).toBe(4)
+    expect(notRaised.days).toBe(4)
+    expect(notRaised.minRentalDaysApplied).toBe(false)
+  })
+
   it('rounds a 25-hour rental up to 2 days', () => {
     const q = computeQuote(
       { vehicleId: 'v1', plan: 'daily', startAt: '2026-07-01T00:00:00.000Z', endAt: '2026-07-02T01:00:00.000Z' },

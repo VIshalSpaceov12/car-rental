@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '@car-rental/tokens'
 import { useLoginMutation } from '../../store/authApi'
 import { useAppDispatch } from '../../store/hooks'
@@ -8,6 +9,7 @@ import { TextField } from '../../components/TextField'
 
 export function LoginScreen({ onSwitch }: { onSwitch: () => void }) {
   const theme = useTheme()
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const [login, { isLoading }] = useLoginMutation()
   // Prefilled with the seeded provider for quick demoing.
@@ -22,22 +24,22 @@ export function LoginScreen({ onSwitch }: { onSwitch: () => void }) {
       const res = await login({ email, password }).unwrap()
       dispatch(setCredentials(res))
     } catch {
-      setError('Invalid email or password')
+      setError(t('auth.invalidCredentials'))
     }
   }
 
   return (
     <form onSubmit={submit}>
-      <h1 style={{ color: theme.color.primary, marginTop: 0 }}>Provider Sign In</h1>
+      <h1 style={{ color: theme.color.primary, marginTop: 0 }}>{t('auth.signInTitle')}</h1>
       <TextField
-        label="Email"
+        label={t('auth.email')}
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
       />
       <TextField
-        label="Password"
+        label={t('auth.password')}
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
@@ -45,12 +47,12 @@ export function LoginScreen({ onSwitch }: { onSwitch: () => void }) {
       />
       {error && <p style={{ color: theme.color.danger }}>{error}</p>}
       <Button type="submit" disabled={isLoading}>
-        {isLoading ? 'Signing in…' : 'Sign in'}
+        {isLoading ? t('auth.signingIn') : t('auth.signIn')}
       </Button>
       <p style={{ color: theme.color.textMuted, marginBottom: 0 }}>
-        New provider?{' '}
+        {t('auth.newProvider')}{' '}
         <a onClick={onSwitch} style={{ color: theme.color.primary, cursor: 'pointer' }}>
-          Create an account
+          {t('auth.createAccountLink')}
         </a>
       </p>
     </form>

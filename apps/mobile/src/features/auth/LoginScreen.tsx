@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '@car-rental/tokens'
 import { useLoginMutation } from '../../store/authApi'
 import { useAppDispatch } from '../../store/hooks'
@@ -10,6 +11,7 @@ import { TextField } from '../../components/TextField'
 
 export function LoginScreen({ onSwitch }: { onSwitch: () => void }) {
   const theme = useTheme()
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const [login, { isLoading }] = useLoginMutation()
   // Prefilled with the seeded customer for quick demoing.
@@ -24,7 +26,7 @@ export function LoginScreen({ onSwitch }: { onSwitch: () => void }) {
       await saveAuth(res)
       dispatch(setCredentials(res))
     } catch {
-      setError('Invalid email or password')
+      setError(t('auth.invalidCredentials'))
     }
   }
 
@@ -38,25 +40,25 @@ export function LoginScreen({ onSwitch }: { onSwitch: () => void }) {
           marginBottom: theme.spacing.lg,
         }}
       >
-        Sign in
+        {t('auth.signInTitle')}
       </Text>
       <TextField
-        label="Email"
+        label={t('auth.email')}
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
       />
-      <TextField label="Password" secureTextEntry value={password} onChangeText={setPassword} />
+      <TextField label={t('auth.password')} secureTextEntry value={password} onChangeText={setPassword} />
       {error && (
         <Text style={{ color: theme.color.danger, marginBottom: theme.spacing.sm }}>{error}</Text>
       )}
-      <Button title={isLoading ? 'Signing in…' : 'Sign in'} onPress={submit} disabled={isLoading} />
+      <Button title={isLoading ? t('auth.signingIn') : t('auth.signInAction')} onPress={submit} disabled={isLoading} />
       <Text
         onPress={onSwitch}
         style={{ color: theme.color.primary, marginTop: theme.spacing.md, textAlign: 'center' }}
       >
-        New here? Create an account
+        {t('auth.switchToRegister')}
       </Text>
     </View>
   )

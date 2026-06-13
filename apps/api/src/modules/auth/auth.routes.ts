@@ -1,22 +1,44 @@
 import { Router, type Response } from 'express'
 import { z } from 'zod'
-import { AuthError, login, register } from './auth.service'
+import { AuthError, brandingForProvider, getBranding, login, register } from './auth.service'
 import { requireAuth } from './auth.middleware'
 
 export const authRouter: Router = Router()
 
-const registerSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(8),
-  name: z.string().min(1),
-  role: z.enum(['customer', 'service-provider']),
-  phone: z.string().optional(),
-  locale: z.enum(['en', 'ar']).optional(),
-  businessName: z.string().optional(),
+// Emails are normalized (lowercased + trimmed) on both register and login so
+// sign-up and sign-in are case-insensitive and match the stored unique value.
+const email = z.string().email().transform((v) => v.toLowerCase().trim())
+
+const colorsSchema = z.object({
+  primary: z.string().min(1),
+  primaryDark: z.string().min(1).optional(),
+  background: z.string().min(1).optional(),
 })
 
+const registerSchema = z
+  .object({
+    email,
+    password: z.string().min(8),
+    name: z.string().min(1),
+    role: z.enum(['customer', 'service-provider']),
+    phone: z.string().optional(),
+    locale: z.enum(['en', 'ar']).optional(),
+    businessName: z.string().optional(),
+    colors: colorsSchema.optional(),
+  })
+  // Contract: a provider names its business; customers must not.
+  .superRefine((data, ctx) => {
+    if (data.role === 'service-provider' && !data.businessName?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['businessName'],
+        message: 'businessName is required for service providers',
+      })
+    }
+  })
+
 const loginSchema = z.object({
-  email: z.string().email(),
+  email,
   password: z.string().min(1),
 })
 
@@ -46,8 +68,23 @@ authRouter.post('/login', async (req, res) => {
   }
 })
 
-authRouter.get('/me', requireAuth, (req, res) => {
-  res.json({ user: req.user })
+authRouter.get('/me', requireAuth, async (req, res) => {
+  try {
+    res.json({ user: req.user, branding: await brandingForProvider(req.user!.providerId) })
+  } catch (err) {
+    handle(err, res)
+  }
+})
+
+// Public single-brand resolution for the mobile client (the seeded provider).
+// Mounted at top-level `/branding` in app.ts.
+export const brandingRouter: Router = Router()
+brandingRouter.get('/', async (_req, res) => {
+  try {
+    res.json(await getBranding())
+  } catch (err) {
+    handle(err, res)
+  }
 })
 
 function handle(err: unknown, res: Response): void {

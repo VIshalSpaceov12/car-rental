@@ -1,4 +1,15 @@
-// Public surface: semantic theme + the contract type + the React provider/hook.
-// The primitive scale (primitives.ts) is intentionally NOT re-exported.
-export { defaultTheme, type Theme, type TextStyle, type FontWeight } from './theme'
+// Public surface: the theme contract types, the assembled themes, and the React
+// provider/hook. The primitive scale (primitives.ts) and raw schemes stay
+// internal — apps consume only semantic tokens via `useTheme()`.
+export {
+  createTheme,
+  darkTheme,
+  lightTheme,
+  defaultTheme,
+  type Theme,
+  type ColorScheme,
+  type TextStyle,
+  type FontWeight,
+  type ElevationStyle,
+} from './theme'
 export { ThemeProvider, useTheme } from './ThemeProvider'

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '@car-rental/tokens'
 import {
   useBranchesQuery,
@@ -8,8 +9,12 @@ import {
 import { Button } from '../../components/Button'
 import { TextField } from '../../components/TextField'
 
+// One-off form width (no semantic size fits) — named const, not a token.
+const FORM_MAX_WIDTH = 420
+
 export function BranchesPage() {
   const theme = useTheme()
+  const { t } = useTranslation()
   const { data: branches = [] } = useBranchesQuery()
   const [createBranch, { isLoading }] = useCreateBranchMutation()
   const [deleteBranch] = useDeleteBranchMutation()
@@ -30,26 +35,30 @@ export function BranchesPage() {
 
   return (
     <div>
-      <h1 style={{ color: theme.color.primary, marginTop: 0 }}>Branches</h1>
+      <h1 style={{ color: theme.color.primary, marginTop: 0 }}>{t('branches.title')}</h1>
       <ul style={{ color: theme.color.text }}>
         {branches.map((b) => (
           <li key={b.id} style={{ marginBottom: theme.spacing.xs }}>
             <strong>{b.name}</strong> — {b.address} ({b.hours}){' '}
             <a onClick={() => deleteBranch(b.id)} style={{ color: theme.color.danger, cursor: 'pointer' }}>
-              remove
+              {t('common.remove')}
             </a>
           </li>
         ))}
-        {branches.length === 0 && <li style={{ color: theme.color.textMuted }}>No branches yet.</li>}
+        {branches.length === 0 && <li style={{ color: theme.color.textMuted }}>{t('branches.noBranches')}</li>}
       </ul>
 
-      <h2 style={{ color: theme.color.text }}>Add branch</h2>
-      <form onSubmit={add} style={{ maxWidth: 420 }}>
-        <TextField label="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-        <TextField label="Address" value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-        <TextField label="Hours" value={form.hours} onChange={(e) => setForm({ ...form, hours: e.target.value })} />
+      <h2 style={{ color: theme.color.text }}>{t('branches.addBranch')}</h2>
+      <form onSubmit={add} style={{ maxWidth: FORM_MAX_WIDTH }}>
+        <TextField label={t('branches.name')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        <TextField
+          label={t('branches.address')}
+          value={form.address}
+          onChange={(e) => setForm({ ...form, address: e.target.value })}
+        />
+        <TextField label={t('branches.hours')} value={form.hours} onChange={(e) => setForm({ ...form, hours: e.target.value })} />
         <Button type="submit" disabled={isLoading}>
-          {isLoading ? 'Adding…' : 'Add branch'}
+          {isLoading ? t('branches.adding') : t('branches.addBranch')}
         </Button>
       </form>
     </div>

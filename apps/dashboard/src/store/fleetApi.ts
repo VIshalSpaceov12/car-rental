@@ -22,8 +22,10 @@ export const fleetApi = createApi({
   }),
   tagTypes: ['Vehicle', 'Category', 'Branch'],
   endpoints: (b) => ({
-    vehicles: b.query<Vehicle[], string | undefined>({
-      query: (providerId) => (providerId ? `/vehicles?providerId=${providerId}` : '/vehicles'),
+    // Fleet management list: auth + tenant-scoped from the token (no client-supplied
+    // providerId). Returns every vehicle the provider owns, all availabilities.
+    providerVehicles: b.query<Vehicle[], void>({
+      query: () => '/provider/vehicles',
       providesTags: ['Vehicle'],
     }),
     createVehicle: b.mutation<Vehicle, CreateVehicleRequest>({
@@ -66,7 +68,7 @@ export const fleetApi = createApi({
 })
 
 export const {
-  useVehiclesQuery,
+  useProviderVehiclesQuery,
   useCreateVehicleMutation,
   useUpdateVehicleMutation,
   useDeleteVehicleMutation,

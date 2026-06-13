@@ -1,10 +1,18 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import type { Booking, BranchOption, CreateBookingRequest, Quote, QuoteRequest, Vehicle } from '@car-rental/types'
+import type {
+  Booking,
+  BookingSummary,
+  BranchOption,
+  CreateBookingRequest,
+  Quote,
+  QuoteRequest,
+} from '@car-rental/types'
 import { API_URL } from '../api'
 import type { RootState } from './store'
 
 export const bookingApi = createApi({
   reducerPath: 'bookingApi',
+  tagTypes: ['Booking'],
   baseQuery: fetchBaseQuery({
     baseUrl: API_URL,
     prepareHeaders: (headers, { getState }) => {
@@ -14,8 +22,9 @@ export const bookingApi = createApi({
     },
   }),
   endpoints: (builder) => ({
-    getVehicles: builder.query<Vehicle[], void>({
-      query: () => '/vehicles',
+    getBookings: builder.query<BookingSummary[], void>({
+      query: () => '/bookings',
+      providesTags: ['Booking'],
     }),
     getBranchOptions: builder.query<BranchOption[], string>({
       query: (vehicleId) => `/bookings/vehicles/${vehicleId}/branches`,
@@ -25,8 +34,19 @@ export const bookingApi = createApi({
     }),
     createBooking: builder.mutation<Booking, CreateBookingRequest>({
       query: (body) => ({ url: '/bookings', method: 'POST', body }),
+      invalidatesTags: ['Booking'],
+    }),
+    cancelBooking: builder.mutation<Booking, string>({
+      query: (id) => ({ url: `/bookings/${id}/cancel`, method: 'POST' }),
+      invalidatesTags: ['Booking'],
     }),
   }),
 })
 
-export const { useGetVehiclesQuery, useGetBranchOptionsQuery, useQuoteMutation, useCreateBookingMutation } = bookingApi
+export const {
+  useGetBookingsQuery,
+  useGetBranchOptionsQuery,
+  useQuoteMutation,
+  useCreateBookingMutation,
+  useCancelBookingMutation,
+} = bookingApi

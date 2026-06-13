@@ -1,0 +1,90 @@
+{
+  "common": {
+    "remove": "remove",
+    "delete": "delete",
+    "edit": "edit",
+    "cancel": "cancel",
+    "save": "Save",
+    "add": "Add"
+  },
+  "auth": {
+    "signInTitle": "Provider Sign In",
+    "email": "Email",
+    "password": "Password",
+    "signIn": "Sign in",
+    "signingIn": "Signing in…",
+    "invalidCredentials": "Invalid email or password",
+    "newProvider": "New provider?",
+    "createAccountLink": "Create an account",
+    "createAccountTitle": "Create Provider Account",
+    "yourName": "Your name",
+    "businessName": "Business name",
+    "businessNamePlaceholder": "e.g. Acme Rentals",
+    "passwordMin": "Password (min 8 chars)",
+    "createAccount": "Create account",
+    "creating": "Creating…",
+    "createFailed": "Could not create account — the email may already be registered.",
+    "haveAccount": "Already have an account?",
+    "signInLink": "Sign in"
+  },
+  "nav": {
+    "overview": "Overview",
+    "fleet": "Fleet",
+    "branches": "Branches",
+    "bookings": "Bookings",
+    "logout": "Log out"
+  },
+  "overview": {
+    "title": "Provider Dashboard",
+    "welcome": "Welcome, {{name}} ({{role}})",
+    "tenant": "Tenant: {{tenant}}",
+    "intro": "Manage your fleet, branches, and incoming bookings from the menu."
+  },
+  "fleet": {
+    "title": "Fleet",
+    "categories": "Categories",
+    "noCategories": "No categories yet — add one to enable vehicles.",
+    "newCategory": "New category",
+    "vehicles": "Vehicles ({{count}})",
+    "addVehicle": "Add vehicle",
+    "editVehicle": "Edit vehicle",
+    "adding": "Adding…",
+    "saving": "Saving…",
+    "name": "Name",
+    "category": "Category",
+    "selectCategory": "Select a category…",
+    "transmission": "Transmission",
+    "fuel": "Fuel",
+    "seats": "Seats",
+    "pricePerDay": "Price per day",
+    "colName": "Name",
+    "colCategory": "Category",
+    "colTransmission": "Transmission",
+    "colFuel": "Fuel",
+    "colSeats": "Seats",
+    "colPrice": "Price/day"
+  },
+  "branches": {
+    "title": "Branches",
+    "noBranches": "No branches yet.",
+    "addBranch": "Add branch",
+    "adding": "Adding…",
+    "name": "Name",
+    "address": "Address",
+    "hours": "Hours"
+  },
+  "bookings": {
+    "title": "Incoming Bookings",
+    "loading": "Loading…",
+    "loadFailed": "Failed to load bookings.",
+    "empty": "No incoming bookings yet.",
+    "filterLabel": "Show",
+    "filterIncoming": "Incoming",
+    "filterAll": "All",
+    "accept": "Accept",
+    "reject": "Reject",
+    "prepare": "Prepare",
+    "prepReadyLabel": "Ready at",
+    "prepReadyAt": "Ready at {{when}}"
+  }
+}

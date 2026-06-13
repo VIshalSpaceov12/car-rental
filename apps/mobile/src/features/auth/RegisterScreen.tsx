@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '@car-rental/tokens'
 import { useRegisterMutation } from '../../store/authApi'
 import { useAppDispatch } from '../../store/hooks'
@@ -11,6 +12,7 @@ import { TextField } from '../../components/TextField'
 // The mobile app is the customer surface, so registration here creates a customer.
 export function RegisterScreen({ onSwitch }: { onSwitch: () => void }) {
   const theme = useTheme()
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const [register, { isLoading }] = useRegisterMutation()
   const [name, setName] = useState('')
@@ -25,7 +27,7 @@ export function RegisterScreen({ onSwitch }: { onSwitch: () => void }) {
       await saveAuth(res)
       dispatch(setCredentials(res))
     } catch {
-      setError('Could not create account — the email may already be registered.')
+      setError(t('auth.registerError'))
     }
   }
 
@@ -39,18 +41,18 @@ export function RegisterScreen({ onSwitch }: { onSwitch: () => void }) {
           marginBottom: theme.spacing.lg,
         }}
       >
-        Create account
+        {t('auth.registerTitle')}
       </Text>
-      <TextField label="Name" value={name} onChangeText={setName} />
+      <TextField label={t('auth.name')} value={name} onChangeText={setName} />
       <TextField
-        label="Email"
+        label={t('auth.email')}
         autoCapitalize="none"
         keyboardType="email-address"
         value={email}
         onChangeText={setEmail}
       />
       <TextField
-        label="Password (min 8 chars)"
+        label={t('auth.passwordHint')}
         secureTextEntry
         value={password}
         onChangeText={setPassword}
@@ -58,12 +60,12 @@ export function RegisterScreen({ onSwitch }: { onSwitch: () => void }) {
       {error && (
         <Text style={{ color: theme.color.danger, marginBottom: theme.spacing.sm }}>{error}</Text>
       )}
-      <Button title={isLoading ? 'Creating…' : 'Create account'} onPress={submit} disabled={isLoading} />
+      <Button title={isLoading ? t('auth.registering') : t('auth.registerAction')} onPress={submit} disabled={isLoading} />
       <Text
         onPress={onSwitch}
         style={{ color: theme.color.primary, marginTop: theme.spacing.md, textAlign: 'center' }}
       >
-        Already have an account? Sign in
+        {t('auth.switchToLogin')}
       </Text>
     </View>
   )

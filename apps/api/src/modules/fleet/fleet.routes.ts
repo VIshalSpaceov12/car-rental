@@ -6,6 +6,8 @@ import * as repo from './fleet.repository'
 export const vehiclesRouter: Router = Router()
 export const categoriesRouter: Router = Router()
 export const branchesRouter: Router = Router()
+// Mounted at top-level `/provider` in app.ts → GET /provider/vehicles.
+export const providerVehiclesRouter: Router = Router()
 
 const transmission = z.enum(['automatic', 'manual'])
 const fuelType = z.enum(['petrol', 'diesel', 'electric', 'hybrid'])
@@ -28,6 +30,7 @@ const filtersSchema = z.object({
   categoryId: z.string().optional(),
   transmission: transmission.optional(),
   fuelType: fuelType.optional(),
+  minPrice: z.coerce.number().positive().optional(),
   maxPrice: z.coerce.number().positive().optional(),
   available: z
     .enum(['true', 'false'])
@@ -47,10 +50,15 @@ function providerId(req: Request): string | null {
   return req.user?.providerId ?? null
 }
 
+// Staff fleet access is deferred to Phase 7 (P-18): there's no staff-creation path
+// yet, so providerOnly intentionally excludes 'staff' for now.
 const providerOnly = [requireAuth, requireRole('service-provider')] as const
 
 // ---------- Vehicles ----------
 
+// PUBLIC customer browse. Defaults to available-only; pass ?available=false to
+// include unavailable. This is the storefront, NOT dashboard management
+// (providers list their full fleet via GET /provider/vehicles).
 vehiclesRouter.get('/', async (req, res) => {
   const parsed = filtersSchema.safeParse(req.query)
   if (!parsed.success) {
@@ -58,7 +66,17 @@ vehiclesRouter.get('/', async (req, res) => {
     return
   }
   try {
-    res.json(await repo.listVehicles(parsed.data))
+    const filters = { available: true, ...parsed.data }
+    res.json(await repo.listVehicles(filters))
+  } catch (err) {
+    fail(err, res)
+  }
+})
+
+// PUBLIC browse type-filter. Registered before '/:id' so it isn't shadowed by it.
+vehiclesRouter.get('/categories', async (_req, res) => {
+  try {
+    res.json(await repo.listAllCategories())
   } catch (err) {
     fail(err, res)
   }
@@ -112,6 +130,19 @@ vehiclesRouter.delete('/:id', ...providerOnly, async (req, res) => {
   try {
     const ok = await repo.deleteVehicle(req.params.id!, pid)
     res.status(ok ? 204 : 404).end()
+  } catch (err) {
+    fail(err, res)
+  }
+})
+
+// ---------- Provider fleet (tenant-scoped management list) ----------
+
+// AUTH provider management list: the caller's whole fleet, any availability.
+providerVehiclesRouter.get('/vehicles', ...providerOnly, async (req, res) => {
+  const pid = providerId(req)
+  if (!pid) return void res.status(400).json({ error: 'provider has no tenant' })
+  try {
+    res.json(await repo.listProviderVehicles(pid))
   } catch (err) {
     fail(err, res)
   }

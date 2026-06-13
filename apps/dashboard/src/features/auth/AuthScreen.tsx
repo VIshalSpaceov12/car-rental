@@ -3,6 +3,9 @@ import { useTheme } from '@car-rental/tokens'
 import { LoginScreen } from './LoginScreen'
 import { RegisterScreen } from './RegisterScreen'
 
+// One-off auth-card width (no semantic size fits) — named const, not a token.
+const CARD_WIDTH = 360
+
 export function AuthScreen() {
   const theme = useTheme()
   const [mode, setMode] = useState<'login' | 'register'>('login')
@@ -19,7 +22,7 @@ export function AuthScreen() {
     >
       <div
         style={{
-          width: 360,
+          width: CARD_WIDTH,
           maxWidth: '90vw',
           background: theme.color.background,
           padding: theme.spacing.lg,

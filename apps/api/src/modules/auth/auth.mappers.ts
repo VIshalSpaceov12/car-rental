@@ -1,5 +1,5 @@
-import type { Locale as DbLocale, UserRole as DbUserRole, User } from '@prisma/client'
-import type { AuthUser, Locale, UserRole } from '@car-rental/types'
+import type { Locale as DbLocale, Provider, UserRole as DbUserRole, User } from '@prisma/client'
+import type { AuthUser, Locale, ProviderBranding, UserRole } from '@car-rental/types'
 
 // DB enums are UPPER_SNAKE; wire strings are kebab/lowercase. Map at this boundary.
 export const ROLE_TO_DB: Record<UserRole, DbUserRole> = {
@@ -26,5 +26,14 @@ export function toAuthUser(u: User): AuthUser {
     role: ROLE_TO_WIRE[u.role],
     locale: LOCALE_TO_WIRE[u.locale],
     providerId: u.providerId,
+  }
+}
+
+/** Map a Provider row to the wire branding contract (`colors` is stored as JSON). */
+export function toProviderBranding(p: Provider): ProviderBranding {
+  return {
+    name: p.name,
+    logoUrl: p.logoUrl,
+    colors: p.colors as ProviderBranding['colors'],
   }
 }

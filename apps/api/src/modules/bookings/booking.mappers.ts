@@ -43,15 +43,8 @@ const STATUS_TO_WIRE: Record<DbBookingStatus, BookingStatus> = {
   CANCELLED: 'cancelled',
 }
 
-function round2(n: number): number {
-  return Math.round((n + Number.EPSILON) * 100) / 100
-}
-
 /** Map a Booking row to the wire contract: Decimal→number, Date→ISO, enums→wire. */
 export function toWireBooking(b: DbBooking): Booking {
-  const subtotal = b.subtotal.toNumber()
-  const tax = b.tax.toNumber()
-  const total = b.total.toNumber()
   return {
     id: b.id,
     customerId: b.customerId,
@@ -63,13 +56,13 @@ export function toWireBooking(b: DbBooking): Booking {
     dropoffBranchId: b.dropoffBranchId,
     startAt: b.startAt.toISOString(),
     endAt: b.endAt.toISOString(),
-    subtotal,
+    subtotal: b.subtotal.toNumber(),
     discountCode: b.discountCode,
-    // discountAmount isn't stored; derive it from total = subtotal - discount + tax.
-    discountAmount: round2(subtotal + tax - total),
-    tax,
-    total,
+    discountAmount: b.discountAmount.toNumber(),
+    tax: b.tax.toNumber(),
+    total: b.total.toNumber(),
     currency: b.currency,
+    prepReadyAt: b.prepReadyAt ? b.prepReadyAt.toISOString() : null,
     createdAt: b.createdAt.toISOString(),
   }
 }

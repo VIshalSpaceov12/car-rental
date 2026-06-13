@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '@car-rental/tokens'
 import { useRegisterMutation } from '../../store/authApi'
 import { useAppDispatch } from '../../store/hooks'
@@ -10,6 +11,7 @@ import { TextField } from '../../components/TextField'
 // service-provider account (and its tenant) — customers register on mobile.
 export function RegisterScreen({ onSwitch }: { onSwitch: () => void }) {
   const theme = useTheme()
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const [register, { isLoading }] = useRegisterMutation()
   const [name, setName] = useState('')
@@ -31,30 +33,30 @@ export function RegisterScreen({ onSwitch }: { onSwitch: () => void }) {
       }).unwrap()
       dispatch(setCredentials(res))
     } catch {
-      setError('Could not create account — the email may already be registered.')
+      setError(t('auth.createFailed'))
     }
   }
 
   return (
     <form onSubmit={submit}>
-      <h1 style={{ color: theme.color.primary, marginTop: 0 }}>Create Provider Account</h1>
-      <TextField label="Your name" value={name} onChange={(e) => setName(e.target.value)} required />
+      <h1 style={{ color: theme.color.primary, marginTop: 0 }}>{t('auth.createAccountTitle')}</h1>
+      <TextField label={t('auth.yourName')} value={name} onChange={(e) => setName(e.target.value)} required />
       <TextField
-        label="Business name"
+        label={t('auth.businessName')}
         value={businessName}
         onChange={(e) => setBusinessName(e.target.value)}
-        placeholder="e.g. Acme Rentals"
+        placeholder={t('auth.businessNamePlaceholder')}
         required
       />
       <TextField
-        label="Email"
+        label={t('auth.email')}
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         required
       />
       <TextField
-        label="Password (min 8 chars)"
+        label={t('auth.passwordMin')}
         type="password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
@@ -62,12 +64,12 @@ export function RegisterScreen({ onSwitch }: { onSwitch: () => void }) {
       />
       {error && <p style={{ color: theme.color.danger }}>{error}</p>}
       <Button type="submit" disabled={isLoading}>
-        {isLoading ? 'Creating…' : 'Create account'}
+        {isLoading ? t('auth.creating') : t('auth.createAccount')}
       </Button>
       <p style={{ color: theme.color.textMuted, marginBottom: 0 }}>
-        Already have an account?{' '}
+        {t('auth.haveAccount')}{' '}
         <a onClick={onSwitch} style={{ color: theme.color.primary, cursor: 'pointer' }}>
-          Sign in
+          {t('auth.signInLink')}
         </a>
       </p>
     </form>

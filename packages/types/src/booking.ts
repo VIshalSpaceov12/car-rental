@@ -1,3 +1,5 @@
+import type { Branch } from './fleet'
+
 /**
  * Authoritative booking lifecycle. The backend owns transitions; both clients
  * import this union — never redefine status strings locally.
@@ -56,6 +58,8 @@ export interface Booking {
   tax: number
   total: number
   currency: string
+  /** When the provider expects the vehicle ready for pickup (set on `prepare`). ISO 8601. */
+  prepReadyAt: string | null
   /** ISO 8601 */
   createdAt: string
 }
@@ -87,6 +91,10 @@ export interface Quote {
   endAt: string
   /** Billable rental days (rounded up, floored at the provider's minRentalDays). */
   days: number
+  /** Days the customer actually selected (before the minRentalDays floor). */
+  requestedDays: number
+  /** True when `days` was raised to the provider's minRentalDays floor (so the client can disclose the charge). */
+  minRentalDaysApplied: boolean
   pricePerDay: number
   /** Plan rate factor (e.g. weekly 0.9). */
   planMultiplier: number
@@ -101,13 +109,10 @@ export interface Quote {
 
 /**
  * Minimal branch option for the booking customization screen (pickup/drop-off
- * pickers). Booking-scoped on purpose — the full Branch entity + management API
- * is the fleet domain (Phase 2); clients migrate to it when it lands.
+ * pickers). A compiler-enforced subset of the fleet `Branch` (Phase 2 landed it),
+ * so a rename of `Branch.name` surfaces here instead of drifting silently.
  */
-export interface BranchOption {
-  id: string
-  name: string
-}
+export type BranchOption = Pick<Branch, 'id' | 'name'>
 
 /** Create a booking (customer). Pricing is recomputed server-side, never trusted from the client. */
 export interface CreateBookingRequest {
@@ -120,4 +125,10 @@ export interface CreateBookingRequest {
   /** ISO 8601 */
   endAt: string
   discountCode?: string
+}
+
+/** Provider marks a booking `vehicle-prepared`, optionally recording when it'll be ready. */
+export interface PrepareBookingRequest {
+  /** ISO 8601 — when the vehicle will be ready for pickup. */
+  prepReadyAt?: string
 }

@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '@car-rental/tokens'
 import type { Quote, RentalPlan } from '@car-rental/types'
 import { Button } from '../../components/Button'
 import { TextField } from '../../components/TextField'
+import { useVehiclesQuery } from '../../store/fleetApi'
 import {
   useCreateBookingMutation,
   useGetBranchOptionsQuery,
-  useGetVehiclesQuery,
   useQuoteMutation,
 } from '../../store/bookingApi'
 import { emptyDraft, toCreateRequest, toQuoteRequest, validateDraft, type BookingDraft } from './bookingDraft'
@@ -46,14 +47,24 @@ function SelectRow({
   )
 }
 
-export function BookingFlow({ onClose }: { onClose: () => void }) {
+export function BookingFlow({
+  initialVehicleId,
+  onClose,
+}: {
+  initialVehicleId?: string
+  onClose: () => void
+}) {
   const theme = useTheme()
-  const [step, setStep] = useState<Step>('vehicle')
-  const [draft, setDraft] = useState<BookingDraft>(emptyDraft)
+  const { t } = useTranslation()
+  // With a vehicle preselected from Details, skip the generic picker.
+  const [step, setStep] = useState<Step>(initialVehicleId ? 'customize' : 'vehicle')
+  const [draft, setDraft] = useState<BookingDraft>(() =>
+    initialVehicleId ? { ...emptyDraft, vehicleId: initialVehicleId } : emptyDraft,
+  )
   const [quote, setQuote] = useState<Quote | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const vehicles = useGetVehiclesQuery()
+  const vehicles = useVehiclesQuery({ available: true })
   const branches = useGetBranchOptionsQuery(draft.vehicleId ?? '', { skip: !draft.vehicleId })
   const [requestQuote, quoting] = useQuoteMutation()
   const [createBooking, creating] = useCreateBookingMutation()
@@ -72,7 +83,7 @@ export function BookingFlow({ onClose }: { onClose: () => void }) {
       setQuote(q)
       setStep('review')
     } catch {
-      setError('Could not price this booking. Check your dates and try again.')
+      setError(t('booking.priceError'))
     }
   }
 
@@ -81,7 +92,7 @@ export function BookingFlow({ onClose }: { onClose: () => void }) {
       await createBooking(toCreateRequest(draft)).unwrap()
       setStep('done')
     } catch {
-      setError('Could not create the booking. Please try again.')
+      setError(t('booking.createError'))
     }
   }
 
@@ -93,9 +104,9 @@ export function BookingFlow({ onClose }: { onClose: () => void }) {
       contentContainerStyle={{ padding: theme.spacing.lg }}
     >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: theme.spacing.lg }}>
-        <Text style={{ color: theme.color.primary, ...heading }}>Book a car</Text>
+        <Text style={{ color: theme.color.primary, ...heading }}>{t('booking.title')}</Text>
         <Pressable onPress={onClose}>
-          <Text style={{ color: theme.color.textMuted }}>Cancel</Text>
+          <Text style={{ color: theme.color.textMuted }}>{t('common.cancel')}</Text>
         </Pressable>
       </View>
 
@@ -103,14 +114,14 @@ export function BookingFlow({ onClose }: { onClose: () => void }) {
 
       {step === 'vehicle' && (
         <View>
-          <Text style={{ color: theme.color.text, marginBottom: theme.spacing.sm }}>Choose a vehicle</Text>
+          <Text style={{ color: theme.color.text, marginBottom: theme.spacing.sm }}>{t('booking.chooseVehicle')}</Text>
           {vehicles.isLoading && <ActivityIndicator color={theme.color.primary} />}
-          {vehicles.isError && <Text style={{ color: theme.color.danger }}>Could not load vehicles.</Text>}
+          {vehicles.isError && <Text style={{ color: theme.color.danger }}>{t('booking.loadVehiclesError')}</Text>}
           {vehicles.data?.map((v) => (
             <SelectRow
               key={v.id}
               label={v.name}
-              sublabel={`${v.category} · ${v.pricePerDay} ${v.currency}/day`}
+              sublabel={t('booking.vehicleSubtitle', { category: v.category, price: v.pricePerDay, currency: v.currency })}
               selected={draft.vehicleId === v.id}
               onPress={() => {
                 update({ vehicleId: v.id, pickupBranchId: null, dropoffBranchId: null })
@@ -124,7 +135,7 @@ export function BookingFlow({ onClose }: { onClose: () => void }) {
 
       {step === 'customize' && (
         <View>
-          <Text style={{ color: theme.color.text, marginBottom: theme.spacing.sm }}>Plan</Text>
+          <Text style={{ color: theme.color.text, marginBottom: theme.spacing.sm }}>{t('booking.plan')}</Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm, marginBottom: theme.spacing.md }}>
             {PLANS.map((p) => {
               const selected = draft.plan === p
@@ -139,28 +150,30 @@ export function BookingFlow({ onClose }: { onClose: () => void }) {
                     backgroundColor: selected ? theme.color.primary : theme.color.surface,
                   }}
                 >
-                  <Text style={{ color: selected ? theme.color.onPrimary : theme.color.text }}>{p}</Text>
+                  <Text style={{ color: selected ? theme.color.onPrimary : theme.color.text }}>
+                    {t(`booking.plans.${p}`)}
+                  </Text>
                 </Pressable>
               )
             })}
           </View>
 
           <TextField
-            label="Start date (YYYY-MM-DD)"
+            label={t('booking.startDateLabel')}
             value={draft.startDate}
-            onChangeText={(t) => update({ startDate: t })}
+            onChangeText={(text) => update({ startDate: text })}
             placeholder="2026-07-01"
             autoCapitalize="none"
           />
           <TextField
-            label="End date (YYYY-MM-DD)"
+            label={t('booking.endDateLabel')}
             value={draft.endDate}
-            onChangeText={(t) => update({ endDate: t })}
+            onChangeText={(text) => update({ endDate: text })}
             placeholder="2026-07-04"
             autoCapitalize="none"
           />
 
-          <Text style={{ color: theme.color.text, marginBottom: theme.spacing.sm }}>Pickup branch</Text>
+          <Text style={{ color: theme.color.text, marginBottom: theme.spacing.sm }}>{t('booking.pickupBranch')}</Text>
           {branches.isLoading && <ActivityIndicator color={theme.color.primary} />}
           {branches.data?.map((b) => (
             <SelectRow
@@ -171,7 +184,7 @@ export function BookingFlow({ onClose }: { onClose: () => void }) {
             />
           ))}
 
-          <Text style={{ color: theme.color.text, marginVertical: theme.spacing.sm }}>Drop-off branch</Text>
+          <Text style={{ color: theme.color.text, marginVertical: theme.spacing.sm }}>{t('booking.dropoffBranch')}</Text>
           {branches.data?.map((b) => (
             <SelectRow
               key={`dropoff-${b.id}`}
@@ -182,34 +195,53 @@ export function BookingFlow({ onClose }: { onClose: () => void }) {
           ))}
 
           <TextField
-            label="Discount code (optional)"
+            label={t('booking.discountCodeLabel')}
             value={draft.discountCode}
-            onChangeText={(t) => update({ discountCode: t })}
+            onChangeText={(text) => update({ discountCode: text })}
             placeholder="WELCOME10"
             autoCapitalize="characters"
           />
 
           <View style={{ marginTop: theme.spacing.md }}>
-            <Button title={quoting.isLoading ? 'Pricing…' : 'Get quote'} onPress={onGetQuote} disabled={quoting.isLoading} />
+            <Button
+              title={quoting.isLoading ? t('booking.pricing') : t('booking.getQuote')}
+              onPress={onGetQuote}
+              disabled={quoting.isLoading}
+            />
           </View>
         </View>
       )}
 
       {step === 'review' && quote && (
         <View>
-          <Text style={{ color: theme.color.text, marginBottom: theme.spacing.md }}>Review your booking</Text>
-          <QuoteRow label={`${quote.days} day(s) × ${quote.pricePerDay} (${quote.plan})`} value={`${quote.subtotal} ${quote.currency}`} />
-          {quote.discountAmount > 0 && (
-            <QuoteRow label={`Discount ${quote.discountCode ?? ''}`} value={`-${quote.discountAmount} ${quote.currency}`} />
+          <Text style={{ color: theme.color.text, marginBottom: theme.spacing.md }}>{t('booking.reviewTitle')}</Text>
+          <QuoteRow
+            label={t('booking.lineItem', { days: quote.days, pricePerDay: quote.pricePerDay, plan: t(`booking.plans.${quote.plan}`) })}
+            value={`${quote.subtotal} ${quote.currency}`}
+          />
+          {quote.minRentalDaysApplied && (
+            <Text style={{ color: theme.color.textMuted, marginBottom: theme.spacing.sm }}>
+              {t('booking.minRentalNotice', { days: quote.days })}
+            </Text>
           )}
-          <QuoteRow label={`Tax (${quote.taxRatePct}%)`} value={`${quote.tax} ${quote.currency}`} />
-          <QuoteRow label="Total" value={`${quote.total} ${quote.currency}`} strong />
+          {quote.discountAmount > 0 && (
+            <QuoteRow
+              label={t('booking.discountLine', { code: quote.discountCode ?? '' })}
+              value={`-${quote.discountAmount} ${quote.currency}`}
+            />
+          )}
+          <QuoteRow label={t('booking.taxLine', { rate: quote.taxRatePct })} value={`${quote.tax} ${quote.currency}`} />
+          <QuoteRow label={t('booking.total')} value={`${quote.total} ${quote.currency}`} strong />
           <View style={{ marginTop: theme.spacing.lg }}>
-            <Button title={creating.isLoading ? 'Booking…' : 'Confirm booking'} onPress={onConfirm} disabled={creating.isLoading} />
+            <Button
+              title={creating.isLoading ? t('booking.booking') : t('booking.confirm')}
+              onPress={onConfirm}
+              disabled={creating.isLoading}
+            />
           </View>
           <View style={{ marginTop: theme.spacing.sm }}>
             <Pressable onPress={() => setStep('customize')}>
-              <Text style={{ color: theme.color.textMuted, textAlign: 'center' }}>Back</Text>
+              <Text style={{ color: theme.color.textMuted, textAlign: 'center' }}>{t('common.back')}</Text>
             </Pressable>
           </View>
         </View>
@@ -217,11 +249,13 @@ export function BookingFlow({ onClose }: { onClose: () => void }) {
 
       {step === 'done' && (
         <View>
-          <Text style={{ color: theme.color.success, ...heading, marginBottom: theme.spacing.sm }}>Booking reserved!</Text>
-          <Text style={{ color: theme.color.textMuted, marginBottom: theme.spacing.lg }}>
-            The provider will review and confirm it shortly.
+          <Text style={{ color: theme.color.success, ...heading, marginBottom: theme.spacing.sm }}>
+            {t('booking.reservedTitle')}
           </Text>
-          <Button title="Done" onPress={onClose} />
+          <Text style={{ color: theme.color.textMuted, marginBottom: theme.spacing.lg }}>
+            {t('booking.reservedBody')}
+          </Text>
+          <Button title={t('common.done')} onPress={onClose} />
         </View>
       )}
     </ScrollView>

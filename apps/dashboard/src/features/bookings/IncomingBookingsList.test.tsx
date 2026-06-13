@@ -21,6 +21,7 @@ const base: BookingSummary = {
   tax: 18,
   total: 378,
   currency: 'AED',
+  prepReadyAt: null,
   createdAt: '2026-06-01T00:00:00.000Z',
   vehicleName: 'Toyota Corolla',
   customerName: 'Demo Customer',
@@ -72,5 +73,27 @@ describe('IncomingBookingsList', () => {
   it('shows an empty state when there are no bookings', () => {
     renderList([])
     expect(screen.getByText(/no .* bookings/i)).toBeInTheDocument()
+  })
+
+  it('hides terminal bookings from the default Incoming filter, shows them under All', () => {
+    renderList([{ ...base, status: 'completed' }])
+    // Default "incoming" filter hides the completed booking.
+    expect(screen.queryByText('Toyota Corolla')).toBeNull()
+    // Switching to "all" reveals it.
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'all' } })
+    expect(screen.getByText('Toyota Corolla')).toBeInTheDocument()
+  })
+
+  it('sends prepReadyAt (ISO) when a datetime is set before Prepare', () => {
+    const onAction = renderList([{ ...base, status: 'confirmed' }])
+    const input = document.querySelector('input[type="datetime-local"]') as HTMLInputElement
+    fireEvent.change(input, { target: { value: '2026-07-01T09:00' } })
+    fireEvent.click(screen.getByRole('button', { name: /prepare/i }))
+    expect(onAction).toHaveBeenCalledWith('b1', 'prepare', new Date('2026-07-01T09:00').toISOString())
+  })
+
+  it('displays the stored prepReadyAt on a vehicle-prepared booking', () => {
+    renderList([{ ...base, status: 'vehicle-prepared', prepReadyAt: '2026-07-01T09:00:00.000Z' }])
+    expect(screen.getByText(/ready at/i)).toBeInTheDocument()
   })
 })

@@ -30,6 +30,21 @@ describe('validateDraft', () => {
   it('requires both branches', () => {
     expect(validateDraft({ ...valid, dropoffBranchId: null })).toMatch(/branch/i)
   })
+
+  // A fixed "now" keeps the past-date cases independent of the wall clock.
+  const now = new Date('2026-06-13T08:00:00.000Z')
+
+  it('rejects a start date before today', () => {
+    expect(
+      validateDraft({ ...valid, startDate: '2026-06-12', endDate: '2026-06-20' }, now),
+    ).toMatch(/past/i)
+  })
+
+  it('allows a start date of today', () => {
+    expect(
+      validateDraft({ ...valid, startDate: '2026-06-13', endDate: '2026-06-20' }, now),
+    ).toBeNull()
+  })
 })
 
 describe('toQuoteRequest / toCreateRequest', () => {

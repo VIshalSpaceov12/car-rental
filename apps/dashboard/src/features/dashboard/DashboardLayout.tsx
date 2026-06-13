@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useTheme } from '@car-rental/tokens'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { logout } from '../../store/authSlice'
@@ -9,10 +10,15 @@ import { BookingsScreen } from '../bookings/BookingsScreen'
 
 type Section = 'overview' | 'fleet' | 'branches' | 'bookings'
 
+// One-off layout dimension (sidebar width); not a cross-component semantic size.
+const SIDEBAR_WIDTH = 220
+
 export function DashboardLayout() {
   const theme = useTheme()
+  const { t } = useTranslation()
   const dispatch = useAppDispatch()
   const user = useAppSelector((s) => s.auth.user)
+  const branding = useAppSelector((s) => s.auth.branding)
   const [section, setSection] = useState<Section>('overview')
 
   const navItem = (key: Section, label: string) => (
@@ -34,27 +40,25 @@ export function DashboardLayout() {
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', fontFamily: theme.typography.body.fontFamily }}>
-      <aside style={{ width: 220, background: theme.color.surface, padding: theme.spacing.md }}>
-        <h2 style={{ color: theme.color.primary, marginTop: 0 }}>DemoRent</h2>
-        {navItem('overview', 'Overview')}
-        {navItem('fleet', 'Fleet')}
-        {navItem('branches', 'Branches')}
-        {navItem('bookings', 'Bookings')}
+      <aside style={{ width: SIDEBAR_WIDTH, background: theme.color.surface, padding: theme.spacing.md }}>
+        <h2 style={{ color: theme.color.primary, marginTop: 0 }}>{branding?.name ?? 'Provider Dashboard'}</h2>
+        {navItem('overview', t('nav.overview'))}
+        {navItem('fleet', t('nav.fleet'))}
+        {navItem('branches', t('nav.branches'))}
+        {navItem('bookings', t('nav.bookings'))}
         <div style={{ marginTop: theme.spacing.lg }}>
-          <Button onClick={() => dispatch(logout())}>Log out</Button>
+          <Button onClick={() => dispatch(logout())}>{t('nav.logout')}</Button>
         </div>
       </aside>
       <main style={{ flex: 1, padding: theme.spacing.xl, background: theme.color.background }}>
         {section === 'overview' && (
           <div>
-            <h1 style={{ color: theme.color.primary, marginTop: 0 }}>Provider Dashboard</h1>
+            <h1 style={{ color: theme.color.primary, marginTop: 0 }}>{t('overview.title')}</h1>
             <p style={{ color: theme.color.text }}>
-              Welcome, <strong>{user?.name}</strong> ({user?.role})
+              {t('overview.welcome', { name: user?.name ?? '', role: user?.role ?? '' })}
             </p>
-            <p style={{ color: theme.color.textMuted }}>Tenant: {user?.providerId ?? '—'}</p>
-            <p style={{ color: theme.color.textMuted }}>
-              Manage your fleet, branches, and incoming bookings from the menu.
-            </p>
+            <p style={{ color: theme.color.textMuted }}>{t('overview.tenant', { tenant: user?.providerId ?? '—' })}</p>
+            <p style={{ color: theme.color.textMuted }}>{t('overview.intro')}</p>
           </div>
         )}
         {section === 'fleet' && <FleetPage />}

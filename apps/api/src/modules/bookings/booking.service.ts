@@ -5,6 +5,7 @@ import type {
   BookingSummary,
   BranchOption,
   CreateBookingRequest,
+  PrepareBookingRequest,
   Quote,
   QuoteRequest,
 } from '@car-rental/types'
@@ -31,6 +32,8 @@ async function loadVehiclePricing(vehicleId: string) {
   return {
     providerId: vehicle.providerId,
     pricePerDay: vehicle.pricePerDay.toNumber(),
+    available: vehicle.available,
+    status: vehicle.status,
     settings: {
       taxRatePct: settings.taxRatePct.toNumber(),
       planMultipliers: settings.planMultipliers as Record<string, number>,
@@ -38,6 +41,12 @@ async function loadVehiclePricing(vehicleId: string) {
       currency: settings.currency,
     },
   }
+}
+
+/** Fail-closed tenant resolution: non-customers must carry a provider context. */
+function requireProviderId(user: AuthUser): string {
+  if (!user.providerId) throw new BookingError(400, 'provider context missing')
+  return user.providerId
 }
 
 export async function quote(input: QuoteRequest): Promise<Quote> {
@@ -54,11 +63,27 @@ export async function listVehicleBranchOptions(vehicleId: string): Promise<Branc
 }
 
 export async function createBooking(customerId: string, input: CreateBookingRequest): Promise<Booking> {
-  if (new Date(input.endAt).getTime() <= new Date(input.startAt).getTime()) {
+  const startAt = new Date(input.startAt)
+  const endAt = new Date(input.endAt)
+  if (endAt.getTime() <= startAt.getTime()) {
     throw new BookingError(400, 'endAt must be after startAt')
   }
+  if (startAt.getTime() < Date.now()) {
+    throw new BookingError(400, 'startAt must not be in the past')
+  }
 
-  const { providerId, pricePerDay, settings } = await loadVehiclePricing(input.vehicleId)
+  const { providerId, pricePerDay, available, status, settings } = await loadVehiclePricing(input.vehicleId)
+
+  // The vehicle must be bookable: listed as available and operationally active.
+  if (!available || status !== 'ACTIVE') {
+    throw new BookingError(409, 'vehicle is not available for booking')
+  }
+
+  // No double-booking: reject if any non-rejected/cancelled booking overlaps the range.
+  const overlaps = await repo.findOverlappingBookings(input.vehicleId, startAt, endAt)
+  if (overlaps.length > 0) {
+    throw new BookingError(409, 'vehicle is already booked for the selected dates')
+  }
 
   // Pickup/drop-off must be branches of the vehicle's provider.
   for (const branchId of [input.pickupBranchId, input.dropoffBranchId]) {
@@ -76,44 +101,46 @@ export async function createBooking(customerId: string, input: CreateBookingRequ
     plan: PLAN_TO_DB[input.plan],
     pickupBranchId: input.pickupBranchId,
     dropoffBranchId: input.dropoffBranchId,
-    startAt: new Date(input.startAt),
-    endAt: new Date(input.endAt),
+    startAt,
+    endAt,
     status: 'RESERVED',
     subtotal: q.subtotal,
     tax: q.tax,
     total: q.total,
     currency: q.currency,
     discountCode: q.discountCode,
+    discountAmount: q.discountAmount,
   })
   return toWireBooking(created)
 }
 
 export async function listForUser(user: AuthUser): Promise<BookingSummary[]> {
   const rows =
-    user.role === 'customer' ? await repo.listByCustomer(user.id) : await repo.listByProvider(user.providerId ?? '')
+    user.role === 'customer' ? await repo.listByCustomer(user.id) : await repo.listByProvider(requireProviderId(user))
   return rows.map(toWireBookingSummary)
 }
 
-export type BookingAction = 'accept' | 'reject' | 'prepare' | 'cancel'
+// Customer cancels their own; the rest are provider actions on a tenant-owned booking.
+export type BookingAction = 'accept' | 'reject' | 'cancel' | 'provider-cancel'
 
 const ACTION_TARGET: Record<BookingAction, BookingStatus> = {
   accept: 'confirmed',
   reject: 'rejected',
-  prepare: 'vehicle-prepared',
   cancel: 'cancelled',
+  'provider-cancel': 'cancelled',
 }
 
 /**
  * Drive a guarded status transition. `cancel` is the customer's own action;
- * accept/reject/prepare belong to the owning provider. The booking is looked up
- * within the caller's tenancy (404 otherwise), then the move is checked against
- * the authoritative graph (409 if illegal).
+ * accept/reject/provider-cancel belong to the owning provider. The booking is
+ * looked up within the caller's tenancy (404 otherwise), then the move is checked
+ * against the authoritative graph (409 if illegal).
  */
 export async function transition(user: AuthUser, bookingId: string, action: BookingAction): Promise<Booking> {
   const booking =
     action === 'cancel'
       ? await repo.findByIdForCustomer(bookingId, user.id)
-      : await repo.findByIdForProvider(bookingId, user.providerId ?? '')
+      : await repo.findByIdForProvider(bookingId, requireProviderId(user))
   if (!booking) throw new BookingError(404, 'booking not found')
 
   const from = toWireBooking(booking).status
@@ -123,5 +150,28 @@ export async function transition(user: AuthUser, bookingId: string, action: Book
   }
 
   const updated = await repo.updateStatus(bookingId, STATUS_TO_DB[to])
+  return toWireBooking(updated)
+}
+
+/**
+ * Provider marks a tenant-owned booking `vehicle-prepared`, optionally recording
+ * when the vehicle will be ready (`prepReadyAt`). Same tenancy + transition guards
+ * as the generic actions, but persists the prep timestamp alongside the status.
+ */
+export async function prepareBooking(
+  user: AuthUser,
+  bookingId: string,
+  input: PrepareBookingRequest,
+): Promise<Booking> {
+  const booking = await repo.findByIdForProvider(bookingId, requireProviderId(user))
+  if (!booking) throw new BookingError(404, 'booking not found')
+
+  const from = toWireBooking(booking).status
+  if (!canTransition(from, 'vehicle-prepared')) {
+    throw new BookingError(409, `cannot prepare a booking that is ${from}`)
+  }
+
+  const prepReadyAt = input.prepReadyAt ? new Date(input.prepReadyAt) : undefined
+  const updated = await repo.updateStatus(bookingId, STATUS_TO_DB['vehicle-prepared'], { prepReadyAt })
   return toWireBooking(updated)
 }

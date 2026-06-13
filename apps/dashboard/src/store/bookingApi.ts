@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import type { Booking, BookingSummary } from '@car-rental/types'
+import type { Booking, BookingSummary, PrepareBookingRequest } from '@car-rental/types'
 import { API_URL } from '../api/config'
 import type { RootState } from './store'
 
@@ -27,8 +27,8 @@ export const bookingApi = createApi({
       query: (id) => ({ url: `/bookings/${id}/reject`, method: 'POST' }),
       invalidatesTags: ['Booking'],
     }),
-    prepareBooking: builder.mutation<Booking, string>({
-      query: (id) => ({ url: `/bookings/${id}/prepare`, method: 'POST' }),
+    prepareBooking: builder.mutation<Booking, { id: string; body: PrepareBookingRequest }>({
+      query: ({ id, body }) => ({ url: `/bookings/${id}/prepare`, method: 'POST', body }),
       invalidatesTags: ['Booking'],
     }),
   }),

@@ -12,14 +12,17 @@ const PROVIDER_ID = 'demo-provider'
 async function main() {
   const passwordHash = bcrypt.hashSync('Password123!', 10)
 
+  // Shipped racing-red brand (matches @car-rental/tokens). Kept in `update` too so
+  // re-seeding an existing demo tenant refreshes the brand from blue → red.
+  const colors = { primary: '#E5322B', primaryDark: '#C9261E', background: '#0A0A0B' }
   const provider = await prisma.provider.upsert({
     where: { id: PROVIDER_ID },
-    update: {},
+    update: { colors },
     create: {
       id: PROVIDER_ID,
       name: 'DemoRent',
       logoUrl: null,
-      colors: { primary: '#2563eb', secondary: '#1d4ed8', background: '#ffffff' },
+      colors,
       defaultLocale: 'EN',
     },
   })

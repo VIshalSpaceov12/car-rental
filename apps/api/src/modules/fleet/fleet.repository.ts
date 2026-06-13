@@ -9,6 +9,7 @@ import type {
   VehicleFilters,
 } from '@car-rental/types'
 import { prisma } from '../../db/prisma'
+import { FUEL_TYPE_TO_DB, FUEL_TYPE_TO_WIRE, TRANSMISSION_TO_DB, TRANSMISSION_TO_WIRE } from './fleet.mappers'
 
 type VehicleRow = Prisma.VehicleGetPayload<{ include: { category: true } }>
 
@@ -18,10 +19,15 @@ export async function listVehicles(filters: VehicleFilters = {}): Promise<Vehicl
   const where: Prisma.VehicleWhereInput = {}
   if (filters.providerId) where.providerId = filters.providerId
   if (filters.categoryId) where.categoryId = filters.categoryId
-  if (filters.transmission) where.transmission = filters.transmission.toUpperCase() as Prisma.EnumTransmissionFilter['equals']
-  if (filters.fuelType) where.fuelType = filters.fuelType.toUpperCase() as Prisma.EnumFuelTypeFilter['equals']
+  if (filters.transmission) where.transmission = TRANSMISSION_TO_DB[filters.transmission]
+  if (filters.fuelType) where.fuelType = FUEL_TYPE_TO_DB[filters.fuelType]
   if (typeof filters.available === 'boolean') where.available = filters.available
-  if (typeof filters.maxPrice === 'number') where.pricePerDay = { lte: filters.maxPrice }
+  if (typeof filters.minPrice === 'number' || typeof filters.maxPrice === 'number') {
+    where.pricePerDay = {
+      ...(typeof filters.minPrice === 'number' ? { gte: filters.minPrice } : {}),
+      ...(typeof filters.maxPrice === 'number' ? { lte: filters.maxPrice } : {}),
+    }
+  }
 
   const rows = await prisma.vehicle.findMany({
     where,
@@ -29,6 +35,22 @@ export async function listVehicles(filters: VehicleFilters = {}): Promise<Vehicl
     orderBy: { name: 'asc' },
   })
   return rows.map(toWireVehicle)
+}
+
+/** Tenant-scoped management list: every vehicle owned by the provider (any availability). */
+export async function listProviderVehicles(providerId: string): Promise<Vehicle[]> {
+  const rows = await prisma.vehicle.findMany({
+    where: { providerId },
+    include: { category: true },
+    orderBy: { name: 'asc' },
+  })
+  return rows.map(toWireVehicle)
+}
+
+/** Public browse type-filter: the categories of the seeded/primary provider's catalog. */
+export async function listAllCategories(): Promise<Category[]> {
+  const rows = await prisma.vehicleCategory.findMany({ orderBy: { name: 'asc' } })
+  return rows.map((c) => ({ id: c.id, name: c.name }))
 }
 
 export async function getVehicle(id: string): Promise<Vehicle | null> {
@@ -42,8 +64,8 @@ export async function createVehicle(providerId: string, input: CreateVehicleRequ
       providerId,
       categoryId: input.categoryId,
       name: input.name,
-      transmission: input.transmission.toUpperCase() as VehicleRow['transmission'],
-      fuelType: input.fuelType.toUpperCase() as VehicleRow['fuelType'],
+      transmission: TRANSMISSION_TO_DB[input.transmission],
+      fuelType: FUEL_TYPE_TO_DB[input.fuelType],
       seats: input.seats,
       pricePerDay: input.pricePerDay,
       currency: input.currency,
@@ -67,8 +89,8 @@ export async function updateVehicle(
     data: {
       categoryId: input.categoryId,
       name: input.name,
-      transmission: input.transmission?.toUpperCase() as VehicleRow['transmission'] | undefined,
-      fuelType: input.fuelType?.toUpperCase() as VehicleRow['fuelType'] | undefined,
+      transmission: input.transmission ? TRANSMISSION_TO_DB[input.transmission] : undefined,
+      fuelType: input.fuelType ? FUEL_TYPE_TO_DB[input.fuelType] : undefined,
       seats: input.seats,
       pricePerDay: input.pricePerDay,
       currency: input.currency,
@@ -127,8 +149,8 @@ function toWireVehicle(v: VehicleRow): Vehicle {
     name: v.name,
     categoryId: v.categoryId,
     category: v.category.name,
-    transmission: v.transmission.toLowerCase() as Vehicle['transmission'],
-    fuelType: v.fuelType.toLowerCase() as Vehicle['fuelType'],
+    transmission: TRANSMISSION_TO_WIRE[v.transmission],
+    fuelType: FUEL_TYPE_TO_WIRE[v.fuelType],
     seats: v.seats,
     pricePerDay: v.pricePerDay.toNumber(),
     currency: v.currency,

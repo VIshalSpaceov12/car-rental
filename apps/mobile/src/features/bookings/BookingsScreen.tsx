@@ -1,0 +1,125 @@
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useTranslation } from 'react-i18next'
+import { useTheme, type Theme } from '@car-rental/tokens'
+import { BOOKING_TRANSITIONS, type BookingStatus, type BookingSummary } from '@car-rental/types'
+import { Icon } from '../../components/Icon'
+import { Button } from '../../components/Button'
+import { useCancelBookingMutation, useGetBookingsQuery } from '../../store/bookingApi'
+
+/** Customer's cancel action is offered only where the lifecycle allows it. */
+const canCancel = (status: BookingStatus) => BOOKING_TRANSITIONS[status].includes('cancelled')
+
+const statusColor = (theme: Theme, status: BookingStatus): string => {
+  if (status === 'rejected' || status === 'cancelled') return theme.color.danger
+  if (status === 'completed' || status === 'returned' || status === 'confirmed') return theme.color.success
+  return theme.color.textMuted
+}
+
+/** YYYY-MM-DD slice of an ISO timestamp for compact display. */
+const day = (iso: string) => iso.slice(0, 10)
+
+export function BookingsScreen() {
+  const theme = useTheme()
+  const insets = useSafeAreaInsets()
+  const { t } = useTranslation()
+  const { data: bookings, isLoading, isError } = useGetBookingsQuery()
+  const [cancelBooking, cancelling] = useCancelBookingMutation()
+
+  const onCancel = async (id: string) => {
+    try {
+      await cancelBooking(id).unwrap()
+    } catch {
+      // The list keeps the current status; the row stays cancellable to retry.
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, backgroundColor: theme.color.background, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color={theme.color.primary} />
+      </View>
+    )
+  }
+
+  if (isError) {
+    return (
+      <View style={{ flex: 1, backgroundColor: theme.color.background, alignItems: 'center', justifyContent: 'center', padding: theme.spacing.lg }}>
+        <Text style={{ color: theme.color.danger, textAlign: 'center' }}>{t('bookings.loadError')}</Text>
+      </View>
+    )
+  }
+
+  if (!bookings || bookings.length === 0) {
+    return (
+      <View style={{ flex: 1, backgroundColor: theme.color.background, alignItems: 'center', justifyContent: 'center', gap: theme.spacing.md }}>
+        <Icon name="clock" size={theme.size.control.sm} color={theme.color.textSubtle} />
+        <Text style={{ color: theme.color.textMuted, fontSize: theme.typography.body.fontSize }}>{t('bookings.empty')}</Text>
+      </View>
+    )
+  }
+
+  return (
+    <ScrollView
+      style={{ flex: 1, backgroundColor: theme.color.background }}
+      contentContainerStyle={{
+        paddingTop: insets.top + theme.spacing.lg,
+        paddingHorizontal: theme.spacing.lg,
+        paddingBottom: insets.bottom + theme.spacing.xxl * 2,
+        gap: theme.spacing.md,
+      }}
+    >
+      <Text style={{ color: theme.color.text, fontSize: theme.typography.heading.fontSize, fontWeight: theme.typography.heading.fontWeight }}>
+        {t('bookings.title')}
+      </Text>
+      {bookings.map((b) => (
+        <BookingRow key={b.id} booking={b} cancelling={cancelling.isLoading} onCancel={() => onCancel(b.id)} />
+      ))}
+    </ScrollView>
+  )
+}
+
+function BookingRow({
+  booking,
+  cancelling,
+  onCancel,
+}: {
+  booking: BookingSummary
+  cancelling: boolean
+  onCancel: () => void
+}) {
+  const theme = useTheme()
+  const { t } = useTranslation()
+  return (
+    <View
+      style={{
+        backgroundColor: theme.color.surface,
+        borderRadius: theme.radius.lg,
+        padding: theme.spacing.md,
+        gap: theme.spacing.sm,
+      }}
+    >
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: theme.spacing.sm }}>
+        <Text style={{ color: theme.color.text, fontSize: theme.typography.subtitle.fontSize, fontWeight: '600', flex: 1 }}>
+          {booking.vehicleName}
+        </Text>
+        <Text style={{ color: statusColor(theme, booking.status), fontSize: theme.typography.caption.fontSize, fontWeight: '600' }}>
+          {t(`bookings.status.${booking.status}`)}
+        </Text>
+      </View>
+      <Text style={{ color: theme.color.textMuted, fontSize: theme.typography.caption.fontSize }}>
+        {t('bookings.dateRange', { start: day(booking.startAt), end: day(booking.endAt) })}
+      </Text>
+      <Text style={{ color: theme.color.text, fontWeight: '600' }}>
+        {booking.total} {booking.currency}
+      </Text>
+      {canCancel(booking.status) && (
+        <Button
+          title={cancelling ? t('bookings.cancelling') : t('bookings.cancel')}
+          onPress={onCancel}
+          disabled={cancelling}
+        />
+      )}
+    </View>
+  )
+}
