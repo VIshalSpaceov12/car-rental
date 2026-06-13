@@ -4,6 +4,8 @@ import type {
   BookingSummary,
   BranchOption,
   CreateBookingRequest,
+  PayRequest,
+  Payment,
   Quote,
   QuoteRequest,
 } from '@car-rental/types'
@@ -40,6 +42,14 @@ export const bookingApi = createApi({
       query: (id) => ({ url: `/bookings/${id}/cancel`, method: 'POST' }),
       invalidatesTags: ['Booking'],
     }),
+    pay: builder.mutation<Payment, { bookingId: string; body: PayRequest }>({
+      query: ({ bookingId, body }) => ({
+        url: `/payments/${bookingId}/pay`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Booking'],
+    }),
   }),
 })
 
@@ -49,4 +59,5 @@ export const {
   useQuoteMutation,
   useCreateBookingMutation,
   useCancelBookingMutation,
+  usePayMutation,
 } = bookingApi

@@ -81,10 +81,16 @@
     "filterLabel": "Show",
     "filterIncoming": "Incoming",
     "filterAll": "All",
-    "accept": "Accept",
     "reject": "Reject",
     "prepare": "Prepare",
+    "cancel": "Cancel",
     "prepReadyLabel": "Ready at",
-    "prepReadyAt": "Ready at {{when}}"
+    "prepReadyAt": "Ready at {{when}}",
+    "payment": {
+      "paid": "Paid",
+      "pending": "Pending",
+      "failed": "Failed",
+      "refunded": "Refunded"
+    }
   }
 }

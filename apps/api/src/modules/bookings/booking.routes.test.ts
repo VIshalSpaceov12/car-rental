@@ -202,12 +202,15 @@ describe('bookings — list scoping', () => {
 })
 
 describe('bookings — guarded lifecycle', () => {
-  it('runs accept then prepare: reserved → confirmed → vehicle-prepared', async () => {
+  it('runs pay then prepare: reserved → confirmed → vehicle-prepared', async () => {
     const { body: booking } = await createBooking(customerToken)
 
-    const accepted = await request(app).post(`/bookings/${booking.id}/accept`).set(bearer(providerToken))
-    expect(accepted.status).toBe(200)
-    expect(accepted.body.status).toBe('confirmed')
+    // Confirmation is now driven by payment, not a manual provider accept.
+    const paid = await request(app)
+      .post(`/payments/${booking.id}/pay`)
+      .set(bearer(customerToken))
+      .send({ method: 'card-mock' })
+    expect(paid.status).toBe(201)
 
     const prepared = await request(app).post(`/bookings/${booking.id}/prepare`).set(bearer(providerToken))
     expect(prepared.status).toBe(200)
@@ -218,13 +221,6 @@ describe('bookings — guarded lifecycle', () => {
     const { body: booking } = await createBooking(customerToken)
     const res = await request(app).post(`/bookings/${booking.id}/prepare`).set(bearer(providerToken))
     expect(res.status).toBe(409)
-  })
-
-  it('rejects accepting an already-confirmed booking with 409', async () => {
-    const { body: booking } = await createBooking(customerToken)
-    await request(app).post(`/bookings/${booking.id}/accept`).set(bearer(providerToken))
-    const again = await request(app).post(`/bookings/${booking.id}/accept`).set(bearer(providerToken))
-    expect(again.status).toBe(409)
   })
 
   it('lets a provider reject a reserved booking (reserved → rejected)', async () => {
@@ -243,13 +239,13 @@ describe('bookings — guarded lifecycle', () => {
 })
 
 describe('bookings — authorization', () => {
-  it('forbids a customer from accepting a booking (403)', async () => {
+  it('forbids a customer from rejecting a booking (403)', async () => {
     const { body: booking } = await createBooking(customerToken)
-    const res = await request(app).post(`/bookings/${booking.id}/accept`).set(bearer(customerToken))
+    const res = await request(app).post(`/bookings/${booking.id}/reject`).set(bearer(customerToken))
     expect(res.status).toBe(403)
   })
 
-  it('hides another provider’s booking from a different tenant (404 on accept)', async () => {
+  it('hides another provider’s booking from a different tenant (404 on reject)', async () => {
     const { body: booking } = await createBooking(customerToken)
 
     // A freshly registered provider is a different tenant and must not see it.
@@ -264,7 +260,7 @@ describe('bookings — authorization', () => {
       })
     const otherToken: string = reg.body.token
 
-    const res = await request(app).post(`/bookings/${booking.id}/accept`).set(bearer(otherToken))
+    const res = await request(app).post(`/bookings/${booking.id}/reject`).set(bearer(otherToken))
     expect(res.status).toBe(404)
   })
 })
@@ -272,8 +268,11 @@ describe('bookings — authorization', () => {
 describe('bookings — provider cancel & prepare timestamp', () => {
   it('lets the owning provider cancel a confirmed booking (confirmed → cancelled)', async () => {
     const { body: booking } = await createBooking(customerToken)
-    const accepted = await request(app).post(`/bookings/${booking.id}/accept`).set(bearer(providerToken))
-    expect(accepted.body.status).toBe('confirmed')
+    const paid = await request(app)
+      .post(`/payments/${booking.id}/pay`)
+      .set(bearer(customerToken))
+      .send({ method: 'card-mock' })
+    expect(paid.status).toBe(201)
 
     const cancelled = await request(app).post(`/bookings/${booking.id}/provider-cancel`).set(bearer(providerToken))
     expect(cancelled.status).toBe(200)
@@ -293,7 +292,7 @@ describe('bookings — provider cancel & prepare timestamp', () => {
 
   it('persists prepReadyAt when the provider prepares the vehicle', async () => {
     const { body: booking } = await createBooking(customerToken)
-    await request(app).post(`/bookings/${booking.id}/accept`).set(bearer(providerToken))
+    await request(app).post(`/payments/${booking.id}/pay`).set(bearer(customerToken)).send({ method: 'card-mock' })
 
     const prepReadyAt = '2027-12-01T09:00:00.000Z'
     const prepared = await request(app)

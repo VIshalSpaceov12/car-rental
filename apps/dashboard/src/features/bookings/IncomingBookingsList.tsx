@@ -1,17 +1,24 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@car-rental/tokens'
-import { BOOKING_TRANSITIONS, type BookingStatus, type BookingSummary } from '@car-rental/types'
+import {
+  BOOKING_TRANSITIONS,
+  type BookingStatus,
+  type BookingSummary,
+  type PaymentStatus,
+} from '@car-rental/types'
 
-export type ProviderBookingAction = 'accept' | 'reject' | 'prepare'
+export type ProviderBookingAction = 'reject' | 'prepare' | 'cancel'
 
 // Provider-driven actions, each mapped to the status it produces. A button shows
 // only when that target is a legal next step per the authoritative graph — so the
-// UI can never offer an illegal transition the API would reject.
+// UI can never offer an illegal transition the API would reject. Note: the
+// provider no longer confirms/accepts — reserved → confirmed is driven by the
+// customer's payment, so there is no action targeting `confirmed`.
 const PROVIDER_ACTIONS: { action: ProviderBookingAction; target: BookingStatus }[] = [
-  { action: 'accept', target: 'confirmed' },
   { action: 'reject', target: 'rejected' },
   { action: 'prepare', target: 'vehicle-prepared' },
+  { action: 'cancel', target: 'cancelled' },
 ]
 
 // The default "Incoming" view shows only bookings the provider can still act on;
@@ -25,10 +32,21 @@ function availableActions(status: BookingStatus) {
   return PROVIDER_ACTIONS.filter((a) => BOOKING_TRANSITIONS[status].includes(a.target))
 }
 
-const ACTION_LABEL_KEY: Record<ProviderBookingAction, 'bookings.accept' | 'bookings.reject' | 'bookings.prepare'> = {
-  accept: 'bookings.accept',
+const ACTION_LABEL_KEY: Record<ProviderBookingAction, 'bookings.reject' | 'bookings.prepare' | 'bookings.cancel'> = {
   reject: 'bookings.reject',
   prepare: 'bookings.prepare',
+  cancel: 'bookings.cancel',
+}
+
+// Read-only payment status chip labels. Null (no payment recorded yet) renders a dash.
+const PAYMENT_STATUS_LABEL_KEY: Record<
+  PaymentStatus,
+  'bookings.payment.paid' | 'bookings.payment.pending' | 'bookings.payment.failed' | 'bookings.payment.refunded'
+> = {
+  paid: 'bookings.payment.paid',
+  pending: 'bookings.payment.pending',
+  failed: 'bookings.payment.failed',
+  refunded: 'bookings.payment.refunded',
 }
 
 interface Props {
@@ -49,6 +67,31 @@ export function IncomingBookingsList({ bookings, onAction, busyId }: Props) {
 
   const visible =
     filter === 'incoming' ? bookings.filter((b) => ACTIONABLE_STATUSES.includes(b.status)) : bookings
+
+  // Read-only payment chip: color by status, dash for none recorded yet.
+  const paymentChipColor = (status: PaymentStatus | null) => {
+    switch (status) {
+      case 'paid':
+        return theme.color.success
+      case 'failed':
+        return theme.color.danger
+      default:
+        return theme.color.textMuted
+    }
+  }
+  const renderPaymentChip = (status: PaymentStatus | null) => (
+    <span
+      style={{
+        color: paymentChipColor(status),
+        border: `1px solid ${paymentChipColor(status)}`,
+        borderRadius: theme.radius.sm,
+        padding: `${theme.spacing.xs}px ${theme.spacing.sm}px`,
+        fontSize: theme.typography.caption.fontSize,
+      }}
+    >
+      {status ? t(PAYMENT_STATUS_LABEL_KEY[status]) : '—'}
+    </span>
+  )
 
   const filterControl = (
     <label
@@ -123,6 +166,7 @@ export function IncomingBookingsList({ bookings, onAction, busyId }: Props) {
                   {b.total} {b.currency}
                 </strong>
                 <span style={{ color: theme.color.textMuted }}>{b.status}</span>
+                {renderPaymentChip(b.paymentStatus)}
                 {actions.map((a) => (
                   <div key={a.action} style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
                     {a.action === 'prepare' && (
@@ -155,7 +199,8 @@ export function IncomingBookingsList({ bookings, onAction, busyId }: Props) {
                       }}
                       disabled={busy}
                       style={{
-                        background: a.action === 'reject' ? theme.color.danger : theme.color.primary,
+                        background:
+                          a.action === 'reject' || a.action === 'cancel' ? theme.color.danger : theme.color.primary,
                         color: theme.color.onPrimary,
                         border: 'none',
                         borderRadius: theme.radius.md,

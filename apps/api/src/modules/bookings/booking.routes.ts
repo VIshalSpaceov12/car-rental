@@ -95,7 +95,9 @@ bookingsRouter.get(
   },
 )
 
-// Provider drives accept/reject/prepare/provider-cancel; the customer cancels their own booking.
+// Provider drives reject/prepare/provider-cancel; the customer cancels their own
+// booking. Confirmation is driven by payment (see payments module), not a manual
+// provider action.
 const runAction = (action: BookingAction) => async (req: Request<{ id: string }>, res: Response) => {
   try {
     res.json(await transition(req.user!, req.params.id, action))
@@ -104,7 +106,6 @@ const runAction = (action: BookingAction) => async (req: Request<{ id: string }>
   }
 }
 
-bookingsRouter.post('/:id/accept', requireAuth, requireRole('service-provider'), runAction('accept'))
 bookingsRouter.post('/:id/reject', requireAuth, requireRole('service-provider'), runAction('reject'))
 bookingsRouter.post('/:id/cancel', requireAuth, requireRole('customer'), runAction('cancel'))
 bookingsRouter.post('/:id/provider-cancel', requireAuth, requireRole('service-provider'), runAction('provider-cancel'))

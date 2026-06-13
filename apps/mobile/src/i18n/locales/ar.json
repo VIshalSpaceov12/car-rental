@@ -80,10 +80,21 @@
     "minRentalNotice": "Minimum {{days}} day(s) applied.",
     "confirm": "Confirm booking",
     "booking": "Booking…",
-    "reservedTitle": "Booking reserved!",
-    "reservedBody": "The provider will review and confirm it shortly.",
+    "checkoutTitle": "الدفع",
+    "paymentMethod": "طريقة الدفع",
+    "methods": {
+      "card-mock": "بطاقة",
+      "cash-on-delivery": "الدفع عند الاستلام"
+    },
+    "pay": "ادفع",
+    "paying": "جارٍ المعالجة…",
+    "confirmedTitle": "تم تأكيد الحجز!",
+    "confirmedPaidBody": "تم استلام الدفعة. ستصلك رمز الاستلام قبل بدء الإيجار.",
+    "confirmedCodBody": "ستدفع عند الاستلام. ستصلك رمز الاستلام قبل بدء الإيجار.",
     "priceError": "Could not price this booking. Check your dates and try again.",
-    "createError": "Could not create the booking. Please try again."
+    "createError": "Could not create the booking. Please try again.",
+    "paymentFailed": "فشل الدفع. حاول مرة أخرى أو اختر الدفع عند الاستلام.",
+    "paymentError": "تعذّرت معالجة الدفع. يرجى المحاولة مرة أخرى."
   },
   "bookings": {
     "title": "My bookings",
@@ -102,6 +113,12 @@
       "completed": "Completed",
       "rejected": "Rejected",
       "cancelled": "Cancelled"
+    },
+    "paymentStatus": {
+      "pending": "قيد الانتظار",
+      "paid": "مدفوع",
+      "failed": "فشل",
+      "refunded": "مُسترد"
     }
   },
   "filters": {

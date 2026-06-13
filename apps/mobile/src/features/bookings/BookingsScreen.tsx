@@ -2,7 +2,12 @@ import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import { useTheme, type Theme } from '@car-rental/tokens'
-import { BOOKING_TRANSITIONS, type BookingStatus, type BookingSummary } from '@car-rental/types'
+import {
+  BOOKING_TRANSITIONS,
+  type BookingStatus,
+  type BookingSummary,
+  type PaymentStatus,
+} from '@car-rental/types'
 import { Icon } from '../../components/Icon'
 import { Button } from '../../components/Button'
 import { useCancelBookingMutation, useGetBookingsQuery } from '../../store/bookingApi'
@@ -14,6 +19,13 @@ const statusColor = (theme: Theme, status: BookingStatus): string => {
   if (status === 'rejected' || status === 'cancelled') return theme.color.danger
   if (status === 'completed' || status === 'returned' || status === 'confirmed') return theme.color.success
   return theme.color.textMuted
+}
+
+const paymentStatusColor = (theme: Theme, status: PaymentStatus): string => {
+  if (status === 'paid') return theme.color.success
+  if (status === 'failed') return theme.color.danger
+  if (status === 'pending') return theme.color.warning
+  return theme.color.textMuted // refunded
 }
 
 /** YYYY-MM-DD slice of an ISO timestamp for compact display. */
@@ -103,9 +115,31 @@ function BookingRow({
         <Text style={{ color: theme.color.text, fontSize: theme.typography.subtitle.fontSize, fontWeight: '600', flex: 1 }}>
           {booking.vehicleName}
         </Text>
-        <Text style={{ color: statusColor(theme, booking.status), fontSize: theme.typography.caption.fontSize, fontWeight: '600' }}>
-          {t(`bookings.status.${booking.status}`)}
-        </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.sm }}>
+          {booking.paymentStatus && (
+            <View
+              style={{
+                backgroundColor: theme.color.surfaceAlt,
+                borderRadius: theme.radius.pill,
+                paddingVertical: theme.spacing.xs,
+                paddingHorizontal: theme.spacing.sm,
+              }}
+            >
+              <Text
+                style={{
+                  color: paymentStatusColor(theme, booking.paymentStatus),
+                  fontSize: theme.typography.caption.fontSize,
+                  fontWeight: '600',
+                }}
+              >
+                {t(`bookings.paymentStatus.${booking.paymentStatus}`)}
+              </Text>
+            </View>
+          )}
+          <Text style={{ color: statusColor(theme, booking.status), fontSize: theme.typography.caption.fontSize, fontWeight: '600' }}>
+            {t(`bookings.status.${booking.status}`)}
+          </Text>
+        </View>
       </View>
       <Text style={{ color: theme.color.textMuted, fontSize: theme.typography.caption.fontSize }}>
         {t('bookings.dateRange', { start: day(booking.startAt), end: day(booking.endAt) })}

@@ -5,6 +5,7 @@ import type {
   RentalPlan as DbRentalPlan,
 } from '@prisma/client'
 import type { Booking, BookingStatus, BookingSummary, RentalPlan } from '@car-rental/types'
+import { PAYMENT_STATUS_TO_WIRE } from '../payments/payment.mappers'
 
 // DB enums are UPPER_SNAKE; wire strings are kebab/lowercase. Map at this boundary.
 export const PLAN_TO_DB: Record<RentalPlan, DbRentalPlan> = {
@@ -68,16 +69,27 @@ export function toWireBooking(b: DbBooking): Booking {
 }
 
 export type BookingWithRelations = Prisma.BookingGetPayload<{
-  include: { vehicle: true; customer: true; pickupBranch: true; dropoffBranch: true }
+  include: {
+    vehicle: true
+    customer: true
+    pickupBranch: true
+    dropoffBranch: true
+    payments: { orderBy: { createdAt: 'desc' }; take: 1 }
+  }
 }>
 
-/** A list-screen row: a wire Booking plus the display names of its relations. */
+/**
+ * A list-screen row: a wire Booking plus the display names of its relations and
+ * the latest payment status (null if the booking has never been paid).
+ */
 export function toWireBookingSummary(b: BookingWithRelations): BookingSummary {
+  const latestPayment = b.payments[0]
   return {
     ...toWireBooking(b),
     vehicleName: b.vehicle.name,
     customerName: b.customer.name,
     pickupBranchName: b.pickupBranch.name,
     dropoffBranchName: b.dropoffBranch.name,
+    paymentStatus: latestPayment ? PAYMENT_STATUS_TO_WIRE[latestPayment.status] : null,
   }
 }

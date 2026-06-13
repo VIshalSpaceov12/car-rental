@@ -21,11 +21,12 @@ The status enum and its allowed-transition graph are owned by `@car-rental/types
 | POST | `/bookings/quote` | customer | Itemized price, no persistence |
 | POST | `/bookings` | customer | Create → `reserved` (amounts recomputed server-side) |
 | GET | `/bookings` | any | Tenant-scoped list (customer: own · provider: incoming) |
-| POST | `/bookings/:id/accept` | service-provider | `reserved → confirmed` |
 | POST | `/bookings/:id/reject` | service-provider | `reserved → rejected` |
 | POST | `/bookings/:id/prepare` | service-provider | `confirmed → vehicle-prepared` |
-| POST | `/bookings/:id/cancel` | customer | `reserved`/`confirmed → cancelled` |
+| POST | `/bookings/:id/cancel` | customer | `reserved`/`confirmed → cancelled` (refunds a paid payment) |
+| POST | `/bookings/:id/provider-cancel` | service-provider | `reserved`/`confirmed → cancelled` (refunds a paid payment) |
 
-**Phase 3** reaches `confirmed` via provider *accept*. **Phase 4** (payments) will
-move that trigger to *payment* without changing the transition graph. OTP issuance
-for keyless pickup lands in Phase 5.
+**Phase 4** moves the `reserved → confirmed` trigger to **payment** (see the
+`payments` module: `POST /payments/:bookingId/pay`) — the provider *accept* action
+is removed. The transition graph is unchanged. OTP issuance for keyless pickup
+lands in Phase 5.

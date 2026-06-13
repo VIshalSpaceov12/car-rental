@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@car-rental/tokens'
 import {
-  useAcceptBookingMutation,
+  useCancelBookingMutation,
   useGetBookingsQuery,
   usePrepareBookingMutation,
   useRejectBookingMutation,
@@ -14,16 +14,16 @@ export function BookingsScreen() {
   const theme = useTheme()
   const { t } = useTranslation()
   const { data: bookings, isLoading, isError } = useGetBookingsQuery()
-  const [accept] = useAcceptBookingMutation()
   const [reject] = useRejectBookingMutation()
+  const [cancel] = useCancelBookingMutation()
   const [prepare] = usePrepareBookingMutation()
   const [busyId, setBusyId] = useState<string | null>(null)
 
   const onAction = async (id: string, action: ProviderBookingAction, prepReadyAt?: string) => {
     setBusyId(id)
     try {
-      if (action === 'accept') await accept(id).unwrap()
-      else if (action === 'reject') await reject(id).unwrap()
+      if (action === 'reject') await reject(id).unwrap()
+      else if (action === 'cancel') await cancel(id).unwrap()
       else await prepare({ id, body: prepReadyAt ? { prepReadyAt } : {} }).unwrap()
     } finally {
       setBusyId(null)

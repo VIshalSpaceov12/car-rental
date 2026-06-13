@@ -19,12 +19,12 @@ export const bookingApi = createApi({
       query: () => '/bookings',
       providesTags: ['Booking'],
     }),
-    acceptBooking: builder.mutation<Booking, string>({
-      query: (id) => ({ url: `/bookings/${id}/accept`, method: 'POST' }),
-      invalidatesTags: ['Booking'],
-    }),
     rejectBooking: builder.mutation<Booking, string>({
       query: (id) => ({ url: `/bookings/${id}/reject`, method: 'POST' }),
+      invalidatesTags: ['Booking'],
+    }),
+    cancelBooking: builder.mutation<Booking, string>({
+      query: (id) => ({ url: `/bookings/${id}/provider-cancel`, method: 'POST' }),
       invalidatesTags: ['Booking'],
     }),
     prepareBooking: builder.mutation<Booking, { id: string; body: PrepareBookingRequest }>({
@@ -34,5 +34,5 @@ export const bookingApi = createApi({
   }),
 })
 
-export const { useGetBookingsQuery, useAcceptBookingMutation, useRejectBookingMutation, usePrepareBookingMutation } =
+export const { useGetBookingsQuery, useRejectBookingMutation, useCancelBookingMutation, usePrepareBookingMutation } =
   bookingApi

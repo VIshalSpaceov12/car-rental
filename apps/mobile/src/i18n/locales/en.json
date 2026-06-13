@@ -80,10 +80,21 @@
     "minRentalNotice": "Minimum {{days}} day(s) applied.",
     "confirm": "Confirm booking",
     "booking": "Booking…",
-    "reservedTitle": "Booking reserved!",
-    "reservedBody": "The provider will review and confirm it shortly.",
+    "checkoutTitle": "Checkout",
+    "paymentMethod": "Payment method",
+    "methods": {
+      "card-mock": "Card",
+      "cash-on-delivery": "Cash on delivery"
+    },
+    "pay": "Pay",
+    "paying": "Processing…",
+    "confirmedTitle": "Booking confirmed!",
+    "confirmedPaidBody": "Payment received. You'll get your pickup OTP before the rental starts.",
+    "confirmedCodBody": "You'll pay at pickup. You'll get your pickup OTP before the rental starts.",
     "priceError": "Could not price this booking. Check your dates and try again.",
-    "createError": "Could not create the booking. Please try again."
+    "createError": "Could not create the booking. Please try again.",
+    "paymentFailed": "Payment failed. Try again or choose cash on delivery.",
+    "paymentError": "Could not process the payment. Please try again."
   },
   "bookings": {
     "title": "My bookings",
@@ -102,6 +113,12 @@
       "completed": "Completed",
       "rejected": "Rejected",
       "cancelled": "Cancelled"
+    },
+    "paymentStatus": {
+      "pending": "Pending",
+      "paid": "Paid",
+      "failed": "Failed",
+      "refunded": "Refunded"
     }
   },
   "filters": {

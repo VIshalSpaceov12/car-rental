@@ -2,20 +2,22 @@ import { useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@car-rental/tokens'
-import type { Quote, RentalPlan } from '@car-rental/types'
+import type { PaymentMethod, Quote, RentalPlan } from '@car-rental/types'
 import { Button } from '../../components/Button'
 import { TextField } from '../../components/TextField'
 import { useVehiclesQuery } from '../../store/fleetApi'
 import {
   useCreateBookingMutation,
   useGetBranchOptionsQuery,
+  usePayMutation,
   useQuoteMutation,
 } from '../../store/bookingApi'
 import { emptyDraft, toCreateRequest, toQuoteRequest, validateDraft, type BookingDraft } from './bookingDraft'
 
 const PLANS: RentalPlan[] = ['daily', 'weekly', 'monthly', 'long-term']
+const PAYMENT_METHODS: PaymentMethod[] = ['card-mock', 'cash-on-delivery']
 
-type Step = 'vehicle' | 'customize' | 'review' | 'done'
+type Step = 'vehicle' | 'customize' | 'review' | 'checkout' | 'done'
 
 function SelectRow({
   label,
@@ -62,12 +64,17 @@ export function BookingFlow({
     initialVehicleId ? { ...emptyDraft, vehicleId: initialVehicleId } : emptyDraft,
   )
   const [quote, setQuote] = useState<Quote | null>(null)
+  const [bookingId, setBookingId] = useState<string | null>(null)
+  const [method, setMethod] = useState<PaymentMethod>('card-mock')
+  // The method that actually confirmed the booking, for the success copy.
+  const [paidMethod, setPaidMethod] = useState<PaymentMethod | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   const vehicles = useVehiclesQuery({ available: true })
   const branches = useGetBranchOptionsQuery(draft.vehicleId ?? '', { skip: !draft.vehicleId })
   const [requestQuote, quoting] = useQuoteMutation()
   const [createBooking, creating] = useCreateBookingMutation()
+  const [pay, paying] = usePayMutation()
 
   const update = (patch: Partial<BookingDraft>) => setDraft((d) => ({ ...d, ...patch }))
 
@@ -87,12 +94,34 @@ export function BookingFlow({
     }
   }
 
+  // Review-confirm creates the booking (status `reserved`) and moves to payment.
   const onConfirm = async () => {
+    setError(null)
     try {
-      await createBooking(toCreateRequest(draft)).unwrap()
-      setStep('done')
+      const booking = await createBooking(toCreateRequest(draft)).unwrap()
+      setBookingId(booking.id)
+      setStep('checkout')
     } catch {
       setError(t('booking.createError'))
+    }
+  }
+
+  // Pay confirms the reserved booking. A `failed` payment (or a request error)
+  // leaves the booking `reserved`; we stay on checkout so the customer can retry
+  // or switch to cash-on-delivery.
+  const onPay = async () => {
+    if (!bookingId) return
+    setError(null)
+    try {
+      const payment = await pay({ bookingId, body: { method } }).unwrap()
+      if (payment.status === 'failed') {
+        setError(t('booking.paymentFailed'))
+        return
+      }
+      setPaidMethod(method)
+      setStep('done')
+    } catch {
+      setError(t('booking.paymentError'))
     }
   }
 
@@ -215,23 +244,7 @@ export function BookingFlow({
       {step === 'review' && quote && (
         <View>
           <Text style={{ color: theme.color.text, marginBottom: theme.spacing.md }}>{t('booking.reviewTitle')}</Text>
-          <QuoteRow
-            label={t('booking.lineItem', { days: quote.days, pricePerDay: quote.pricePerDay, plan: t(`booking.plans.${quote.plan}`) })}
-            value={`${quote.subtotal} ${quote.currency}`}
-          />
-          {quote.minRentalDaysApplied && (
-            <Text style={{ color: theme.color.textMuted, marginBottom: theme.spacing.sm }}>
-              {t('booking.minRentalNotice', { days: quote.days })}
-            </Text>
-          )}
-          {quote.discountAmount > 0 && (
-            <QuoteRow
-              label={t('booking.discountLine', { code: quote.discountCode ?? '' })}
-              value={`-${quote.discountAmount} ${quote.currency}`}
-            />
-          )}
-          <QuoteRow label={t('booking.taxLine', { rate: quote.taxRatePct })} value={`${quote.tax} ${quote.currency}`} />
-          <QuoteRow label={t('booking.total')} value={`${quote.total} ${quote.currency}`} strong />
+          <QuoteSummary quote={quote} />
           <View style={{ marginTop: theme.spacing.lg }}>
             <Button
               title={creating.isLoading ? t('booking.booking') : t('booking.confirm')}
@@ -247,18 +260,75 @@ export function BookingFlow({
         </View>
       )}
 
+      {step === 'checkout' && quote && (
+        <View>
+          <Text style={{ color: theme.color.text, marginBottom: theme.spacing.md }}>{t('booking.checkoutTitle')}</Text>
+          <QuoteSummary quote={quote} />
+
+          <Text style={{ color: theme.color.text, marginTop: theme.spacing.lg, marginBottom: theme.spacing.sm }}>
+            {t('booking.paymentMethod')}
+          </Text>
+          {PAYMENT_METHODS.map((m) => (
+            <SelectRow
+              key={m}
+              label={t(`booking.methods.${m}`)}
+              selected={method === m}
+              onPress={() => {
+                setMethod(m)
+                setError(null)
+              }}
+            />
+          ))}
+
+          <View style={{ marginTop: theme.spacing.lg }}>
+            <Button
+              title={paying.isLoading ? t('booking.paying') : t('booking.pay')}
+              onPress={onPay}
+              disabled={paying.isLoading}
+            />
+          </View>
+        </View>
+      )}
+
       {step === 'done' && (
         <View>
           <Text style={{ color: theme.color.success, ...heading, marginBottom: theme.spacing.sm }}>
-            {t('booking.reservedTitle')}
+            {t('booking.confirmedTitle')}
           </Text>
           <Text style={{ color: theme.color.textMuted, marginBottom: theme.spacing.lg }}>
-            {t('booking.reservedBody')}
+            {paidMethod === 'cash-on-delivery' ? t('booking.confirmedCodBody') : t('booking.confirmedPaidBody')}
           </Text>
           <Button title={t('common.done')} onPress={onClose} />
         </View>
       )}
     </ScrollView>
+  )
+}
+
+/** Itemized quote breakdown shared by the review and checkout steps. */
+function QuoteSummary({ quote }: { quote: Quote }) {
+  const theme = useTheme()
+  const { t } = useTranslation()
+  return (
+    <View>
+      <QuoteRow
+        label={t('booking.lineItem', { days: quote.days, pricePerDay: quote.pricePerDay, plan: t(`booking.plans.${quote.plan}`) })}
+        value={`${quote.subtotal} ${quote.currency}`}
+      />
+      {quote.minRentalDaysApplied && (
+        <Text style={{ color: theme.color.textMuted, marginBottom: theme.spacing.sm }}>
+          {t('booking.minRentalNotice', { days: quote.days })}
+        </Text>
+      )}
+      {quote.discountAmount > 0 && (
+        <QuoteRow
+          label={t('booking.discountLine', { code: quote.discountCode ?? '' })}
+          value={`-${quote.discountAmount} ${quote.currency}`}
+        />
+      )}
+      <QuoteRow label={t('booking.taxLine', { rate: quote.taxRatePct })} value={`${quote.tax} ${quote.currency}`} />
+      <QuoteRow label={t('booking.total')} value={`${quote.total} ${quote.currency}`} strong />
+    </View>
   )
 }
 

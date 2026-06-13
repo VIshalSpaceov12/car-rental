@@ -1,4 +1,5 @@
 import type { Branch } from './fleet'
+import type { PaymentStatus } from './payment'
 
 /**
  * Authoritative booking lifecycle. The backend owns transitions; both clients
@@ -70,6 +71,8 @@ export interface BookingSummary extends Booking {
   customerName: string
   pickupBranchName: string
   dropoffBranchName: string
+  /** Latest payment status for the booking, or null if none recorded yet. */
+  paymentStatus: PaymentStatus | null
 }
 
 /** Price a prospective rental without persisting anything. */

@@ -13,6 +13,8 @@ import { canTransition } from './booking.lifecycle'
 import { computeQuote } from './booking.pricing'
 import { PLAN_TO_DB, STATUS_TO_DB, toWireBooking, toWireBookingSummary } from './booking.mappers'
 import * as repo from './booking.repository'
+import { PAYMENT_STATUS_TO_WIRE } from '../payments/payment.mappers'
+import * as paymentRepo from '../payments/payment.repository'
 
 export class BookingError extends Error {
   constructor(
@@ -47,6 +49,14 @@ async function loadVehiclePricing(vehicleId: string) {
 function requireProviderId(user: AuthUser): string {
   if (!user.providerId) throw new BookingError(400, 'provider context missing')
   return user.providerId
+}
+
+/** A cancelled booking refunds its latest `paid` payment (COD/pending settles to nothing). */
+async function refundPaidPayment(bookingId: string): Promise<void> {
+  const payment = await paymentRepo.findByBookingId(bookingId)
+  if (payment && PAYMENT_STATUS_TO_WIRE[payment.status] === 'paid') {
+    await paymentRepo.updatePaymentStatus(payment.id, 'REFUNDED')
+  }
 }
 
 export async function quote(input: QuoteRequest): Promise<Quote> {
@@ -120,11 +130,12 @@ export async function listForUser(user: AuthUser): Promise<BookingSummary[]> {
   return rows.map(toWireBookingSummary)
 }
 
-// Customer cancels their own; the rest are provider actions on a tenant-owned booking.
-export type BookingAction = 'accept' | 'reject' | 'cancel' | 'provider-cancel'
+// Customer cancels their own; the rest are provider actions on a tenant-owned
+// booking. Confirmation is no longer a manual provider action — payment drives
+// reserved→confirmed (see payments module).
+export type BookingAction = 'reject' | 'cancel' | 'provider-cancel'
 
 const ACTION_TARGET: Record<BookingAction, BookingStatus> = {
-  accept: 'confirmed',
   reject: 'rejected',
   cancel: 'cancelled',
   'provider-cancel': 'cancelled',
@@ -132,9 +143,10 @@ const ACTION_TARGET: Record<BookingAction, BookingStatus> = {
 
 /**
  * Drive a guarded status transition. `cancel` is the customer's own action;
- * accept/reject/provider-cancel belong to the owning provider. The booking is
- * looked up within the caller's tenancy (404 otherwise), then the move is checked
- * against the authoritative graph (409 if illegal).
+ * reject/provider-cancel belong to the owning provider. The booking is looked up
+ * within the caller's tenancy (404 otherwise), then the move is checked against
+ * the authoritative graph (409 if illegal). Cancelling a booking that already has
+ * a `paid` payment refunds it.
  */
 export async function transition(user: AuthUser, bookingId: string, action: BookingAction): Promise<Booking> {
   const booking =
@@ -150,6 +162,7 @@ export async function transition(user: AuthUser, bookingId: string, action: Book
   }
 
   const updated = await repo.updateStatus(bookingId, STATUS_TO_DB[to])
+  if (to === 'cancelled') await refundPaidPayment(bookingId)
   return toWireBooking(updated)
 }
 

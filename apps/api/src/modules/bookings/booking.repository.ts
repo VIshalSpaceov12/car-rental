@@ -6,6 +6,8 @@ const summaryInclude = {
   customer: true,
   pickupBranch: true,
   dropoffBranch: true,
+  // Latest payment only — its status drives BookingSummary.paymentStatus.
+  payments: { orderBy: { createdAt: 'desc' }, take: 1 },
 } satisfies Prisma.BookingInclude
 
 /** Vehicle + its provider's business settings — everything pricing needs. */

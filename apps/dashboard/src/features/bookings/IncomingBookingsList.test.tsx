@@ -27,6 +27,7 @@ const base: BookingSummary = {
   customerName: 'Demo Customer',
   pickupBranchName: 'Downtown',
   dropoffBranchName: 'Airport',
+  paymentStatus: null,
 }
 
 function renderList(bookings: BookingSummary[], onAction = vi.fn()) {
@@ -46,23 +47,37 @@ describe('IncomingBookingsList', () => {
     expect(screen.getByText(/378/)).toBeInTheDocument()
   })
 
-  it('offers Accept and Reject for a reserved booking, but not Prepare', () => {
+  it('offers Reject and Cancel for a reserved booking, but never Accept or Prepare', () => {
     renderList([base])
-    expect(screen.getByRole('button', { name: /accept/i })).toBeInTheDocument()
+    // Provider no longer confirms — reserved → confirmed is driven by customer payment.
+    expect(screen.queryByRole('button', { name: /accept/i })).toBeNull()
     expect(screen.getByRole('button', { name: /reject/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /prepare/i })).toBeNull()
   })
 
-  it('offers Prepare for a confirmed booking, but not Accept', () => {
+  it('offers Prepare and Cancel for a confirmed booking, but never Accept or Reject', () => {
     renderList([{ ...base, status: 'confirmed' }])
     expect(screen.getByRole('button', { name: /prepare/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /accept/i })).toBeNull()
+    expect(screen.queryByRole('button', { name: /reject/i })).toBeNull()
   })
 
-  it('calls onAction with the booking id and action when Accept is clicked', () => {
+  it('calls onAction with the booking id and action when Reject is clicked', () => {
     const onAction = renderList([base])
-    fireEvent.click(screen.getByRole('button', { name: /accept/i }))
-    expect(onAction).toHaveBeenCalledWith('b1', 'accept')
+    fireEvent.click(screen.getByRole('button', { name: /reject/i }))
+    expect(onAction).toHaveBeenCalledWith('b1', 'reject')
+  })
+
+  it('renders the payment status chip next to the booking status', () => {
+    renderList([{ ...base, paymentStatus: 'paid' }])
+    expect(screen.getByText('Paid')).toBeInTheDocument()
+  })
+
+  it('renders a dash for a booking with no payment recorded yet', () => {
+    renderList([base])
+    expect(screen.getByText('—')).toBeInTheDocument()
   })
 
   it('offers no action buttons for a terminal booking', () => {
