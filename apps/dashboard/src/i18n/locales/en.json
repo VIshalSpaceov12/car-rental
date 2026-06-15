@@ -32,7 +32,31 @@
     "fleet": "Fleet",
     "branches": "Branches",
     "bookings": "Bookings",
+    "branding": "Branding",
     "logout": "Log out"
+  },
+  "language": {
+    "label": "Language",
+    "en": "English",
+    "ar": "العربية"
+  },
+  "branding": {
+    "title": "Branding",
+    "intro": "Customize your storefront. Changes apply to your dashboard theme immediately.",
+    "name": "Business name",
+    "logoUrl": "Logo URL",
+    "logoUrlPlaceholder": "https://…",
+    "colorsTitle": "Brand colors",
+    "primary": "Primary color",
+    "primaryDark": "Primary (dark)",
+    "background": "Background color",
+    "colorPlaceholder": "#RRGGBB",
+    "previewTitle": "Preview",
+    "previewButton": "Sample button",
+    "save": "Save branding",
+    "saving": "Saving…",
+    "saved": "Branding saved.",
+    "saveFailed": "Could not save branding. Please try again."
   },
   "overview": {
     "title": "Provider Dashboard",

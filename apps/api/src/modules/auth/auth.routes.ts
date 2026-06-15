@@ -1,7 +1,7 @@
 import { Router, type Response } from 'express'
 import { z } from 'zod'
-import { AuthError, brandingForProvider, getBranding, login, register } from './auth.service'
-import { requireAuth } from './auth.middleware'
+import { AuthError, brandingForProvider, getBranding, login, register, updateBranding } from './auth.service'
+import { requireAuth, requireRole } from './auth.middleware'
 
 export const authRouter: Router = Router()
 
@@ -82,6 +82,26 @@ export const brandingRouter: Router = Router()
 brandingRouter.get('/', async (_req, res) => {
   try {
     res.json(await getBranding())
+  } catch (err) {
+    handle(err, res)
+  }
+})
+
+const updateBrandingSchema = z.object({
+  name: z.string().min(1),
+  logoUrl: z.string().url().nullable(),
+  colors: colorsSchema,
+})
+
+// A provider edits its own white-label branding (name, logo, brand colors).
+brandingRouter.patch('/', requireAuth, requireRole('service-provider'), async (req, res) => {
+  const parsed = updateBrandingSchema.safeParse(req.body)
+  if (!parsed.success) {
+    res.status(400).json({ error: 'invalid request', details: parsed.error.flatten() })
+    return
+  }
+  try {
+    res.json(await updateBranding(req.user!, parsed.data))
   } catch (err) {
     handle(err, res)
   }

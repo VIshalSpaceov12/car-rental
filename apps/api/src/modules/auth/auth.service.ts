@@ -1,5 +1,12 @@
 import bcrypt from 'bcrypt'
-import type { AuthResponse, LoginRequest, ProviderBranding, RegisterRequest } from '@car-rental/types'
+import type {
+  AuthResponse,
+  AuthUser,
+  LoginRequest,
+  ProviderBranding,
+  RegisterRequest,
+  UpdateBrandingRequest,
+} from '@car-rental/types'
 import { prisma } from '../../db/prisma'
 import { DEFAULT_PROVIDER_BRAND } from '../../config/branding'
 import { signToken } from './auth.jwt'
@@ -81,6 +88,16 @@ export async function login(input: LoginRequest): Promise<AuthResponse> {
 
 export function getUserById(id: string) {
   return prisma.user.findUnique({ where: { id } })
+}
+
+/** A provider edits its own white-label branding (name, logo, brand colors). */
+export async function updateBranding(user: AuthUser, input: UpdateBrandingRequest): Promise<ProviderBranding> {
+  if (!user.providerId) throw new AuthError(400, 'provider context missing')
+  const provider = await prisma.provider.update({
+    where: { id: user.providerId },
+    data: { name: input.name, logoUrl: input.logoUrl, colors: input.colors },
+  })
+  return toProviderBranding(provider)
 }
 
 /** A user's provider branding, or null when they have no tenant (most customers). */

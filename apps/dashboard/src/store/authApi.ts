@@ -5,6 +5,7 @@ import type {
   LoginRequest,
   ProviderBranding,
   RegisterRequest,
+  UpdateBrandingRequest,
 } from '@car-rental/types'
 import { API_URL } from '../api/config'
 import type { RootState } from './store'
@@ -29,7 +30,11 @@ export const authApi = createApi({
     me: builder.query<{ user: AuthUser; branding: ProviderBranding | null }, void>({
       query: () => '/auth/me',
     }),
+    updateBranding: builder.mutation<ProviderBranding, UpdateBrandingRequest>({
+      query: (body) => ({ url: '/branding', method: 'PATCH', body }),
+    }),
   }),
 })
 
-export const { useLoginMutation, useRegisterMutation, useMeQuery } = authApi
+export const { useLoginMutation, useRegisterMutation, useMeQuery, useUpdateBrandingMutation } =
+  authApi

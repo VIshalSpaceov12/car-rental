@@ -43,6 +43,11 @@ const authSlice = createSlice({
         localStorage.removeItem(BRANDING_KEY)
       }
     },
+    /** Update the active provider branding so the runtime theme re-resolves immediately. */
+    setBranding: (state, action: PayloadAction<ProviderBranding>) => {
+      state.branding = action.payload
+      localStorage.setItem(BRANDING_KEY, JSON.stringify(action.payload))
+    },
     logout: (state) => {
       state.token = null
       state.user = null
@@ -54,5 +59,5 @@ const authSlice = createSlice({
   },
 })
 
-export const { setCredentials, logout } = authSlice.actions
+export const { setCredentials, setBranding, logout } = authSlice.actions
 export default authSlice.reducer

@@ -35,6 +35,13 @@ export interface LoginRequest {
   password: string
 }
 
+/** A provider edits its own white-label branding (name, logo, brand colors). */
+export interface UpdateBrandingRequest {
+  name: string
+  logoUrl: string | null
+  colors: ProviderBranding['colors']
+}
+
 export interface AuthUser {
   id: string
   email: string

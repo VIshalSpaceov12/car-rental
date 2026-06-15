@@ -3,20 +3,22 @@ import { useTranslation } from 'react-i18next'
 import { useTheme } from '@car-rental/tokens'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { logout } from '../../store/authSlice'
+import { setLocale, type Locale } from '../../i18n'
 import { useBookingStatusSocket } from '../../realtime/useBookingStatusSocket'
 import { Button } from '../../components/Button'
 import { FleetPage } from '../fleet/FleetPage'
 import { BranchesPage } from '../fleet/BranchesPage'
 import { BookingsScreen } from '../bookings/BookingsScreen'
+import { BrandingPage } from '../branding/BrandingPage'
 
-type Section = 'overview' | 'fleet' | 'branches' | 'bookings'
+type Section = 'overview' | 'fleet' | 'branches' | 'bookings' | 'branding'
 
 // One-off layout dimension (sidebar width); not a cross-component semantic size.
 const SIDEBAR_WIDTH = 220
 
 export function DashboardLayout() {
   const theme = useTheme()
-  const { t } = useTranslation()
+  const { t, i18n } = useTranslation()
   const dispatch = useAppDispatch()
   const user = useAppSelector((s) => s.auth.user)
   const branding = useAppSelector((s) => s.auth.branding)
@@ -51,6 +53,34 @@ export function DashboardLayout() {
         {navItem('fleet', t('nav.fleet'))}
         {navItem('branches', t('nav.branches'))}
         {navItem('bookings', t('nav.bookings'))}
+        {navItem('branding', t('nav.branding'))}
+        <label style={{ display: 'block', marginTop: theme.spacing.lg }}>
+          <span
+            style={{
+              display: 'block',
+              color: theme.color.textMuted,
+              marginBottom: theme.spacing.xs,
+              fontSize: theme.typography.caption.fontSize,
+            }}
+          >
+            {t('language.label')}
+          </span>
+          <select
+            value={i18n.language.startsWith('ar') ? 'ar' : 'en'}
+            onChange={(e) => setLocale(e.target.value as Locale)}
+            style={{
+              width: '100%',
+              boxSizing: 'border-box',
+              padding: theme.spacing.sm,
+              borderRadius: theme.radius.sm,
+              border: `1px solid ${theme.color.textMuted}`,
+              fontSize: theme.typography.body.fontSize,
+            }}
+          >
+            <option value="en">{t('language.en')}</option>
+            <option value="ar">{t('language.ar')}</option>
+          </select>
+        </label>
         <div style={{ marginTop: theme.spacing.lg }}>
           <Button onClick={() => dispatch(logout())}>{t('nav.logout')}</Button>
         </div>
@@ -69,6 +99,7 @@ export function DashboardLayout() {
         {section === 'fleet' && <FleetPage />}
         {section === 'branches' && <BranchesPage />}
         {section === 'bookings' && <BookingsScreen />}
+        {section === 'branding' && <BrandingPage />}
       </main>
     </div>
   )

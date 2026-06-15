@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { Provider } from 'react-redux'
 import { ThemeProvider, createTheme, darkTheme, useTheme, type Theme } from '@car-rental/tokens'
-import './src/i18n'
+import { initLocaleFromStorage } from './src/i18n'
 import { store } from './src/store/store'
 import { useAppDispatch, useAppSelector } from './src/store/hooks'
 import { hydrate } from './src/store/authSlice'
@@ -24,6 +24,11 @@ function Root() {
   useEffect(() => {
     loadAuth().then((auth) => dispatch(hydrate(auth)))
   }, [dispatch])
+
+  // Apply the user's persisted language choice over the device default.
+  useEffect(() => {
+    void initLocaleFromStorage()
+  }, [])
 
   if (!hydrated) {
     return (
