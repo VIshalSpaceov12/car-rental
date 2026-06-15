@@ -5,11 +5,13 @@ import {
   BookingError,
   completeBooking,
   createBooking,
+  getRating,
   getReturnInspection,
   listForUser,
   listVehicleBranchOptions,
   prepareBooking,
   quote,
+  rateBooking,
   returnBooking,
   transition,
   type BookingAction,
@@ -54,6 +56,12 @@ const prepareSchema = z.object({
 const completeSchema = z.object({
   condition: z.enum(['clean', 'minor-damage', 'major-damage']),
   notes: z.string().optional(),
+})
+
+const ratingSchema = z.object({
+  vehicleRating: z.number().int().min(1).max(5),
+  serviceRating: z.number().int().min(1).max(5),
+  comment: z.string().optional(),
 })
 
 bookingsRouter.post('/quote', requireAuth, requireRole('customer'), async (req, res) => {
@@ -172,6 +180,38 @@ bookingsRouter.get(
   async (req: Request<{ id: string }>, res: Response) => {
     try {
       res.json(await getReturnInspection(req.user!, req.params.id))
+    } catch (err) {
+      handle(err, res)
+    }
+  },
+)
+
+// Post-rental rating: the customer rates a completed booking; both parties can read it.
+bookingsRouter.post(
+  '/:id/rating',
+  requireAuth,
+  requireRole('customer'),
+  async (req: Request<{ id: string }>, res: Response) => {
+    const parsed = ratingSchema.safeParse(req.body)
+    if (!parsed.success) {
+      res.status(400).json({ error: 'invalid request', details: parsed.error.flatten() })
+      return
+    }
+    try {
+      res.status(201).json(await rateBooking(req.user!, req.params.id, parsed.data))
+    } catch (err) {
+      handle(err, res)
+    }
+  },
+)
+
+bookingsRouter.get(
+  '/:id/rating',
+  requireAuth,
+  requireRole('customer', 'service-provider'),
+  async (req: Request<{ id: string }>, res: Response) => {
+    try {
+      res.json(await getRating(req.user!, req.params.id))
     } catch (err) {
       handle(err, res)
     }

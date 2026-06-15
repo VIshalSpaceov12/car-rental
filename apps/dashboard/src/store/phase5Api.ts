@@ -3,6 +3,7 @@ import type {
   Contract,
   OtpIssueResponse,
   OtpSummary,
+  Rating,
   ReturnInspection,
 } from '@car-rental/types'
 import { API_URL } from '../api/config'
@@ -17,7 +18,7 @@ import type { RootState } from './store'
  */
 export const phase5Api = createApi({
   reducerPath: 'phase5Api',
-  tagTypes: ['Otp', 'Inspection'],
+  tagTypes: ['Otp', 'Inspection', 'Rating'],
   baseQuery: fetchBaseQuery({
     baseUrl: API_URL,
     prepareHeaders: (headers, { getState }) => {
@@ -45,6 +46,12 @@ export const phase5Api = createApi({
       query: (id) => `/bookings/${id}/inspection`,
       providesTags: (_r, _e, id) => [{ type: 'Inspection', id }],
     }),
+    // 404 (not rated yet) is expected — the customer rates *after* completion,
+    // so callers treat the error as "not rated yet" rather than a failure.
+    getRating: builder.query<Rating, string>({
+      query: (bookingId) => `/bookings/${bookingId}/rating`,
+      providesTags: (_r, _e, bookingId) => [{ type: 'Rating', id: bookingId }],
+    }),
   }),
 })
 
@@ -53,4 +60,5 @@ export const {
   useGetOtpQuery,
   useGetContractQuery,
   useGetInspectionQuery,
+  useGetRatingQuery,
 } = phase5Api

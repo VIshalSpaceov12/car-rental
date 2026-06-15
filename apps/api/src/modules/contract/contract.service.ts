@@ -5,6 +5,7 @@ import { canTransition } from '../bookings/booking.lifecycle'
 import { STATUS_TO_DB, toWireBooking } from '../bookings/booking.mappers'
 import * as bookingRepo from '../bookings/booking.repository'
 import * as otpRepo from '../otp/otp.repository'
+import { emitBookingStatus } from '../realtime/realtime'
 import { buildContractContent } from './contract.content'
 import { toWireContract } from './contract.mappers'
 import * as repo from './contract.repository'
@@ -85,6 +86,12 @@ export async function signContract(user: AuthUser, bookingId: string, req: Contr
 
   if (canTransition(from, 'picked-up')) {
     await bookingRepo.updateStatus(bookingId, STATUS_TO_DB['picked-up'])
+    emitBookingStatus({
+      bookingId,
+      status: 'picked-up',
+      customerId: booking.customerId,
+      providerId: booking.providerId,
+    })
   }
   return toWireContract(signed)
 }

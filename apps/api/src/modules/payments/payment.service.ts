@@ -4,6 +4,7 @@ import { STATUS_TO_DB, toWireBooking } from '../bookings/booking.mappers'
 import * as bookingRepo from '../bookings/booking.repository'
 import { METHOD_TO_DB, PAYMENT_STATUS_TO_DB, PAYMENT_STATUS_TO_WIRE, toWirePayment } from './payment.mappers'
 import * as repo from './payment.repository'
+import { emitBookingStatus } from '../realtime/realtime'
 
 export class PaymentError extends Error {
   constructor(
@@ -58,6 +59,12 @@ export async function pay(customerId: string, bookingId: string, req: PayRequest
   // via the authoritative reserved→confirmed edge.
   if (!failed && canTransition(from, 'confirmed')) {
     await bookingRepo.updateStatus(bookingId, STATUS_TO_DB.confirmed)
+    emitBookingStatus({
+      bookingId,
+      status: 'confirmed',
+      customerId: booking.customerId,
+      providerId: booking.providerId,
+    })
   }
 
   return toWirePayment(created)

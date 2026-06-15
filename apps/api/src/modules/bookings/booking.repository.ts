@@ -74,3 +74,11 @@ export function createReturnInspection(data: Prisma.ReturnInspectionUncheckedCre
 export function findReturnInspection(bookingId: string) {
   return prisma.returnInspection.findUnique({ where: { bookingId } })
 }
+
+export function createRating(data: Prisma.RatingUncheckedCreateInput) {
+  return prisma.rating.create({ data })
+}
+
+export function findRating(bookingId: string) {
+  return prisma.rating.findUnique({ where: { bookingId } })
+}

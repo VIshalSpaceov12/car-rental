@@ -6,12 +6,18 @@ import { VehicleDetailScreen } from '../features/browse/VehicleDetailScreen'
 import { BookingFlow } from '../features/booking/BookingFlow'
 import { PickupFlow } from '../features/pickup/PickupFlow'
 import { ReturnScreen } from '../features/return/ReturnScreen'
+import { RatingScreen } from '../features/rating/RatingScreen'
+import { ReceiptScreen } from '../features/bookings/ReceiptScreen'
+import { useBookingStatusSocket } from '../store/useBookingStatusSocket'
 import type { RootStackParamList } from './types'
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
 export function AppNavigator() {
   const theme = useTheme()
+  // One authenticated Socket.io connection for the whole logged-in session:
+  // booking-status events refetch the bookings list so the UI stays live.
+  useBookingStatusSocket()
   // Map our tokens onto React Navigation's theme so screen transitions/backgrounds
   // stay on-brand (no white flash on the dark canvas).
   const navTheme: NavTheme = {
@@ -48,6 +54,16 @@ export function AppNavigator() {
         <Stack.Screen name="Return">
           {({ navigation, route }) => (
             <ReturnScreen bookingId={route.params.bookingId} onClose={() => navigation.goBack()} />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="Rating">
+          {({ navigation, route }) => (
+            <RatingScreen bookingId={route.params.bookingId} onClose={() => navigation.goBack()} />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="Receipt">
+          {({ navigation, route }) => (
+            <ReceiptScreen bookingId={route.params.bookingId} onClose={() => navigation.goBack()} />
           )}
         </Stack.Screen>
       </Stack.Navigator>

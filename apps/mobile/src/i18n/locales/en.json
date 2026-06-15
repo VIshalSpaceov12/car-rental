@@ -106,6 +106,10 @@
     "cancelError": "Could not cancel this booking. Please try again.",
     "pickup": "Pick up vehicle",
     "returnVehicle": "Return vehicle",
+    "historyTitle": "Past rentals",
+    "rate": "Rate this rental",
+    "viewReceipt": "View receipt",
+    "rebook": "Book again",
     "status": {
       "reserved": "Reserved",
       "confirmed": "Confirmed",
@@ -150,6 +154,31 @@
     "error": "Could not record the return. Please try again.",
     "doneTitle": "Vehicle returned",
     "doneBody": "Thanks! The provider will inspect the vehicle and complete your booking."
+  },
+  "rating": {
+    "title": "Rate your rental",
+    "intro": "Tell us how the vehicle and the service were. Your rating helps other customers.",
+    "vehicleLabel": "Vehicle (1–5)",
+    "serviceLabel": "Service (1–5)",
+    "commentLabel": "Comment (optional)",
+    "commentPlaceholder": "Share more about your experience",
+    "submit": "Submit rating",
+    "submitting": "Submitting…",
+    "error": "Could not submit your rating. Please try again.",
+    "alreadyRated": "Thanks for your rating!",
+    "vehicleScore": "Vehicle: {{score}}/5",
+    "serviceScore": "Service: {{score}}/5"
+  },
+  "receipt": {
+    "title": "Receipt",
+    "payment": "Payment",
+    "notFound": "Could not find this booking.",
+    "lines": {
+      "subtotal": "Subtotal",
+      "discount": "Discount",
+      "tax": "Tax",
+      "total": "Total"
+    }
   },
   "filters": {
     "title": "Filters",
