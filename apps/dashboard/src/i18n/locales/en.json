@@ -91,6 +91,32 @@
       "pending": "Pending",
       "failed": "Failed",
       "refunded": "Refunded"
+    },
+    "phase5": {
+      "issueOtp": "Issue OTP",
+      "viewContract": "View contract",
+      "otpCodeLabel": "Unlock code",
+      "otpExpiresAt": "Expires {{when}}",
+      "otpTrackingStatus": "OTP status: {{status}}",
+      "otpStatus": {
+        "issued": "Issued",
+        "consumed": "Used",
+        "expired": "Expired"
+      },
+      "contractTitle": "Rental contract",
+      "contractSigned": "Signed by {{name}} on {{when}}",
+      "contractUnsigned": "Not yet signed",
+      "conditionLabel": "Condition",
+      "condition": {
+        "clean": "Clean",
+        "minorDamage": "Minor damage",
+        "majorDamage": "Major damage"
+      },
+      "notesLabel": "Notes (optional)",
+      "completeInspect": "Complete & inspect",
+      "inspectionTitle": "Return inspection",
+      "inspectionCondition": "Condition: {{condition}}",
+      "inspectionNotes": "Notes: {{notes}}"
     }
   }
 }

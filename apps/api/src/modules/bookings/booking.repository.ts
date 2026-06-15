@@ -66,3 +66,11 @@ export function findByIdForCustomer(id: string, customerId: string) {
 export function updateStatus(id: string, status: DbBookingStatus, data: { prepReadyAt?: Date } = {}) {
   return prisma.booking.update({ where: { id }, data: { status, ...data } })
 }
+
+export function createReturnInspection(data: Prisma.ReturnInspectionUncheckedCreateInput) {
+  return prisma.returnInspection.create({ data })
+}
+
+export function findReturnInspection(bookingId: string) {
+  return prisma.returnInspection.findUnique({ where: { bookingId } })
+}

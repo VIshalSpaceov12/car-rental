@@ -1,6 +1,8 @@
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
+import { useNavigation } from '@react-navigation/native'
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack'
 import { useTheme, type Theme } from '@car-rental/tokens'
 import {
   BOOKING_TRANSITIONS,
@@ -10,7 +12,10 @@ import {
 } from '@car-rental/types'
 import { Icon } from '../../components/Icon'
 import { Button } from '../../components/Button'
+import type { RootStackParamList } from '../../navigation/types'
 import { useCancelBookingMutation, useGetBookingsQuery } from '../../store/bookingApi'
+
+type Nav = NativeStackNavigationProp<RootStackParamList>
 
 /** Customer's cancel action is offered only where the lifecycle allows it. */
 const canCancel = (status: BookingStatus) => BOOKING_TRANSITIONS[status].includes('cancelled')
@@ -35,6 +40,7 @@ export function BookingsScreen() {
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const { t } = useTranslation()
+  const navigation = useNavigation<Nav>()
   const { data: bookings, isLoading, isError } = useGetBookingsQuery()
   const [cancelBooking, cancelling] = useCancelBookingMutation()
 
@@ -85,7 +91,14 @@ export function BookingsScreen() {
         {t('bookings.title')}
       </Text>
       {bookings.map((b) => (
-        <BookingRow key={b.id} booking={b} cancelling={cancelling.isLoading} onCancel={() => onCancel(b.id)} />
+        <BookingRow
+          key={b.id}
+          booking={b}
+          cancelling={cancelling.isLoading}
+          onCancel={() => onCancel(b.id)}
+          onPickup={() => navigation.navigate('Pickup', { bookingId: b.id, vehicleId: b.vehicleId })}
+          onReturn={() => navigation.navigate('Return', { bookingId: b.id })}
+        />
       ))}
     </ScrollView>
   )
@@ -95,10 +108,14 @@ function BookingRow({
   booking,
   cancelling,
   onCancel,
+  onPickup,
+  onReturn,
 }: {
   booking: BookingSummary
   cancelling: boolean
   onCancel: () => void
+  onPickup: () => void
+  onReturn: () => void
 }) {
   const theme = useTheme()
   const { t } = useTranslation()
@@ -147,6 +164,12 @@ function BookingRow({
       <Text style={{ color: theme.color.text, fontWeight: '600' }}>
         {booking.total} {booking.currency}
       </Text>
+      {booking.status === 'vehicle-prepared' && (
+        <Button title={t('bookings.pickup')} onPress={onPickup} />
+      )}
+      {booking.status === 'picked-up' && (
+        <Button title={t('bookings.returnVehicle')} onPress={onReturn} />
+      )}
       {canCancel(booking.status) && (
         <Button
           title={cancelling ? t('bookings.cancelling') : t('bookings.cancel')}

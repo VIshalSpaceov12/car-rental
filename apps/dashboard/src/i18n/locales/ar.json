@@ -91,6 +91,32 @@
       "pending": "Pending",
       "failed": "Failed",
       "refunded": "Refunded"
+    },
+    "phase5": {
+      "issueOtp": "إصدار رمز الفتح",
+      "viewContract": "عرض العقد",
+      "otpCodeLabel": "رمز الفتح",
+      "otpExpiresAt": "ينتهي في {{when}}",
+      "otpTrackingStatus": "حالة الرمز: {{status}}",
+      "otpStatus": {
+        "issued": "صادر",
+        "consumed": "مستخدم",
+        "expired": "منتهي الصلاحية"
+      },
+      "contractTitle": "عقد الإيجار",
+      "contractSigned": "موقّع من {{name}} في {{when}}",
+      "contractUnsigned": "لم يُوقّع بعد",
+      "conditionLabel": "الحالة",
+      "condition": {
+        "clean": "سليمة",
+        "minorDamage": "أضرار طفيفة",
+        "majorDamage": "أضرار جسيمة"
+      },
+      "notesLabel": "ملاحظات (اختياري)",
+      "completeInspect": "إتمام وفحص",
+      "inspectionTitle": "فحص الإرجاع",
+      "inspectionCondition": "الحالة: {{condition}}",
+      "inspectionNotes": "ملاحظات: {{notes}}"
     }
   }
 }

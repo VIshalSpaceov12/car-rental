@@ -13,6 +13,8 @@ import {
 import { authRouter, brandingRouter } from './modules/auth/auth.routes'
 import { bookingsRouter } from './modules/bookings/booking.routes'
 import { paymentsRouter } from './modules/payments/payment.routes'
+import { otpsRouter } from './modules/otp/otp.routes'
+import { contractsRouter } from './modules/contract/contract.routes'
 
 /**
  * Modular monolith: one Express app, domain modules mounted as routers.
@@ -48,6 +50,8 @@ export function createApp(): Express {
   app.use('/branches', branchesRouter)
   app.use('/bookings', bookingsRouter)
   app.use('/payments', paymentsRouter)
+  app.use('/otps', otpsRouter)
+  app.use('/contracts', contractsRouter)
 
   return app
 }

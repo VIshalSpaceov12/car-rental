@@ -8,6 +8,7 @@ import {
   useRejectBookingMutation,
 } from '../../store/bookingApi'
 import { IncomingBookingsList, type ProviderBookingAction } from './IncomingBookingsList'
+import { BookingPhase5Container } from './BookingPhase5Container'
 
 /** Container: fetches the provider's incoming bookings and drives transitions. */
 export function BookingsScreen() {
@@ -35,7 +36,14 @@ export function BookingsScreen() {
       <h1 style={{ color: theme.color.primary, marginTop: 0 }}>{t('bookings.title')}</h1>
       {isLoading && <p style={{ color: theme.color.textMuted }}>{t('bookings.loading')}</p>}
       {isError && <p style={{ color: theme.color.danger }}>{t('bookings.loadFailed')}</p>}
-      {bookings && <IncomingBookingsList bookings={bookings} onAction={onAction} busyId={busyId} />}
+      {bookings && (
+        <IncomingBookingsList
+          bookings={bookings}
+          onAction={onAction}
+          busyId={busyId}
+          renderPhase5={(b) => <BookingPhase5Container id={b.id} status={b.status} />}
+        />
+      )}
     </div>
   )
 }

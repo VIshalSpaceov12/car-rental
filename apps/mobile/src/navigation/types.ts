@@ -12,4 +12,7 @@ export type RootStackParamList = {
   Tabs: NavigatorScreenParams<HomeTabParamList>
   VehicleDetail: { vehicleId: string }
   Booking: { vehicleId: string }
+  // Phase 5: keyless pickup (OTP + contract signing) and vehicle return.
+  Pickup: { bookingId: string; vehicleId: string }
+  Return: { bookingId: string }
 }

@@ -75,6 +75,12 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum ReturnCondition {
+  CLEAN
+  MINOR_DAMAGE
+  MAJOR_DAMAGE
+}
+
 model Provider {
   id            String   @id @default(cuid())
   name          String
@@ -120,9 +126,10 @@ model User {
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
-  provider Provider? @relation(fields: [providerId], references: [id], onDelete: SetNull)
-  bookings Booking[] @relation("CustomerBookings")
-  ratings  Rating[]
+  provider          Provider?          @relation(fields: [providerId], references: [id], onDelete: SetNull)
+  bookings          Booking[]          @relation("CustomerBookings")
+  ratings           Rating[]
+  returnInspections ReturnInspection[]
 
   @@index([providerId])
   @@index([role])
@@ -213,10 +220,11 @@ model Booking {
   pickupBranch  Branch   @relation("PickupBranch", fields: [pickupBranchId], references: [id], onDelete: Restrict)
   dropoffBranch Branch   @relation("DropoffBranch", fields: [dropoffBranchId], references: [id], onDelete: Restrict)
 
-  otps     Otp[]
-  payments Payment[]
-  contract Contract?
-  rating   Rating?
+  otps             Otp[]
+  payments         Payment[]
+  contract         Contract?
+  rating           Rating?
+  returnInspection ReturnInspection?
 
   @@index([customerId])
   @@index([providerId])
@@ -225,13 +233,14 @@ model Booking {
 }
 
 model Otp {
-  id         String    @id @default(cuid())
-  bookingId  String
-  vehicleId  String
-  codeHash   String
-  expiresAt  DateTime
-  consumedAt DateTime?
-  createdAt  DateTime  @default(now())
+  id             String    @id @default(cuid())
+  bookingId      String
+  vehicleId      String
+  codeHash       String
+  expiresAt      DateTime
+  consumedAt     DateTime?
+  failedAttempts Int       @default(0)
+  createdAt      DateTime  @default(now())
 
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
   vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
@@ -256,13 +265,29 @@ model Payment {
 }
 
 model Contract {
-  id        String    @id @default(cuid())
-  bookingId String    @unique
-  signedAt  DateTime?
-  content   String
-  createdAt DateTime  @default(now())
+  id            String    @id @default(cuid())
+  bookingId     String    @unique
+  signedAt      DateTime?
+  signerName    String?
+  signedConsent Boolean   @default(false)
+  content       String
+  createdAt     DateTime  @default(now())
 
   booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+}
+
+model ReturnInspection {
+  id          String          @id @default(cuid())
+  bookingId   String          @unique
+  inspectorId String
+  condition   ReturnCondition
+  notes       String?
+  inspectedAt DateTime        @default(now())
+
+  booking   Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  inspector User    @relation(fields: [inspectorId], references: [id], onDelete: Restrict)
+
+  @@index([inspectorId])
 }
 
 model Rating {
