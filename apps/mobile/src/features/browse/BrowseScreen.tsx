@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ScrollView, Text, View } from 'react-native'
+import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import type { CompositeScreenProps } from '@react-navigation/native'
@@ -13,6 +13,7 @@ import { Avatar } from '../../components/Avatar'
 import { SectionHeader } from '../../components/SectionHeader'
 import { CarTrendCard } from '../../components/CarTrendCard'
 import { CarListCard } from '../../components/CarListCard'
+import { Button } from '../../components/Button'
 import { FilterSheet } from './FilterSheet'
 import type { HomeTabParamList, RootStackParamList } from '../../navigation/types'
 
@@ -41,7 +42,7 @@ export function BrowseScreen({ navigation }: Props) {
   const user = useAppSelector((s) => s.auth.user)
   const [filters, setFilters] = useState<VehicleFilters>(BASE_FILTERS)
   const [filterOpen, setFilterOpen] = useState(false)
-  const { data: vehicles = [], isFetching } = useVehiclesQuery(filters)
+  const { data: vehicles = [], isLoading, isError, refetch } = useVehiclesQuery(filters)
 
   const openDetail = (vehicleId: string) => navigation.navigate('VehicleDetail', { vehicleId })
 
@@ -68,29 +69,44 @@ export function BrowseScreen({ navigation }: Props) {
           </View>
         </View>
 
-        {/* Top trends carousel */}
-        <SectionHeader title={t('browse.topTrends')} />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ marginBottom: theme.spacing.lg, marginHorizontal: -theme.spacing.lg }}
-          contentContainerStyle={{ paddingHorizontal: theme.spacing.lg }}
-        >
-          {vehicles.map((v) => (
-            <CarTrendCard key={v.id} vehicle={v} rating={ratingFor(v.id)} trips={tripsFor(v.id)} onPress={() => openDetail(v.id)} />
-          ))}
-        </ScrollView>
+        {isLoading ? (
+          <View style={{ alignItems: 'center', marginTop: theme.spacing.xxl }}>
+            <ActivityIndicator color={theme.color.primary} />
+          </View>
+        ) : isError ? (
+          <View style={{ alignItems: 'center', marginTop: theme.spacing.xxl, gap: theme.spacing.md }}>
+            <Text style={{ color: theme.color.danger, textAlign: 'center' }}>{t('browse.loadError')}</Text>
+            <Button title={t('common.retry')} onPress={() => void refetch()} />
+          </View>
+        ) : vehicles.length === 0 ? (
+          <>
+            {/* Keep the filter affordance reachable so an over-narrow filter can be widened. */}
+            <SectionHeader title={t('browse.chooseACar')} onFilter={() => setFilterOpen(true)} />
+            <Text style={{ color: theme.color.textMuted, textAlign: 'center', marginTop: theme.spacing.xl }}>
+              {t('browse.noVehicles')}
+            </Text>
+          </>
+        ) : (
+          <>
+            {/* Top trends carousel */}
+            <SectionHeader title={t('browse.topTrends')} />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={{ marginBottom: theme.spacing.lg, marginHorizontal: -theme.spacing.lg }}
+              contentContainerStyle={{ paddingHorizontal: theme.spacing.lg }}
+            >
+              {vehicles.map((v) => (
+                <CarTrendCard key={v.id} vehicle={v} rating={ratingFor(v.id)} trips={tripsFor(v.id)} onPress={() => openDetail(v.id)} />
+              ))}
+            </ScrollView>
 
-        {/* Choose a car list */}
-        <SectionHeader title={t('browse.chooseACar')} onFilter={() => setFilterOpen(true)} />
-        {vehicles.map((v) => (
-          <CarListCard key={v.id} vehicle={v} rating={ratingFor(v.id)} onPress={() => openDetail(v.id)} />
-        ))}
-
-        {vehicles.length === 0 && (
-          <Text style={{ color: theme.color.textMuted, textAlign: 'center', marginTop: theme.spacing.xl }}>
-            {isFetching ? t('common.loading') : t('browse.noVehicles')}
-          </Text>
+            {/* Choose a car list */}
+            <SectionHeader title={t('browse.chooseACar')} onFilter={() => setFilterOpen(true)} />
+            {vehicles.map((v) => (
+              <CarListCard key={v.id} vehicle={v} rating={ratingFor(v.id)} onPress={() => openDetail(v.id)} />
+            ))}
+          </>
         )}
       </ScrollView>
 

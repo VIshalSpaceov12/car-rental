@@ -17,7 +17,9 @@ async function main() {
   const colors = { primary: '#E5322B', primaryDark: '#C9261E', background: '#0A0A0B' }
   const provider = await prisma.provider.upsert({
     where: { id: PROVIDER_ID },
-    update: { colors },
+    // Re-seeding resets the full demo brand (name/logo/colors), so a demo run
+    // always starts from a clean, known state even after branding edits.
+    update: { name: 'DemoRent', logoUrl: null, colors },
     create: {
       id: PROVIDER_ID,
       name: 'DemoRent',
@@ -120,6 +122,117 @@ async function main() {
       name: 'Demo Provider Admin',
       phone: '+971500000002',
       locale: 'EN',
+    },
+  })
+
+  // Demo bookings spanning the lifecycle so every screen opens populated. On
+  // non-corolla vehicles with near-now dates, so they never collide with the
+  // integration tests (which use veh-corolla and far-future windows).
+  const now = new Date()
+  const addDays = (n: number) => new Date(now.getTime() + n * 86_400_000)
+  const priceOf = (perDay: number, start: Date, end: Date) => {
+    const days = Math.max(1, Math.ceil((end.getTime() - start.getTime()) / 86_400_000))
+    const subtotal = perDay * days
+    const tax = Math.round(subtotal * 5) / 100
+    return { subtotal: subtotal.toFixed(2), tax: tax.toFixed(2), total: (subtotal + tax).toFixed(2) }
+  }
+
+  type BookingStatus = 'RESERVED' | 'CONFIRMED' | 'VEHICLE_PREPARED' | 'PICKED_UP' | 'COMPLETED'
+  const demoBookings: Array<{
+    id: string
+    vehicleId: string
+    perDay: number
+    start: Date
+    end: Date
+    status: BookingStatus
+    paid: boolean
+    prepReadyAt?: Date
+  }> = [
+    { id: 'bk-reserved', vehicleId: 'veh-model3', perDay: 500, start: addDays(14), end: addDays(17), status: 'RESERVED', paid: false },
+    { id: 'bk-confirmed', vehicleId: 'veh-sunny', perDay: 110, start: addDays(3), end: addDays(6), status: 'CONFIRMED', paid: true },
+    { id: 'bk-prepared', vehicleId: 'veh-rav4', perDay: 220, start: addDays(1), end: addDays(4), status: 'VEHICLE_PREPARED', paid: true, prepReadyAt: addDays(1) },
+    { id: 'bk-pickedup', vehicleId: 'veh-patrol', perDay: 400, start: addDays(-1), end: addDays(2), status: 'PICKED_UP', paid: true },
+    { id: 'bk-completed', vehicleId: 'veh-eclass', perDay: 600, start: addDays(-10), end: addDays(-7), status: 'COMPLETED', paid: true },
+  ]
+
+  for (const b of demoBookings) {
+    const p = priceOf(b.perDay, b.start, b.end)
+    await prisma.booking.upsert({
+      where: { id: b.id },
+      update: { status: b.status },
+      create: {
+        id: b.id,
+        customerId: 'user-customer',
+        providerId: provider.id,
+        vehicleId: b.vehicleId,
+        pickupBranchId: 'branch-downtown',
+        dropoffBranchId: 'branch-airport',
+        plan: 'DAILY',
+        startAt: b.start,
+        endAt: b.end,
+        status: b.status,
+        subtotal: p.subtotal,
+        tax: p.tax,
+        total: p.total,
+        currency: 'AED',
+        discountAmount: '0',
+        prepReadyAt: b.prepReadyAt ?? null,
+      },
+    })
+
+    if (b.paid) {
+      await prisma.payment.upsert({
+        where: { id: `pay-${b.id}` },
+        update: {},
+        create: {
+          id: `pay-${b.id}`,
+          bookingId: b.id,
+          method: 'CARD_MOCK',
+          status: 'PAID',
+          amount: p.total,
+          gatewayRef: `mock_${b.id}`,
+        },
+      })
+    }
+  }
+
+  // Signed contracts for bookings already picked up / completed.
+  for (const bookingId of ['bk-pickedup', 'bk-completed']) {
+    await prisma.contract.upsert({
+      where: { bookingId },
+      update: {},
+      create: {
+        bookingId,
+        content:
+          'RENTAL AGREEMENT\n\nDemo rental contract. The renter accepts the terms and confirms the booking details above.',
+        signedAt: now,
+        signerName: 'Demo Customer',
+        signedConsent: true,
+      },
+    })
+  }
+
+  // Return inspection + rating for the completed rental (history + ratings demo).
+  await prisma.returnInspection.upsert({
+    where: { bookingId: 'bk-completed' },
+    update: {},
+    create: {
+      bookingId: 'bk-completed',
+      inspectorId: 'user-provider',
+      condition: 'CLEAN',
+      notes: 'Returned clean, full tank.',
+      inspectedAt: addDays(-7),
+    },
+  })
+  await prisma.rating.upsert({
+    where: { bookingId: 'bk-completed' },
+    update: {},
+    create: {
+      bookingId: 'bk-completed',
+      customerId: 'user-customer',
+      vehicleRating: 5,
+      serviceRating: 4,
+      comment: 'Excellent car, smooth keyless pickup.',
     },
   })
 }

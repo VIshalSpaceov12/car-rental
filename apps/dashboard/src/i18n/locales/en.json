@@ -66,6 +66,9 @@
   },
   "fleet": {
     "title": "Fleet",
+    "loading": "Loading vehicles…",
+    "loadFailed": "Failed to load vehicles.",
+    "noVehicles": "No vehicles yet — add your first vehicle.",
     "categories": "Categories",
     "noCategories": "No categories yet — add one to enable vehicles.",
     "newCategory": "New category",

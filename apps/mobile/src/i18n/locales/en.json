@@ -1,6 +1,7 @@
 {
   "common": {
     "loading": "Loading…",
+    "retry": "Try again",
     "cancel": "Cancel",
     "back": "Back",
     "done": "Done",
@@ -41,7 +42,8 @@
     "tagline": "Start your timeless adventure",
     "topTrends": "Top trends",
     "chooseACar": "Choose a car",
-    "noVehicles": "No vehicles available."
+    "noVehicles": "No vehicles available.",
+    "loadError": "Could not load vehicles."
   },
   "detail": {
     "title": "Details",
@@ -98,7 +100,8 @@
   },
   "bookings": {
     "title": "My bookings",
-    "empty": "Your bookings will appear here.",
+    "empty": "No bookings yet — browse cars to get started.",
+    "noActive": "No active rentals.",
     "loadError": "Could not load your bookings.",
     "dateRange": "{{start}} → {{end}}",
     "cancel": "Cancel booking",
