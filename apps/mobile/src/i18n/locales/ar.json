@@ -106,6 +106,10 @@
     "cancelError": "Could not cancel this booking. Please try again.",
     "pickup": "استلام المركبة",
     "returnVehicle": "إرجاع المركبة",
+    "historyTitle": "الإيجارات السابقة",
+    "rate": "قيّم هذا الإيجار",
+    "viewReceipt": "عرض الإيصال",
+    "rebook": "احجز مرة أخرى",
     "status": {
       "reserved": "Reserved",
       "confirmed": "Confirmed",
@@ -150,6 +154,31 @@
     "error": "تعذّر تسجيل الإرجاع. يرجى المحاولة مرة أخرى.",
     "doneTitle": "تم إرجاع المركبة",
     "doneBody": "شكرًا لك! سيقوم مزوّد الخدمة بفحص المركبة وإتمام حجزك."
+  },
+  "rating": {
+    "title": "قيّم إيجارك",
+    "intro": "أخبرنا كيف كانت المركبة والخدمة. تقييمك يساعد العملاء الآخرين.",
+    "vehicleLabel": "المركبة (1–5)",
+    "serviceLabel": "الخدمة (1–5)",
+    "commentLabel": "تعليق (اختياري)",
+    "commentPlaceholder": "شارك المزيد عن تجربتك",
+    "submit": "إرسال التقييم",
+    "submitting": "جارٍ الإرسال…",
+    "error": "تعذّر إرسال تقييمك. يرجى المحاولة مرة أخرى.",
+    "alreadyRated": "شكرًا على تقييمك!",
+    "vehicleScore": "المركبة: {{score}}/5",
+    "serviceScore": "الخدمة: {{score}}/5"
+  },
+  "receipt": {
+    "title": "الإيصال",
+    "payment": "الدفع",
+    "notFound": "تعذّر العثور على هذا الحجز.",
+    "lines": {
+      "subtotal": "المجموع الفرعي",
+      "discount": "الخصم",
+      "tax": "الضريبة",
+      "total": "الإجمالي"
+    }
   },
   "filters": {
     "title": "Filters",

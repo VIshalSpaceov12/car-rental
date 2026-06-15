@@ -2,6 +2,7 @@ import type {
   Booking as DbBooking,
   BookingStatus as DbBookingStatus,
   Prisma,
+  Rating as DbRating,
   RentalPlan as DbRentalPlan,
   ReturnCondition as DbReturnCondition,
   ReturnInspection as DbReturnInspection,
@@ -10,6 +11,7 @@ import type {
   Booking,
   BookingStatus,
   BookingSummary,
+  Rating,
   RentalPlan,
   ReturnCondition,
   ReturnInspection,
@@ -123,5 +125,16 @@ export function toWireReturnInspection(i: DbReturnInspection): ReturnInspection 
     notes: i.notes,
     inspectedAt: i.inspectedAt.toISOString(),
     inspectorId: i.inspectorId,
+  }
+}
+
+/** Map a Rating row to the wire contract: Date→ISO. */
+export function toWireRating(r: DbRating): Rating {
+  return {
+    bookingId: r.bookingId,
+    vehicleRating: r.vehicleRating,
+    serviceRating: r.serviceRating,
+    comment: r.comment,
+    createdAt: r.createdAt.toISOString(),
   }
 }

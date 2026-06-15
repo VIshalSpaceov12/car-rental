@@ -14,6 +14,7 @@ import { Icon } from '../../components/Icon'
 import { Button } from '../../components/Button'
 import type { RootStackParamList } from '../../navigation/types'
 import { useCancelBookingMutation, useGetBookingsQuery } from '../../store/bookingApi'
+import { activeBookings, pastBookings } from './history'
 
 type Nav = NativeStackNavigationProp<RootStackParamList>
 
@@ -77,6 +78,9 @@ export function BookingsScreen() {
     )
   }
 
+  const active = activeBookings(bookings)
+  const past = pastBookings(bookings)
+
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: theme.color.background }}
@@ -90,7 +94,8 @@ export function BookingsScreen() {
       <Text style={{ color: theme.color.text, fontSize: theme.typography.heading.fontSize, fontWeight: theme.typography.heading.fontWeight }}>
         {t('bookings.title')}
       </Text>
-      {bookings.map((b) => (
+
+      {active.map((b) => (
         <BookingRow
           key={b.id}
           booking={b}
@@ -98,8 +103,39 @@ export function BookingsScreen() {
           onCancel={() => onCancel(b.id)}
           onPickup={() => navigation.navigate('Pickup', { bookingId: b.id, vehicleId: b.vehicleId })}
           onReturn={() => navigation.navigate('Return', { bookingId: b.id })}
+          onRate={() => navigation.navigate('Rating', { bookingId: b.id })}
+          onReceipt={() => navigation.navigate('Receipt', { bookingId: b.id })}
+          onRebook={() => navigation.navigate('Booking', { vehicleId: b.vehicleId })}
         />
       ))}
+
+      {past.length > 0 && (
+        <>
+          <Text
+            style={{
+              color: theme.color.textMuted,
+              fontSize: theme.typography.subtitle.fontSize,
+              fontWeight: '600',
+              marginTop: theme.spacing.md,
+            }}
+          >
+            {t('bookings.historyTitle')}
+          </Text>
+          {past.map((b) => (
+            <BookingRow
+              key={b.id}
+              booking={b}
+              cancelling={cancelling.isLoading}
+              onCancel={() => onCancel(b.id)}
+              onPickup={() => navigation.navigate('Pickup', { bookingId: b.id, vehicleId: b.vehicleId })}
+              onReturn={() => navigation.navigate('Return', { bookingId: b.id })}
+              onRate={() => navigation.navigate('Rating', { bookingId: b.id })}
+              onReceipt={() => navigation.navigate('Receipt', { bookingId: b.id })}
+              onRebook={() => navigation.navigate('Booking', { vehicleId: b.vehicleId })}
+            />
+          ))}
+        </>
+      )}
     </ScrollView>
   )
 }
@@ -110,15 +146,22 @@ function BookingRow({
   onCancel,
   onPickup,
   onReturn,
+  onRate,
+  onReceipt,
+  onRebook,
 }: {
   booking: BookingSummary
   cancelling: boolean
   onCancel: () => void
   onPickup: () => void
   onReturn: () => void
+  onRate: () => void
+  onReceipt: () => void
+  onRebook: () => void
 }) {
   const theme = useTheme()
   const { t } = useTranslation()
+  const isPast = booking.status === 'completed' || booking.status === 'cancelled' || booking.status === 'rejected'
   return (
     <View
       style={{
@@ -169,6 +212,15 @@ function BookingRow({
       )}
       {booking.status === 'picked-up' && (
         <Button title={t('bookings.returnVehicle')} onPress={onReturn} />
+      )}
+      {booking.status === 'completed' && (
+        <Button title={t('bookings.rate')} onPress={onRate} />
+      )}
+      {isPast && (
+        <>
+          <Button title={t('bookings.viewReceipt')} onPress={onReceipt} />
+          <Button title={t('bookings.rebook')} onPress={onRebook} />
+        </>
       )}
       {canCancel(booking.status) && (
         <Button

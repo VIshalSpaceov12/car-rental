@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { useTheme } from '@car-rental/tokens'
 import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { logout } from '../../store/authSlice'
+import { useBookingStatusSocket } from '../../realtime/useBookingStatusSocket'
 import { Button } from '../../components/Button'
 import { FleetPage } from '../fleet/FleetPage'
 import { BranchesPage } from '../fleet/BranchesPage'
@@ -20,6 +21,10 @@ export function DashboardLayout() {
   const user = useAppSelector((s) => s.auth.user)
   const branding = useAppSelector((s) => s.auth.branding)
   const [section, setSection] = useState<Section>('overview')
+
+  // One authenticated Socket.io connection for the session; pushes live booking
+  // status changes into the RTK Query board (invalidates the `Booking` tag).
+  useBookingStatusSocket()
 
   const navItem = (key: Section, label: string) => (
     <a

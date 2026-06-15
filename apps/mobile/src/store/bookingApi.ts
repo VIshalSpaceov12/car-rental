@@ -6,12 +6,14 @@ import type {
   Contract,
   ContractSignRequest,
   CreateBookingRequest,
+  CreateRatingRequest,
   OtpVerifyRequest,
   OtpVerifyResponse,
   PayRequest,
   Payment,
   Quote,
   QuoteRequest,
+  Rating,
 } from '@car-rental/types'
 import { API_URL } from '../api'
 import type { RootState } from './store'
@@ -76,6 +78,20 @@ export const bookingApi = createApi({
       query: (id) => ({ url: `/bookings/${id}/return`, method: 'POST' }),
       invalidatesTags: ['Booking'],
     }),
+    // Phase 6 — post-rental rating. A `completed` booking can be rated once;
+    // submitting refetches the list so the row swaps its Rate CTA for the score.
+    rateBooking: builder.mutation<Rating, { bookingId: string; body: CreateRatingRequest }>({
+      query: ({ bookingId, body }) => ({
+        url: `/bookings/${bookingId}/rating`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Booking'],
+    }),
+    // 404 when no rating exists yet — the caller treats that as "not rated".
+    getRating: builder.query<Rating, string>({
+      query: (bookingId) => `/bookings/${bookingId}/rating`,
+    }),
   }),
 })
 
@@ -90,4 +106,6 @@ export const {
   useGetContractQuery,
   useSignContractMutation,
   useReturnVehicleMutation,
+  useRateBookingMutation,
+  useGetRatingQuery,
 } = bookingApi

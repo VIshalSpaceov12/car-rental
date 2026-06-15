@@ -15,4 +15,7 @@ export type RootStackParamList = {
   // Phase 5: keyless pickup (OTP + contract signing) and vehicle return.
   Pickup: { bookingId: string; vehicleId: string }
   Return: { bookingId: string }
+  // Phase 6: post-rental rating and the itemized receipt for a past rental.
+  Rating: { bookingId: string }
+  Receipt: { bookingId: string }
 }

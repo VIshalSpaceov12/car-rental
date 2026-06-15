@@ -117,6 +117,13 @@
       "inspectionTitle": "Return inspection",
       "inspectionCondition": "Condition: {{condition}}",
       "inspectionNotes": "Notes: {{notes}}"
+    },
+    "rating": {
+      "title": "Customer rating",
+      "vehicle": "Vehicle: {{score}}/5",
+      "service": "Service: {{score}}/5",
+      "comment": "Comment: {{comment}}",
+      "notRated": "Not rated yet"
     }
   }
 }

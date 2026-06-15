@@ -117,6 +117,13 @@
       "inspectionTitle": "فحص الإرجاع",
       "inspectionCondition": "الحالة: {{condition}}",
       "inspectionNotes": "ملاحظات: {{notes}}"
+    },
+    "rating": {
+      "title": "تقييم العميل",
+      "vehicle": "المركبة: {{score}}/5",
+      "service": "الخدمة: {{score}}/5",
+      "comment": "تعليق: {{comment}}",
+      "notRated": "لم يُقيَّم بعد"
     }
   }
 }

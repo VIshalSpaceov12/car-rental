@@ -6,9 +6,11 @@ import type {
   BranchOption,
   CompleteBookingRequest,
   CreateBookingRequest,
+  CreateRatingRequest,
   PrepareBookingRequest,
   Quote,
   QuoteRequest,
+  Rating,
   ReturnInspection,
 } from '@car-rental/types'
 import { canTransition } from './booking.lifecycle'
@@ -19,11 +21,13 @@ import {
   STATUS_TO_DB,
   toWireBooking,
   toWireBookingSummary,
+  toWireRating,
   toWireReturnInspection,
 } from './booking.mappers'
 import * as repo from './booking.repository'
 import { PAYMENT_STATUS_TO_WIRE } from '../payments/payment.mappers'
 import * as paymentRepo from '../payments/payment.repository'
+import { emitBookingStatus } from '../realtime/realtime'
 
 export class BookingError extends Error {
   constructor(
@@ -58,6 +62,11 @@ async function loadVehiclePricing(vehicleId: string) {
 function requireProviderId(user: AuthUser): string {
   if (!user.providerId) throw new BookingError(400, 'provider context missing')
   return user.providerId
+}
+
+/** Best-effort realtime push so both parties see a status change live. */
+function emitStatus(b: Booking): void {
+  emitBookingStatus({ bookingId: b.id, status: b.status, customerId: b.customerId, providerId: b.providerId })
 }
 
 /** A cancelled booking refunds its latest `paid` payment (COD/pending settles to nothing). */
@@ -172,7 +181,9 @@ export async function transition(user: AuthUser, bookingId: string, action: Book
 
   const updated = await repo.updateStatus(bookingId, STATUS_TO_DB[to])
   if (to === 'cancelled') await refundPaidPayment(bookingId)
-  return toWireBooking(updated)
+  const wire = toWireBooking(updated)
+  emitStatus(wire)
+  return wire
 }
 
 /**
@@ -195,7 +206,9 @@ export async function prepareBooking(
 
   const prepReadyAt = input.prepReadyAt ? new Date(input.prepReadyAt) : undefined
   const updated = await repo.updateStatus(bookingId, STATUS_TO_DB['vehicle-prepared'], { prepReadyAt })
-  return toWireBooking(updated)
+  const wire = toWireBooking(updated)
+  emitStatus(wire)
+  return wire
 }
 
 /**
@@ -212,7 +225,9 @@ export async function returnBooking(user: AuthUser, bookingId: string): Promise<
   }
 
   const updated = await repo.updateStatus(bookingId, STATUS_TO_DB.returned)
-  return toWireBooking(updated)
+  const wire = toWireBooking(updated)
+  emitStatus(wire)
+  return wire
 }
 
 /**
@@ -239,7 +254,9 @@ export async function completeBooking(
     notes: input.notes ?? null,
   })
   const updated = await repo.updateStatus(bookingId, STATUS_TO_DB.completed)
-  return toWireBooking(updated)
+  const wire = toWireBooking(updated)
+  emitStatus(wire)
+  return wire
 }
 
 /** Provider reads the recorded return inspection for one of its bookings. */
@@ -250,4 +267,40 @@ export async function getReturnInspection(user: AuthUser, bookingId: string): Pr
   const inspection = await repo.findReturnInspection(bookingId)
   if (!inspection) throw new BookingError(404, 'no inspection for this booking')
   return toWireReturnInspection(inspection)
+}
+
+/** Customer rates a completed rental (vehicle + service). One rating per booking. */
+export async function rateBooking(user: AuthUser, bookingId: string, input: CreateRatingRequest): Promise<Rating> {
+  const booking = await repo.findByIdForCustomer(bookingId, user.id)
+  if (!booking) throw new BookingError(404, 'booking not found')
+
+  const from = toWireBooking(booking).status
+  if (from !== 'completed') {
+    throw new BookingError(409, `cannot rate a booking that is ${from}`)
+  }
+  if (await repo.findRating(bookingId)) {
+    throw new BookingError(409, 'booking already rated')
+  }
+
+  const created = await repo.createRating({
+    bookingId,
+    customerId: user.id,
+    vehicleRating: input.vehicleRating,
+    serviceRating: input.serviceRating,
+    comment: input.comment ?? null,
+  })
+  return toWireRating(created)
+}
+
+/** Read a booking's rating (the owning customer or provider). */
+export async function getRating(user: AuthUser, bookingId: string): Promise<Rating> {
+  const booking =
+    user.role === 'customer'
+      ? await repo.findByIdForCustomer(bookingId, user.id)
+      : await repo.findByIdForProvider(bookingId, requireProviderId(user))
+  if (!booking) throw new BookingError(404, 'booking not found')
+
+  const rating = await repo.findRating(bookingId)
+  if (!rating) throw new BookingError(404, 'no rating for this booking')
+  return toWireRating(rating)
 }

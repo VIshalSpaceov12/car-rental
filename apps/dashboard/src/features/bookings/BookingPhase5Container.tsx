@@ -5,9 +5,11 @@ import {
   useGetContractQuery,
   useGetInspectionQuery,
   useGetOtpQuery,
+  useGetRatingQuery,
   useIssueOtpMutation,
 } from '../../store/phase5Api'
 import { BookingPhase5Actions } from './BookingPhase5Actions'
+import { RatingDisplay } from './RatingDisplay'
 
 /**
  * Per-booking container for the Phase-5 actions. Calls the RTK Query hooks for a
@@ -16,7 +18,8 @@ import { BookingPhase5Actions } from './BookingPhase5Actions'
  * until the relevant status so we don't fire (and 404) on every row:
  * - OTP tracking only once a code has been issued (provider clicked Issue),
  * - contract only after the provider asks to view it,
- * - inspection only for completed bookings.
+ * - inspection + customer rating only for completed bookings (rating 404s
+ *   gracefully until the customer rates).
  */
 export function BookingPhase5Container({ id, status }: { id: string; status: BookingStatus }) {
   const [issueOtp, { data: issuedOtp = null, isLoading: issuing }] = useIssueOtpMutation({ fixedCacheKey: id })
@@ -26,6 +29,9 @@ export function BookingPhase5Container({ id, status }: { id: string; status: Boo
   const { data: otpSummary = null } = useGetOtpQuery(id, { skip: !otpRequested })
   const { data: contract = null } = useGetContractQuery(id, { skip: !contractRequested })
   const { data: inspection = null } = useGetInspectionQuery(id, { skip: status !== 'completed' })
+  // 404 (not rated yet) is expected; we coalesce to null and the display shows
+  // "not rated yet" rather than treating it as an error.
+  const { data: rating = null } = useGetRatingQuery(id, { skip: status !== 'completed' })
 
   const [complete, { isLoading: completing }] = useCompleteBookingMutation()
 
@@ -39,16 +45,19 @@ export function BookingPhase5Container({ id, status }: { id: string; status: Boo
   }
 
   return (
-    <BookingPhase5Actions
-      status={status}
-      busy={issuing || completing}
-      issuedOtp={issuedOtp}
-      otpSummary={otpSummary}
-      contract={contract}
-      inspection={inspection}
-      onIssueOtp={onIssueOtp}
-      onViewContract={() => setContractRequested(true)}
-      onComplete={onComplete}
-    />
+    <>
+      <BookingPhase5Actions
+        status={status}
+        busy={issuing || completing}
+        issuedOtp={issuedOtp}
+        otpSummary={otpSummary}
+        contract={contract}
+        inspection={inspection}
+        onIssueOtp={onIssueOtp}
+        onViewContract={() => setContractRequested(true)}
+        onComplete={onComplete}
+      />
+      {status === 'completed' && <RatingDisplay rating={rating} />}
+    </>
   )
 }
