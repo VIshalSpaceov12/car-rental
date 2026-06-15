@@ -200,6 +200,12 @@
   },
   "settings": {
     "title": "Settings",
-    "guest": "Guest"
+    "guest": "Guest",
+    "language": "Language",
+    "languageEnglish": "English",
+    "languageArabic": "العربية",
+    "restartTitle": "Restart required",
+    "restartBody": "Close and reopen the app to apply the new layout direction.",
+    "refreshBranding": "Pull down to refresh branding"
   }
 }
