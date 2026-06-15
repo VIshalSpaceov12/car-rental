@@ -4,6 +4,8 @@ import { useTheme } from '@car-rental/tokens'
 import { HomeTabs } from './HomeTabs'
 import { VehicleDetailScreen } from '../features/browse/VehicleDetailScreen'
 import { BookingFlow } from '../features/booking/BookingFlow'
+import { PickupFlow } from '../features/pickup/PickupFlow'
+import { ReturnScreen } from '../features/return/ReturnScreen'
 import type { RootStackParamList } from './types'
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
@@ -32,6 +34,20 @@ export function AppNavigator() {
         <Stack.Screen name="Booking">
           {({ navigation, route }) => (
             <BookingFlow initialVehicleId={route.params.vehicleId} onClose={() => navigation.goBack()} />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="Pickup">
+          {({ navigation, route }) => (
+            <PickupFlow
+              bookingId={route.params.bookingId}
+              vehicleId={route.params.vehicleId}
+              onClose={() => navigation.goBack()}
+            />
+          )}
+        </Stack.Screen>
+        <Stack.Screen name="Return">
+          {({ navigation, route }) => (
+            <ReturnScreen bookingId={route.params.bookingId} onClose={() => navigation.goBack()} />
           )}
         </Stack.Screen>
       </Stack.Navigator>

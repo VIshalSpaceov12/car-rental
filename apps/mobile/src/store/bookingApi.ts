@@ -3,7 +3,11 @@ import type {
   Booking,
   BookingSummary,
   BranchOption,
+  Contract,
+  ContractSignRequest,
   CreateBookingRequest,
+  OtpVerifyRequest,
+  OtpVerifyResponse,
   PayRequest,
   Payment,
   Quote,
@@ -50,6 +54,28 @@ export const bookingApi = createApi({
       }),
       invalidatesTags: ['Booking'],
     }),
+    // Phase 5 — keyless pickup & return.
+    // The customer enters the OTP they received out-of-band; we never fetch the
+    // plaintext code, only verify what they typed.
+    verifyOtp: builder.mutation<OtpVerifyResponse, OtpVerifyRequest>({
+      query: (body) => ({ url: '/otps/verify', method: 'POST', body }),
+    }),
+    getContract: builder.query<Contract, string>({
+      query: (bookingId) => `/contracts/${bookingId}`,
+    }),
+    signContract: builder.mutation<Contract, { bookingId: string; body: ContractSignRequest }>({
+      query: ({ bookingId, body }) => ({
+        url: `/contracts/${bookingId}/sign`,
+        method: 'POST',
+        body,
+      }),
+      // Signing moves the booking vehicle-prepared → picked-up.
+      invalidatesTags: ['Booking'],
+    }),
+    returnVehicle: builder.mutation<Booking, string>({
+      query: (id) => ({ url: `/bookings/${id}/return`, method: 'POST' }),
+      invalidatesTags: ['Booking'],
+    }),
   }),
 })
 
@@ -60,4 +86,8 @@ export const {
   useCreateBookingMutation,
   useCancelBookingMutation,
   usePayMutation,
+  useVerifyOtpMutation,
+  useGetContractQuery,
+  useSignContractMutation,
+  useReturnVehicleMutation,
 } = bookingApi

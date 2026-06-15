@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@car-rental/tokens'
 import {
@@ -21,10 +21,11 @@ const PROVIDER_ACTIONS: { action: ProviderBookingAction; target: BookingStatus }
   { action: 'cancel', target: 'cancelled' },
 ]
 
-// The default "Incoming" view shows only bookings the provider can still act on;
-// terminal/historical statuses (picked-up → completed, rejected, cancelled) are
-// hidden unless the filter is switched to "All".
-const ACTIONABLE_STATUSES: BookingStatus[] = ['reserved', 'confirmed', 'vehicle-prepared']
+// The default "Incoming" view shows only bookings the provider can still act on.
+// `vehicle-prepared` (issue OTP) and `returned` (complete & inspect) are Phase-5
+// action points, so they stay in the incoming view; terminal/historical statuses
+// (picked-up, completed, rejected, cancelled) are hidden unless filtered to "All".
+const ACTIONABLE_STATUSES: BookingStatus[] = ['reserved', 'confirmed', 'vehicle-prepared', 'returned']
 
 type StatusFilter = 'incoming' | 'all'
 
@@ -53,12 +54,18 @@ interface Props {
   bookings: BookingSummary[]
   onAction: (id: string, action: ProviderBookingAction, prepReadyAt?: string) => void
   busyId: string | null
+  /**
+   * Phase-5 actions (issue OTP / view contract / complete & inspect) for a row,
+   * status-gated by the slot itself. Render-prop so the list stays presentational
+   * and the RTK-Query wiring lives in the per-booking container the screen passes.
+   */
+  renderPhase5?: (booking: BookingSummary) => ReactNode
 }
 
 const fmtDate = (iso: string) => new Date(iso).toLocaleDateString()
 const fmtDateTime = (iso: string) => new Date(iso).toLocaleString()
 
-export function IncomingBookingsList({ bookings, onAction, busyId }: Props) {
+export function IncomingBookingsList({ bookings, onAction, busyId, renderPhase5 }: Props) {
   const theme = useTheme()
   const { t } = useTranslation()
   const [filter, setFilter] = useState<StatusFilter>('incoming')
@@ -215,6 +222,8 @@ export function IncomingBookingsList({ bookings, onAction, busyId }: Props) {
                   </div>
                 ))}
               </div>
+
+              {renderPhase5?.(b)}
             </div>
           )
         })}

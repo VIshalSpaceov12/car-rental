@@ -3,8 +3,17 @@ import type {
   BookingStatus as DbBookingStatus,
   Prisma,
   RentalPlan as DbRentalPlan,
+  ReturnCondition as DbReturnCondition,
+  ReturnInspection as DbReturnInspection,
 } from '@prisma/client'
-import type { Booking, BookingStatus, BookingSummary, RentalPlan } from '@car-rental/types'
+import type {
+  Booking,
+  BookingStatus,
+  BookingSummary,
+  RentalPlan,
+  ReturnCondition,
+  ReturnInspection,
+} from '@car-rental/types'
 import { PAYMENT_STATUS_TO_WIRE } from '../payments/payment.mappers'
 
 // DB enums are UPPER_SNAKE; wire strings are kebab/lowercase. Map at this boundary.
@@ -42,6 +51,18 @@ const STATUS_TO_WIRE: Record<DbBookingStatus, BookingStatus> = {
   COMPLETED: 'completed',
   REJECTED: 'rejected',
   CANCELLED: 'cancelled',
+}
+
+export const CONDITION_TO_DB: Record<ReturnCondition, DbReturnCondition> = {
+  clean: 'CLEAN',
+  'minor-damage': 'MINOR_DAMAGE',
+  'major-damage': 'MAJOR_DAMAGE',
+}
+
+const CONDITION_TO_WIRE: Record<DbReturnCondition, ReturnCondition> = {
+  CLEAN: 'clean',
+  MINOR_DAMAGE: 'minor-damage',
+  MAJOR_DAMAGE: 'major-damage',
 }
 
 /** Map a Booking row to the wire contract: Decimal→number, Date→ISO, enums→wire. */
@@ -91,5 +112,16 @@ export function toWireBookingSummary(b: BookingWithRelations): BookingSummary {
     pickupBranchName: b.pickupBranch.name,
     dropoffBranchName: b.dropoffBranch.name,
     paymentStatus: latestPayment ? PAYMENT_STATUS_TO_WIRE[latestPayment.status] : null,
+  }
+}
+
+/** Map a ReturnInspection row to the wire contract: enum→wire, Date→ISO. */
+export function toWireReturnInspection(i: DbReturnInspection): ReturnInspection {
+  return {
+    bookingId: i.bookingId,
+    condition: CONDITION_TO_WIRE[i.condition],
+    notes: i.notes,
+    inspectedAt: i.inspectedAt.toISOString(),
+    inspectorId: i.inspectorId,
   }
 }

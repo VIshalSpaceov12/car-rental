@@ -104,6 +104,8 @@
     "cancel": "Cancel booking",
     "cancelling": "Cancelling…",
     "cancelError": "Could not cancel this booking. Please try again.",
+    "pickup": "Pick up vehicle",
+    "returnVehicle": "Return vehicle",
     "status": {
       "reserved": "Reserved",
       "confirmed": "Confirmed",
@@ -120,6 +122,34 @@
       "failed": "Failed",
       "refunded": "Refunded"
     }
+  },
+  "pickup": {
+    "title": "Vehicle pickup",
+    "otpIntro": "Enter the 6-digit code you received by SMS to unlock the vehicle.",
+    "otpLabel": "Unlock code",
+    "verify": "Verify code",
+    "verifying": "Verifying…",
+    "otpInvalid": "That code isn't valid. Check it and try again.",
+    "otpError": "Could not verify the code. Please try again.",
+    "contractTitle": "Review and sign your rental contract",
+    "contractError": "Could not load the contract. Please try again.",
+    "signerNameLabel": "Your full name",
+    "signerNamePlaceholder": "As it appears on your licence",
+    "consentLabel": "I have read and agree to the rental terms above.",
+    "sign": "Sign and pick up",
+    "signing": "Signing…",
+    "signError": "Could not sign the contract. Please try again.",
+    "doneTitle": "You're all set!",
+    "doneBody": "The contract is signed and your booking is now picked up. Enjoy your trip."
+  },
+  "return": {
+    "title": "Return vehicle",
+    "intro": "Park the vehicle at the drop-off branch and confirm your return. The provider will inspect it and complete your booking.",
+    "confirm": "Confirm return",
+    "returning": "Returning…",
+    "error": "Could not record the return. Please try again.",
+    "doneTitle": "Vehicle returned",
+    "doneBody": "Thanks! The provider will inspect the vehicle and complete your booking."
   },
   "filters": {
     "title": "Filters",

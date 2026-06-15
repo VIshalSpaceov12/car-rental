@@ -1,5 +1,10 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
-import type { Booking, BookingSummary, PrepareBookingRequest } from '@car-rental/types'
+import type {
+  Booking,
+  BookingSummary,
+  CompleteBookingRequest,
+  PrepareBookingRequest,
+} from '@car-rental/types'
 import { API_URL } from '../api/config'
 import type { RootState } from './store'
 
@@ -31,8 +36,20 @@ export const bookingApi = createApi({
       query: ({ id, body }) => ({ url: `/bookings/${id}/prepare`, method: 'POST', body }),
       invalidatesTags: ['Booking'],
     }),
+    // Phase 5: provider completes a returned booking after inspecting the vehicle
+    // (`returned → completed`). Lives in this slice so it can invalidate the
+    // booking list directly — RTK Query tags are scoped per-API instance.
+    completeBooking: builder.mutation<Booking, { id: string; body: CompleteBookingRequest }>({
+      query: ({ id, body }) => ({ url: `/bookings/${id}/complete`, method: 'POST', body }),
+      invalidatesTags: ['Booking'],
+    }),
   }),
 })
 
-export const { useGetBookingsQuery, useRejectBookingMutation, useCancelBookingMutation, usePrepareBookingMutation } =
-  bookingApi
+export const {
+  useGetBookingsQuery,
+  useRejectBookingMutation,
+  useCancelBookingMutation,
+  usePrepareBookingMutation,
+  useCompleteBookingMutation,
+} = bookingApi

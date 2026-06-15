@@ -4,14 +4,23 @@ import type {
   BookingStatus,
   BookingSummary,
   BranchOption,
+  CompleteBookingRequest,
   CreateBookingRequest,
   PrepareBookingRequest,
   Quote,
   QuoteRequest,
+  ReturnInspection,
 } from '@car-rental/types'
 import { canTransition } from './booking.lifecycle'
 import { computeQuote } from './booking.pricing'
-import { PLAN_TO_DB, STATUS_TO_DB, toWireBooking, toWireBookingSummary } from './booking.mappers'
+import {
+  CONDITION_TO_DB,
+  PLAN_TO_DB,
+  STATUS_TO_DB,
+  toWireBooking,
+  toWireBookingSummary,
+  toWireReturnInspection,
+} from './booking.mappers'
 import * as repo from './booking.repository'
 import { PAYMENT_STATUS_TO_WIRE } from '../payments/payment.mappers'
 import * as paymentRepo from '../payments/payment.repository'
@@ -187,4 +196,58 @@ export async function prepareBooking(
   const prepReadyAt = input.prepReadyAt ? new Date(input.prepReadyAt) : undefined
   const updated = await repo.updateStatus(bookingId, STATUS_TO_DB['vehicle-prepared'], { prepReadyAt })
   return toWireBooking(updated)
+}
+
+/**
+ * Customer returns the vehicle (drops it + locks the box): `picked-up → returned`.
+ * The provider still has to inspect and complete it.
+ */
+export async function returnBooking(user: AuthUser, bookingId: string): Promise<Booking> {
+  const booking = await repo.findByIdForCustomer(bookingId, user.id)
+  if (!booking) throw new BookingError(404, 'booking not found')
+
+  const from = toWireBooking(booking).status
+  if (!canTransition(from, 'returned')) {
+    throw new BookingError(409, `cannot return a booking that is ${from}`)
+  }
+
+  const updated = await repo.updateStatus(bookingId, STATUS_TO_DB.returned)
+  return toWireBooking(updated)
+}
+
+/**
+ * Provider inspects a returned vehicle and completes the booking:
+ * `returned → completed`, recording the vehicle's condition.
+ */
+export async function completeBooking(
+  user: AuthUser,
+  bookingId: string,
+  input: CompleteBookingRequest,
+): Promise<Booking> {
+  const booking = await repo.findByIdForProvider(bookingId, requireProviderId(user))
+  if (!booking) throw new BookingError(404, 'booking not found')
+
+  const from = toWireBooking(booking).status
+  if (!canTransition(from, 'completed')) {
+    throw new BookingError(409, `cannot complete a booking that is ${from}`)
+  }
+
+  await repo.createReturnInspection({
+    bookingId,
+    inspectorId: user.id,
+    condition: CONDITION_TO_DB[input.condition],
+    notes: input.notes ?? null,
+  })
+  const updated = await repo.updateStatus(bookingId, STATUS_TO_DB.completed)
+  return toWireBooking(updated)
+}
+
+/** Provider reads the recorded return inspection for one of its bookings. */
+export async function getReturnInspection(user: AuthUser, bookingId: string): Promise<ReturnInspection> {
+  const booking = await repo.findByIdForProvider(bookingId, requireProviderId(user))
+  if (!booking) throw new BookingError(404, 'booking not found')
+
+  const inspection = await repo.findReturnInspection(bookingId)
+  if (!inspection) throw new BookingError(404, 'no inspection for this booking')
+  return toWireReturnInspection(inspection)
 }

@@ -3,11 +3,14 @@ import { z } from 'zod'
 import { requireAuth, requireRole } from '../auth/auth.middleware'
 import {
   BookingError,
+  completeBooking,
   createBooking,
+  getReturnInspection,
   listForUser,
   listVehicleBranchOptions,
   prepareBooking,
   quote,
+  returnBooking,
   transition,
   type BookingAction,
 } from './booking.service'
@@ -46,6 +49,11 @@ const createSchema = z
 
 const prepareSchema = z.object({
   prepReadyAt: z.string().datetime().optional(),
+})
+
+const completeSchema = z.object({
+  condition: z.enum(['clean', 'minor-damage', 'major-damage']),
+  notes: z.string().optional(),
 })
 
 bookingsRouter.post('/quote', requireAuth, requireRole('customer'), async (req, res) => {
@@ -123,6 +131,47 @@ bookingsRouter.post(
     }
     try {
       res.json(await prepareBooking(req.user!, req.params.id, parsed.data))
+    } catch (err) {
+      handle(err, res)
+    }
+  },
+)
+
+// Keyless return flow: the customer returns the vehicle; the provider inspects
+// and completes it, recording the vehicle's condition.
+bookingsRouter.post('/:id/return', requireAuth, requireRole('customer'), async (req: Request<{ id: string }>, res: Response) => {
+  try {
+    res.json(await returnBooking(req.user!, req.params.id))
+  } catch (err) {
+    handle(err, res)
+  }
+})
+
+bookingsRouter.post(
+  '/:id/complete',
+  requireAuth,
+  requireRole('service-provider'),
+  async (req: Request<{ id: string }>, res: Response) => {
+    const parsed = completeSchema.safeParse(req.body)
+    if (!parsed.success) {
+      res.status(400).json({ error: 'invalid request', details: parsed.error.flatten() })
+      return
+    }
+    try {
+      res.json(await completeBooking(req.user!, req.params.id, parsed.data))
+    } catch (err) {
+      handle(err, res)
+    }
+  },
+)
+
+bookingsRouter.get(
+  '/:id/inspection',
+  requireAuth,
+  requireRole('service-provider'),
+  async (req: Request<{ id: string }>, res: Response) => {
+    try {
+      res.json(await getReturnInspection(req.user!, req.params.id))
     } catch (err) {
       handle(err, res)
     }
