@@ -35,7 +35,11 @@ const EMPTY_FORM = {
 export function FleetPage() {
   const theme = useTheme()
   const { t } = useTranslation()
-  const { data: vehicles = [] } = useProviderVehiclesQuery()
+  const {
+    data: vehicles = [],
+    isLoading: vehiclesLoading,
+    isError: vehiclesError,
+  } = useProviderVehiclesQuery()
   const { data: categories = [] } = useCategoriesQuery()
   const [createVehicle, { isLoading: creating }] = useCreateVehicleMutation()
   const [updateVehicle, { isLoading: updating }] = useUpdateVehicleMutation()
@@ -140,47 +144,58 @@ export function FleetPage() {
 
       <section style={{ marginBottom: theme.spacing.xl }}>
         <h2 style={{ color: theme.color.text }}>{t('fleet.vehicles', { count: vehicles.length })}</h2>
-        <table style={{ width: '100%', borderCollapse: 'collapse', color: theme.color.text }}>
-          <thead>
-            <tr style={{ textAlign: 'start', color: theme.color.textMuted }}>
-              <th>{t('fleet.colName')}</th>
-              <th>{t('fleet.colCategory')}</th>
-              <th>{t('fleet.colTransmission')}</th>
-              <th>{t('fleet.colFuel')}</th>
-              <th>{t('fleet.colSeats')}</th>
-              <th>{t('fleet.colPrice')}</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {vehicles.map((v) => (
-              <tr key={v.id} style={{ borderTop: `1px solid ${theme.color.surface}` }}>
-                <td>{v.name}</td>
-                <td>{v.category}</td>
-                <td>{v.transmission}</td>
-                <td>{v.fuelType}</td>
-                <td>{v.seats}</td>
-                <td>
-                  {v.pricePerDay} {v.currency}
-                </td>
-                <td>
-                  <a
-                    onClick={() => startEdit(v.id)}
-                    style={{ color: theme.color.primary, cursor: 'pointer', marginInlineEnd: theme.spacing.sm }}
-                  >
-                    {t('common.edit')}
-                  </a>
-                  <a
-                    onClick={() => deleteVehicle(v.id)}
-                    style={{ color: theme.color.danger, cursor: 'pointer' }}
-                  >
-                    {t('common.delete')}
-                  </a>
-                </td>
+        {vehiclesLoading && <p style={{ color: theme.color.textMuted }}>{t('fleet.loading')}</p>}
+        {vehiclesError && <p style={{ color: theme.color.danger }}>{t('fleet.loadFailed')}</p>}
+        {!vehiclesLoading && !vehiclesError && (
+          <table style={{ width: '100%', borderCollapse: 'collapse', color: theme.color.text }}>
+            <thead>
+              <tr style={{ textAlign: 'start', color: theme.color.textMuted }}>
+                <th>{t('fleet.colName')}</th>
+                <th>{t('fleet.colCategory')}</th>
+                <th>{t('fleet.colTransmission')}</th>
+                <th>{t('fleet.colFuel')}</th>
+                <th>{t('fleet.colSeats')}</th>
+                <th>{t('fleet.colPrice')}</th>
+                <th />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {vehicles.map((v) => (
+                <tr key={v.id} style={{ borderTop: `1px solid ${theme.color.surface}` }}>
+                  <td>{v.name}</td>
+                  <td>{v.category}</td>
+                  <td>{v.transmission}</td>
+                  <td>{v.fuelType}</td>
+                  <td>{v.seats}</td>
+                  <td>
+                    {v.pricePerDay} {v.currency}
+                  </td>
+                  <td>
+                    <a
+                      onClick={() => startEdit(v.id)}
+                      style={{ color: theme.color.primary, cursor: 'pointer', marginInlineEnd: theme.spacing.sm }}
+                    >
+                      {t('common.edit')}
+                    </a>
+                    <a
+                      onClick={() => deleteVehicle(v.id)}
+                      style={{ color: theme.color.danger, cursor: 'pointer' }}
+                    >
+                      {t('common.delete')}
+                    </a>
+                  </td>
+                </tr>
+              ))}
+              {vehicles.length === 0 && (
+                <tr>
+                  <td colSpan={7} style={{ color: theme.color.textMuted, paddingTop: theme.spacing.sm }}>
+                    {t('fleet.noVehicles')}
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        )}
       </section>
 
       <section>

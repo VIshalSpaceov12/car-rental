@@ -42,7 +42,7 @@ export function BookingsScreen() {
   const insets = useSafeAreaInsets()
   const { t } = useTranslation()
   const navigation = useNavigation<Nav>()
-  const { data: bookings, isLoading, isError } = useGetBookingsQuery()
+  const { data: bookings, isLoading, isError, refetch } = useGetBookingsQuery()
   const [cancelBooking, cancelling] = useCancelBookingMutation()
 
   const onCancel = async (id: string) => {
@@ -63,8 +63,9 @@ export function BookingsScreen() {
 
   if (isError) {
     return (
-      <View style={{ flex: 1, backgroundColor: theme.color.background, alignItems: 'center', justifyContent: 'center', padding: theme.spacing.lg }}>
+      <View style={{ flex: 1, backgroundColor: theme.color.background, alignItems: 'center', justifyContent: 'center', padding: theme.spacing.lg, gap: theme.spacing.md }}>
         <Text style={{ color: theme.color.danger, textAlign: 'center' }}>{t('bookings.loadError')}</Text>
+        <Button title={t('common.retry')} onPress={() => void refetch()} />
       </View>
     )
   }
@@ -95,19 +96,25 @@ export function BookingsScreen() {
         {t('bookings.title')}
       </Text>
 
-      {active.map((b) => (
-        <BookingRow
-          key={b.id}
-          booking={b}
-          cancelling={cancelling.isLoading}
-          onCancel={() => onCancel(b.id)}
-          onPickup={() => navigation.navigate('Pickup', { bookingId: b.id, vehicleId: b.vehicleId })}
-          onReturn={() => navigation.navigate('Return', { bookingId: b.id })}
-          onRate={() => navigation.navigate('Rating', { bookingId: b.id })}
-          onReceipt={() => navigation.navigate('Receipt', { bookingId: b.id })}
-          onRebook={() => navigation.navigate('Booking', { vehicleId: b.vehicleId })}
-        />
-      ))}
+      {active.length === 0 ? (
+        <Text style={{ color: theme.color.textMuted, fontSize: theme.typography.body.fontSize }}>
+          {t('bookings.noActive')}
+        </Text>
+      ) : (
+        active.map((b) => (
+          <BookingRow
+            key={b.id}
+            booking={b}
+            cancelling={cancelling.isLoading}
+            onCancel={() => onCancel(b.id)}
+            onPickup={() => navigation.navigate('Pickup', { bookingId: b.id, vehicleId: b.vehicleId })}
+            onReturn={() => navigation.navigate('Return', { bookingId: b.id })}
+            onRate={() => navigation.navigate('Rating', { bookingId: b.id })}
+            onReceipt={() => navigation.navigate('Receipt', { bookingId: b.id })}
+            onRebook={() => navigation.navigate('Booking', { vehicleId: b.vehicleId })}
+          />
+        ))
+      )}
 
       {past.length > 0 && (
         <>
