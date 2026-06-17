@@ -70,6 +70,12 @@ describe('IncomingBookingsList', () => {
     expect(onAction).toHaveBeenCalledWith('b1', 'reject')
   })
 
+  it('renders the localized booking status label, never the raw enum', () => {
+    renderList([{ ...base, status: 'vehicle-prepared' }])
+    expect(screen.getByText('Vehicle prepared')).toBeInTheDocument()
+    expect(screen.queryByText('vehicle-prepared')).toBeNull()
+  })
+
   it('renders the payment status chip next to the booking status', () => {
     renderList([{ ...base, paymentStatus: 'paid' }])
     expect(screen.getByText('Paid')).toBeInTheDocument()

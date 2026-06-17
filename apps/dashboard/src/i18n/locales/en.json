@@ -1,11 +1,15 @@
 {
+  "app": {
+    "loading": "Loading…"
+  },
   "common": {
     "remove": "remove",
     "delete": "delete",
     "edit": "edit",
     "cancel": "cancel",
     "save": "Save",
-    "add": "Add"
+    "add": "Add",
+    "confirmDelete": "Are you sure you want to delete this?"
   },
   "auth": {
     "signInTitle": "Provider Sign In",
@@ -33,6 +37,7 @@
     "branches": "Branches",
     "bookings": "Bookings",
     "branding": "Branding",
+    "logs": "Logs",
     "logout": "Log out"
   },
   "language": {
@@ -89,7 +94,18 @@
     "colTransmission": "Transmission",
     "colFuel": "Fuel",
     "colSeats": "Seats",
-    "colPrice": "Price/day"
+    "colPrice": "Price/day",
+    "actionFailed": "Something went wrong. Please try again.",
+    "transmissionValue": {
+      "automatic": "Automatic",
+      "manual": "Manual"
+    },
+    "fuelValue": {
+      "petrol": "Petrol",
+      "diesel": "Diesel",
+      "electric": "Electric",
+      "hybrid": "Hybrid"
+    }
   },
   "branches": {
     "title": "Branches",
@@ -98,13 +114,28 @@
     "adding": "Adding…",
     "name": "Name",
     "address": "Address",
-    "hours": "Hours"
+    "lat": "Latitude",
+    "lng": "Longitude",
+    "hours": "Hours",
+    "actionFailed": "Couldn't save the branch. Please try again.",
+    "invalidCoords": "Enter a valid latitude and longitude."
   },
   "bookings": {
     "title": "Incoming Bookings",
     "loading": "Loading…",
     "loadFailed": "Failed to load bookings.",
     "empty": "No incoming bookings yet.",
+    "actionFailed": "Couldn't complete that action. Please try again.",
+    "status": {
+      "reserved": "Reserved",
+      "confirmed": "Confirmed",
+      "vehicle-prepared": "Vehicle prepared",
+      "picked-up": "Picked up",
+      "returned": "Returned",
+      "completed": "Completed",
+      "rejected": "Rejected",
+      "cancelled": "Cancelled"
+    },
     "filterLabel": "Show",
     "filterIncoming": "Incoming",
     "filterAll": "All",
@@ -151,6 +182,34 @@
       "service": "Service: {{score}}/5",
       "comment": "Comment: {{comment}}",
       "notRated": "Not rated yet"
+    }
+  },
+  "logs": {
+    "title": "Logs",
+    "subtitle": "Live application & HTTP logs (auto-refreshes every 5s).",
+    "loading": "Loading logs…",
+    "loadFailed": "Failed to load logs.",
+    "empty": "No logs yet.",
+    "autoScroll": "Auto-scroll",
+    "copyAll": "Copy all",
+    "copied": "Copied to clipboard.",
+    "copyFailed": "Copy failed.",
+    "clear": "Clear",
+    "cleared": "Logs cleared.",
+    "clearFailed": "Couldn't clear logs.",
+    "entries": "{{n}} entries",
+    "level": {
+      "all": "All",
+      "error": "Error",
+      "warn": "Warn",
+      "info": "Info",
+      "debug": "Debug"
+    },
+    "stat": {
+      "total": "Total",
+      "errors": "Errors",
+      "warnings": "Warnings",
+      "info": "Info"
     }
   }
 }

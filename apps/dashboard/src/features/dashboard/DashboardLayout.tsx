@@ -10,8 +10,9 @@ import { FleetPage } from '../fleet/FleetPage'
 import { BranchesPage } from '../fleet/BranchesPage'
 import { BookingsScreen } from '../bookings/BookingsScreen'
 import { BrandingPage } from '../branding/BrandingPage'
+import { LogsScreen } from '../logs/LogsScreen'
 
-type Section = 'overview' | 'fleet' | 'branches' | 'bookings' | 'branding'
+type Section = 'overview' | 'fleet' | 'branches' | 'bookings' | 'branding' | 'logs'
 
 // One-off layout dimension (sidebar width); not a cross-component semantic size.
 const SIDEBAR_WIDTH = 220
@@ -54,6 +55,7 @@ export function DashboardLayout() {
         {navItem('branches', t('nav.branches'))}
         {navItem('bookings', t('nav.bookings'))}
         {navItem('branding', t('nav.branding'))}
+        {navItem('logs', t('nav.logs'))}
         <label style={{ display: 'block', marginTop: theme.spacing.lg }}>
           <span
             style={{
@@ -100,6 +102,7 @@ export function DashboardLayout() {
         {section === 'branches' && <BranchesPage />}
         {section === 'bookings' && <BookingsScreen />}
         {section === 'branding' && <BrandingPage />}
+        {section === 'logs' && <LogsScreen />}
       </main>
     </div>
   )

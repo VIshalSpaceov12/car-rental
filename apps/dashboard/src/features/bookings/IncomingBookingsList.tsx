@@ -39,6 +39,29 @@ const ACTION_LABEL_KEY: Record<ProviderBookingAction, 'bookings.reject' | 'booki
   cancel: 'bookings.cancel',
 }
 
+// Booking status label keys — the raw lifecycle enum is never shown to the user
+// (it wouldn't localize); both locales carry the `bookings.status.*` copy.
+const BOOKING_STATUS_LABEL_KEY: Record<
+  BookingStatus,
+  | 'bookings.status.reserved'
+  | 'bookings.status.confirmed'
+  | 'bookings.status.vehicle-prepared'
+  | 'bookings.status.picked-up'
+  | 'bookings.status.returned'
+  | 'bookings.status.completed'
+  | 'bookings.status.rejected'
+  | 'bookings.status.cancelled'
+> = {
+  reserved: 'bookings.status.reserved',
+  confirmed: 'bookings.status.confirmed',
+  'vehicle-prepared': 'bookings.status.vehicle-prepared',
+  'picked-up': 'bookings.status.picked-up',
+  returned: 'bookings.status.returned',
+  completed: 'bookings.status.completed',
+  rejected: 'bookings.status.rejected',
+  cancelled: 'bookings.status.cancelled',
+}
+
 // Read-only payment status chip labels. Null (no payment recorded yet) renders a dash.
 const PAYMENT_STATUS_LABEL_KEY: Record<
   PaymentStatus,
@@ -172,7 +195,7 @@ export function IncomingBookingsList({ bookings, onAction, busyId, renderPhase5 
                 <strong style={{ color: theme.color.text }}>
                   {b.total} {b.currency}
                 </strong>
-                <span style={{ color: theme.color.textMuted }}>{b.status}</span>
+                <span style={{ color: theme.color.textMuted }}>{t(BOOKING_STATUS_LABEL_KEY[b.status])}</span>
                 {renderPaymentChip(b.paymentStatus)}
                 {actions.map((a) => (
                   <div key={a.action} style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>

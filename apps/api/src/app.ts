@@ -15,6 +15,8 @@ import { bookingsRouter } from './modules/bookings/booking.routes'
 import { paymentsRouter } from './modules/payments/payment.routes'
 import { otpsRouter } from './modules/otp/otp.routes'
 import { contractsRouter } from './modules/contract/contract.routes'
+import { systemLogsRouter } from './modules/system-logs/system-logs.routes'
+import { requestLogger } from './logger/request-logger.middleware'
 
 /**
  * Modular monolith: one Express app, domain modules mounted as routers.
@@ -28,6 +30,10 @@ export function createApp(): Express {
   app.use(helmet())
   app.use(cors())
   app.use(express.json())
+
+  // Record every request into the in-memory Logs console (after json so it sees
+  // the parsed request, before routes so it wraps them all).
+  app.use(requestLogger)
 
   // Throttle credential endpoints to blunt brute-force / user-enumeration.
   // Relaxed under test so the suite's many sign-ins don't trip the shared-IP limit.
@@ -52,6 +58,7 @@ export function createApp(): Express {
   app.use('/payments', paymentsRouter)
   app.use('/otps', otpsRouter)
   app.use('/contracts', contractsRouter)
+  app.use('/system-logs', systemLogsRouter)
 
   return app
 }

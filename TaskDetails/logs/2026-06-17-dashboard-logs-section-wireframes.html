@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Car Rental Dashboard — Logs / Activity Module Wireframes</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #eef0f3; color: #2b2b2b; padding: 28px; line-height: 1.5; }
+
+/* ===== doc chrome (from the deck system) ===== */
+.page-header { background: #14141f; color: #fff; padding: 30px; border-radius: 10px; margin-bottom: 22px; }
+.page-header h1 { font-size: 24px; margin-bottom: 8px; }
+.page-header p { color: #b7b7c4; font-size: 14px; max-width: 1040px; }
+.page-header .accent { color: #FF8C00; font-weight: 700; }
+
+.fidelity { background:#fff; border:1px solid #e2e4e8; border-left:4px solid #FF8C00; border-radius:8px; padding:14px 18px; font-size:13px; margin-bottom:18px; max-width:1040px; }
+.fidelity b { color:#14141f; }
+.fidelity code { background:#f4f5f7; padding:1px 5px; border-radius:4px; font-size:12px; }
+
+.legend { display: flex; gap: 18px; margin: 22px 0 30px; flex-wrap: wrap; align-items:center; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color:#444; }
+.legend-color { width: 13px; height: 13px; border-radius: 3px; }
+.legend-color.unchanged { background: #ecf0f1; border: 1px solid #bdc3c7; }
+.legend-color.new { background: #d4edda; border: 1px solid #27ae60; }
+.legend-color.hybrid { background: #e6f0ff; border: 1px solid #3b82f6; }
+.legend-color.pending { background: #fef5e7; border: 1px solid #f39c12; }
+
+.section { margin-bottom: 56px; }
+.section-title { font-size: 19px; font-weight: 800; margin-bottom: 6px; color: #14141f; border-left: 4px solid #FF8C00; padding-left: 12px; }
+.section-subtitle { font-size: 14px; color: #666; margin-bottom: 18px; padding-left: 16px; max-width: 1000px; }
+.section-subtitle b { color:#14141f; }
+.secfid { font-size:12px; color:#555; background:#fbfbfc; border:1px dashed #d7d9de; border-radius:7px; padding:8px 12px; margin:0 0 18px 16px; max-width:1000px; }
+.secfid code { background:#f1f2f4; padding:1px 5px; border-radius:4px; font-size:11px; }
+
+.row-wrap { display:flex; gap: 40px; flex-wrap: wrap; align-items: flex-start; }
+.col-label { font-size: 13px; font-weight:700; margin-bottom: 12px; padding: 6px 12px; border-radius: 6px; display:inline-block; }
+.col-label.current { background:#ecf0f1; color:#566; }
+.col-label.new { background:#d4edda; color:#1e7e44; }
+.col-label.hybrid { background:#e6f0ff; color:#2563eb; }
+.col-label.pending { background:#fef5e7; color:#b9770e; }
+
+.label-pill { display:inline-block; font-size:9px; font-weight:800; padding:2px 7px; border-radius:6px; vertical-align:middle; margin-left:6px; }
+.label-pill.new { background:#27ae60; color:#fff; }
+.label-pill.hy { background:#3b82f6; color:#fff; }
+.label-pill.pd { background:#f39c12; color:#fff; }
+
+table.summary { width:100%; max-width:1040px; border-collapse:collapse; font-size:13px; margin:6px 0 8px; background:#fff; border-radius:8px; overflow:hidden; }
+table.summary thead tr { background:#14141f; color:#fff; text-align:left; }
+table.summary th, table.summary td { padding:9px 13px; border-bottom:1px solid #eee; vertical-align:top; }
+.tag-ex { color:#566; font-weight:700; } .tag-new { color:#1e7e44; font-weight:700; }
+.tag-hy { color:#2563eb; font-weight:700; } .tag-pd { color:#b9770e; font-weight:700; }
+
+.callout { background:#fff8e6; border:1px solid #ffd27a; border-radius:8px; padding:13px 16px; font-size:13px; margin:16px 0; max-width:1040px; }
+.callout.info { background:#eaf3ff; border-color:#9cc4f5; }
+.callout b { color:#14141f; } .callout code { background:#fff; padding:1px 5px; border-radius:4px; }
+
+.flow { display:flex; align-items:center; gap:0; flex-wrap:wrap; margin-top:8px; }
+.fstep { background:#fff; border:2px solid #14141f; border-radius:10px; padding:11px 13px; font-size:12px; font-weight:600; min-width:120px; text-align:center; }
+.fstep.q { border-color:#FF8C00; background:#fff7ec; }
+.fstep.new { border-color:#27ae60; background:#eafaf0; }
+.farrow { font-size:20px; color:#bbb; padding:0 9px; }
+
+.pending-block { background:#fff8e6; border:1px solid #ffd27a; border-left:4px solid #f39c12; border-radius:10px; padding:14px 16px; font-size:12.5px; max-width:620px; }
+.pending-block .ph { font-weight:800; color:#b9770e; display:flex; align-items:center; gap:7px; margin-bottom:5px; }
+.pending-block ul { margin:6px 0 0 16px; color:#6b5a30; }
+.pending-block li { margin-bottom:5px; }
+
+.notelist { font-size:12.5px; color:#444; max-width:340px; }
+.notelist li { margin-bottom:14px; list-style:none; }
+.notelist .h { font-weight:800; color:#14141f; display:flex; align-items:center; gap:8px; margin-bottom:3px; }
+.notelist .h .n { background:#FF8C00; color:#14141f; width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:800; font-size:11px; flex-shrink:0; }
+
+.wireframe-footer { margin-top: 40px; padding: 22px; background: #14141f; color: #b7b7c4; border-radius: 10px; font-size: 12px; max-width:1040px; }
+.wireframe-footer strong { color: #fff; }
+.wireframe-footer code { font-family: 'Courier New', monospace; font-size: 11px; }
+.wireframe-footer code.modify { color: #f6b23c; }
+.wireframe-footer code.new { color: #5fd38a; }
+
+/* ===== desktop dashboard frame (replaces the phone shell for this web deck) ===== */
+.win { width: 560px; background:#fff; border:1px solid #d4d7de; border-radius:10px; overflow:hidden; box-shadow:0 14px 34px rgba(0,0,0,.14); }
+.win .chrome { height:34px; background:#e9ebef; border-bottom:1px solid #dcdee3; display:flex; align-items:center; padding:0 12px; }
+.win .dot { width:11px; height:11px; border-radius:50%; margin-right:7px; }
+.win .url { flex:1; margin-left:8px; height:21px; background:#fff; border:1px solid #d9dce1; border-radius:5px; font-size:10.5px; color:#8a9099; display:flex; align-items:center; padding:0 9px; }
+.dash { display:flex; height:392px; }
+.side { width:152px; background:#14141f; color:#cfd2da; padding:14px 10px; flex-shrink:0; display:flex; flex-direction:column; gap:3px; }
+.side .brand { color:#FF8C00; font-weight:900; font-size:13px; margin-bottom:12px; padding:0 6px; line-height:1.2; }
+.side .nav { font-size:12px; padding:7px 9px; border-radius:6px; color:#b7bbc6; }
+.side .nav.on { background:#FF8C00; color:#14141f; font-weight:800; }
+.side .nav.newnav { color:#7ee0a6; font-weight:700; }
+.side .nav.newnav.on { background:#1e7e44; color:#fff; }
+.side .grow { flex:1; }
+.side .lang { font-size:10px; color:#8a9099; border-top:1px solid #2a2a38; padding:8px 6px 0; }
+.side .logout { font-size:11px; color:#cfd2da; background:#23232f; border-radius:6px; text-align:center; padding:6px; margin-top:6px; }
+.main { flex:1; background:#f4f5f7; padding:14px; overflow:hidden; position:relative; }
+.main h3 { font-size:15px; color:#14141f; margin-bottom:4px; }
+.main .h3sub { font-size:11px; color:#8a9099; margin-bottom:12px; }
+
+/* log toolbar + table */
+.lt-toolbar { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:10px; }
+.lt-field { background:#fff; border:1px solid #d9dce1; border-radius:6px; font-size:10.5px; color:#566; padding:5px 8px; display:flex; align-items:center; gap:5px; }
+.lt-field .cv { color:#b3b8be; font-size:9px; }
+.lt-search { flex:1; min-width:96px; color:#b3b8be; }
+.lt-export { margin-left:auto; background:#FF8C00; color:#fff; font-weight:800; font-size:10.5px; border-radius:6px; padding:6px 11px; }
+table.log { width:100%; border-collapse:collapse; font-size:10.5px; background:#fff; border-radius:8px; overflow:hidden; }
+table.log thead tr { background:#eceef2; color:#566; text-align:start; }
+table.log th, table.log td { padding:6px 8px; border-bottom:1px solid #eef0f3; vertical-align:top; text-align:start; }
+table.log tbody tr.sel { background:#fff8ee; }
+.evt { display:inline-block; font-weight:700; font-size:9px; padding:2px 7px; border-radius:9px; white-space:nowrap; }
+.evt.book { background:#e6f0ff; color:#2563eb; }
+.evt.otp  { background:#fff1e6; color:#b9770e; }
+.evt.pay  { background:#e8f7ee; color:#1e7e44; }
+.evt.fleet{ background:#f0ecfb; color:#6b46c1; }
+.evt.auth { background:#eceef2; color:#566; }
+.evt.brand{ background:#fde8ef; color:#c0397b; }
+.act { color:#14141f; font-weight:600; }
+.tm { color:#8a9099; white-space:nowrap; }
+.pager { display:flex; align-items:center; justify-content:flex-end; gap:8px; font-size:10px; color:#8a9099; margin-top:9px; }
+.pager .pg { background:#fff; border:1px solid #d9dce1; border-radius:5px; padding:3px 8px; }
+
+/* empty state */
+.empty { background:#fff; border:1px dashed #d4d7de; border-radius:10px; height:240px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:#8a9099; text-align:center; padding:20px; }
+.empty .ic { font-size:30px; }
+
+/* detail drawer */
+.drwdim { position:absolute; inset:0; background:rgba(0,0,0,.28); }
+.drw { position:absolute; inset-block:0; inset-inline-end:0; width:66%; background:#fff; box-shadow:-8px 0 24px rgba(0,0,0,.12); padding:14px; overflow:auto; }
+.drw .dh { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.drw .dh .x { color:#b3b8be; font-size:14px; }
+.kv { display:flex; font-size:10.5px; margin-bottom:6px; }
+.kv .k { width:84px; color:#8a9099; flex-shrink:0; }
+.kv .v { color:#14141f; font-weight:600; }
+.ba { display:flex; gap:6px; align-items:center; font-size:10px; }
+.ba .chip { background:#eceef2; border-radius:5px; padding:2px 7px; color:#566; font-weight:700; }
+.ba .chip.to { background:#e6f0ff; color:#2563eb; }
+.secbadge { display:inline-block; background:#fff1e6; color:#b9770e; font-weight:800; font-size:9px; padding:2px 8px; border-radius:9px; margin-bottom:8px; }
+.json { background:#0e0b1a; color:#9fe7bd; font-family:'Courier New', monospace; font-size:9.5px; border-radius:6px; padding:9px; white-space:pre; overflow:auto; margin-top:6px; }
+.divline { height:1px; background:#eef0f3; margin:11px 0; }
+
+/* data-model table */
+table.model { width:100%; max-width:760px; border-collapse:collapse; font-size:12px; background:#fff; border-radius:8px; overflow:hidden; }
+table.model thead tr { background:#14141f; color:#fff; text-align:left; }
+table.model th, table.model td { padding:7px 11px; border-bottom:1px solid #eef0f3; vertical-align:top; }
+table.model code { background:#f4f5f7; padding:1px 5px; border-radius:4px; font-size:11px; }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <h1>Service-Provider Dashboard — <span class="accent">Logs / Activity</span> module</h1>
+  <p>Proposed new section for the <b>web</b> provider dashboard: a filterable <span class="accent">activity &amp; audit log</span> covering the booking lifecycle, OTP lock-box access, payments, fleet edits, staff sign-ins and branding changes. Wireframe fidelity — layout and behaviour, not final pixels.</p>
+</div>
+
+<div class="fidelity">
+  <b>Fidelity &amp; honesty note.</b> The dashboard shell (sidebar: Overview · Fleet · Branches · Bookings · Branding, language switch, log out) is drawn from the <b>live</b> <code>apps/dashboard</code> <code>DashboardLayout.tsx</code> — that is the real current state, and it has <b>no</b> Logs item today. Everything inside the Logs section is <b>net-new</b>: there is currently no audit/log module in <code>apps/api</code> (modules today are auth, bookings, payments, fleet, notifications, contract, otp, realtime, health). Colours use the deck's wireframe tokens (orange accent); the real dashboard theme is <b>per-provider white-label</b>, so brand colour is illustrative only. Copy shown in English; the dashboard ships <b>EN + AR (RTL)</b> via react-i18next and logical-prop layout — an Arabic mirror is included in §4.
+</div>
+
+<div class="legend">
+  <div class="legend-item"><span class="legend-color unchanged"></span> Existing (live app, unchanged)</div>
+  <div class="legend-item"><span class="legend-color new"></span> New (new build)</div>
+  <div class="legend-item"><span class="legend-color hybrid"></span> Hybrid (extends an existing screen)</div>
+  <div class="legend-item"><span class="legend-color pending"></span> Pending (awaiting client/PM input)</div>
+</div>
+
+<!-- ===== SCOPE SUMMARY ===== -->
+<table class="summary">
+  <thead><tr><th style="width:210px">Area</th><th>What changes</th><th style="width:110px">Status</th></tr></thead>
+  <tbody>
+    <tr><td>Dashboard shell / sidebar</td><td>Add a <b>Logs</b> nav item to the existing layout — reuses theme, auth, language switch</td><td class="tag-hy">HYBRID</td></tr>
+    <tr><td>Activity Log (main view)</td><td>Filterable, paginated event table; date / type / actor filters + search; CSV export</td><td class="tag-new">NEW</td></tr>
+    <tr><td>Event detail drawer</td><td>Full event payload, before→after for transitions, security context (IP/device), raw metadata</td><td class="tag-new">NEW</td></tr>
+    <tr><td>Empty / no-results state</td><td>Friendly empty state for "no activity yet" and "no matches for filters"</td><td class="tag-new">NEW</td></tr>
+    <tr><td>Arabic (RTL) mirror</td><td>Same view, logical-prop layout flips for AR — no separate build</td><td class="tag-hy">HYBRID</td></tr>
+    <tr><td>Backend audit module</td><td><code>audit</code> API module + <code>AuditLog</code> table (Prisma migration) + event hooks in existing modules</td><td class="tag-new">NEW</td></tr>
+    <tr><td>Access control · retention · PII</td><td>Who can view logs, how long kept, export masking, immutable vs. convenience feed</td><td class="tag-pd">PENDING</td></tr>
+  </tbody>
+</table>
+
+<!-- ===== SECTION 1: WHERE IT LIVES ===== -->
+<div class="section">
+  <div class="section-title">1 · Where it lives — the dashboard shell <span class="label-pill hy">HYBRID</span></div>
+  <div class="section-subtitle">The Logs module slots into the existing sidebar as a sixth nav item. <b>Left = today</b> (five items, drawn from the live app). <b>Right = proposed</b> (adds “Logs”). No other shell change — same theme, auth guard, language switch and log-out.</div>
+  <div class="secfid">Existing shell verified against <code>DashboardLayout.tsx</code> (nav: overview / fleet / branches / bookings / branding). The new item is gated by the same provider auth as the rest; visibility may be role-limited — see §6 (pending).</div>
+
+  <div class="row-wrap">
+    <div>
+      <div class="col-label current">EXISTING — dashboard today</div>
+      <div class="win">
+        <div class="chrome"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">dashboard.yourbrand.com/overview</span></div>
+        <div class="dash">
+          <div class="side">
+            <div class="brand">Provider<br>Dashboard</div>
+            <div class="nav on">Overview</div>
+            <div class="nav">Fleet</div>
+            <div class="nav">Branches</div>
+            <div class="nav">Bookings</div>
+            <div class="nav">Branding</div>
+            <div class="grow"></div>
+            <div class="lang">Language ▾  EN</div>
+            <div class="logout">Log out</div>
+          </div>
+          <div class="main">
+            <h3>Overview</h3>
+            <div class="h3sub">Welcome, Omar (service-provider)</div>
+            <p style="font-size:11px;color:#566;max-width:300px">Manage your fleet, branches, and incoming bookings from the menu.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="col-label hybrid">PROPOSED — sidebar + Logs</div>
+      <div class="win">
+        <div class="chrome"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">dashboard.yourbrand.com/logs</span></div>
+        <div class="dash">
+          <div class="side">
+            <div class="brand">Provider<br>Dashboard</div>
+            <div class="nav">Overview</div>
+            <div class="nav">Fleet</div>
+            <div class="nav">Branches</div>
+            <div class="nav">Bookings</div>
+            <div class="nav">Branding</div>
+            <div class="nav newnav on">Logs</div>
+            <div class="grow"></div>
+            <div class="lang">Language ▾  EN</div>
+            <div class="logout">Log out</div>
+          </div>
+          <div class="main">
+            <h3>Activity Log</h3>
+            <div class="h3sub">Everything that happened across your fleet</div>
+            <p style="font-size:11px;color:#566;max-width:300px">Filter by date, event type, branch or staff member. Click any row for full detail.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="notelist">
+      <li><div class="h"><span class="n">i</span> Information architecture</div>
+      Sidebar grows <b>5 → 6</b> items. Logs sits after Branding (read-mostly tools group). No existing route changes.</li>
+      <li><div class="h"><span class="n">i</span> Reuse, not rebuild</div>
+      Same <code>ThemeProvider</code>, auth token, RTK Query client and i18n. The item is one nav entry + one route + one screen.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== SECTION 2: ACTIVITY LOG LIST ===== -->
+<div class="section">
+  <div class="section-title">2 · Activity Log — main view <span class="label-pill new">NEW</span></div>
+  <div class="section-subtitle">A reverse-chronological, paginated table of events. Each row is colour-tagged by domain (<b>booking · OTP · payment · fleet · auth · branding</b>) so a provider can scan fast. Filters narrow by date range, event type, branch/actor and free-text search; <b>Export CSV</b> respects the active filters.</div>
+  <div class="secfid">Data is provider-scoped from the auth token (never a client-supplied providerId), matching how <code>fleetApi</code> / <code>bookingApi</code> already scope reads. Times shown in the provider's locale via <code>toLocaleString()</code>. The status enum (<code>confirmed → vehicle-prepared</code> …) is the authoritative <code>BOOKING_TRANSITIONS</code> from <code>@car-rental/types</code> — the log never invents its own.</div>
+
+  <div class="row-wrap">
+    <div>
+      <div class="col-label new">NEW — Activity Log (filtered list)</div>
+      <div class="win">
+        <div class="chrome"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">dashboard.yourbrand.com/logs</span></div>
+        <div class="dash">
+          <div class="side">
+            <div class="brand">Provider<br>Dashboard</div>
+            <div class="nav">Overview</div>
+            <div class="nav">Fleet</div>
+            <div class="nav">Branches</div>
+            <div class="nav">Bookings</div>
+            <div class="nav">Branding</div>
+            <div class="nav newnav on">Logs</div>
+            <div class="grow"></div>
+            <div class="lang">Language ▾  EN</div>
+            <div class="logout">Log out</div>
+          </div>
+          <div class="main">
+            <div class="lt-toolbar">
+              <div class="lt-field">Last 7 days <span class="cv">▾</span></div>
+              <div class="lt-field">All events <span class="cv">▾</span></div>
+              <div class="lt-field">All branches <span class="cv">▾</span></div>
+              <div class="lt-field lt-search">🔍 Search booking, vehicle, staff…</div>
+              <div class="lt-export">Export CSV</div>
+            </div>
+            <table class="log">
+              <thead><tr><th>Time</th><th>Event</th><th>Actor</th><th>Target</th><th>Detail</th></tr></thead>
+              <tbody>
+                <tr class="sel">
+                  <td class="tm">14:32</td><td><span class="evt book">booking</span></td><td class="act">System</td><td>#BK-1042</td><td>confirmed → vehicle-prepared</td>
+                </tr>
+                <tr>
+                  <td class="tm">14:30</td><td><span class="evt otp">otp</span></td><td class="act">Sara · staff</td><td>#BK-1042 · Corolla</td><td>OTP issued · expires 15:30</td>
+                </tr>
+                <tr>
+                  <td class="tm">13:58</td><td><span class="evt pay">payment</span></td><td class="act">Customer</td><td>#BK-1042</td><td>captured · AED 378 · card</td>
+                </tr>
+                <tr>
+                  <td class="tm">11:20</td><td><span class="evt fleet">fleet</span></td><td class="act">Omar · owner</td><td>Vehicle “Patrol”</td><td>price/day 320 → 350 AED</td>
+                </tr>
+                <tr>
+                  <td class="tm">09:05</td><td><span class="evt auth">auth</span></td><td class="act">Sara · staff</td><td>—</td><td>signed in · 94.x.x.x</td>
+                </tr>
+                <tr>
+                  <td class="tm">Yest 08:12</td><td><span class="evt otp">otp</span></td><td class="act">Customer</td><td>#BK-1039 · Sunny</td><td>OTP consumed · box unlocked</td>
+                </tr>
+                <tr>
+                  <td class="tm">Yest 07:40</td><td><span class="evt brand">branding</span></td><td class="act">Omar · owner</td><td>Theme</td><td>primary #C81E1E → #0B5</td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="pager"><span>1–25 of 318</span><span class="pg">‹ Prev</span><span class="pg">Next ›</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="col-label new">NEW — empty / no results</div>
+      <div class="win">
+        <div class="chrome"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">dashboard.yourbrand.com/logs</span></div>
+        <div class="dash">
+          <div class="side">
+            <div class="brand">Provider<br>Dashboard</div>
+            <div class="nav">Overview</div>
+            <div class="nav">Fleet</div>
+            <div class="nav">Branches</div>
+            <div class="nav">Bookings</div>
+            <div class="nav">Branding</div>
+            <div class="nav newnav on">Logs</div>
+            <div class="grow"></div>
+            <div class="lang">Language ▾  EN</div>
+            <div class="logout">Log out</div>
+          </div>
+          <div class="main">
+            <div class="lt-toolbar">
+              <div class="lt-field">Today <span class="cv">▾</span></div>
+              <div class="lt-field">OTP only <span class="cv">▾</span></div>
+              <div class="lt-field">Airport branch <span class="cv">▾</span></div>
+              <div class="lt-field lt-search">🔍 Search…</div>
+              <div class="lt-export">Export CSV</div>
+            </div>
+            <div class="empty">
+              <div class="ic">🗒️</div>
+              <div style="font-weight:700;color:#566">No activity matches these filters</div>
+              <div style="font-size:11px">Try widening the date range or clearing the event-type filter.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="notelist">
+      <li><div class="h"><span class="n">1</span> Scan-fast tags</div>
+      Domain colour-coding lets a provider eyeball “show me OTP unlocks” without reading every row.</li>
+      <li><div class="h"><span class="n">2</span> Filters drive export</div>
+      <b>Export CSV</b> exports exactly the filtered set — the on-screen query, not the whole table.</li>
+      <li><div class="h"><span class="n">3</span> Loading &amp; error</div>
+      Reuses the dashboard's existing loading / “failed to load” patterns (RTK Query <code>isLoading</code>/<code>isError</code>).</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== SECTION 3: EVENT DETAIL ===== -->
+<div class="section">
+  <div class="section-title">3 · Event detail — drawer <span class="label-pill new">NEW</span></div>
+  <div class="section-subtitle">Clicking a row opens a right-side drawer with the full event: who/what/when, the target entity, a <b>before→after</b> for state changes, and (for security-sensitive events) the request context. Shown here on the platform's <b>core security event — an OTP lock-box unlock</b>.</div>
+  <div class="secfid">OTP detail surfaces <b>metadata about</b> an unlock (booking, vehicle, validity window, result, IP/device) — never the OTP code itself. This matches the product rule that OTP plaintext is bound to booking + vehicle + time window and is never logged or persisted in the clear.</div>
+
+  <div class="row-wrap">
+    <div>
+      <div class="col-label new">NEW — OTP unlock detail (security)</div>
+      <div class="win">
+        <div class="chrome"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">dashboard.yourbrand.com/logs?event=otp_consumed</span></div>
+        <div class="dash">
+          <div class="side">
+            <div class="brand">Provider<br>Dashboard</div>
+            <div class="nav">Overview</div>
+            <div class="nav">Fleet</div>
+            <div class="nav">Branches</div>
+            <div class="nav">Bookings</div>
+            <div class="nav">Branding</div>
+            <div class="nav newnav on">Logs</div>
+            <div class="grow"></div>
+            <div class="lang">Language ▾  EN</div>
+            <div class="logout">Log out</div>
+          </div>
+          <div class="main">
+            <table class="log" style="opacity:.55">
+              <thead><tr><th>Time</th><th>Event</th><th>Actor</th></tr></thead>
+              <tbody>
+                <tr><td class="tm">14:32</td><td><span class="evt book">booking</span></td><td class="act">System</td></tr>
+                <tr><td class="tm">14:30</td><td><span class="evt otp">otp</span></td><td class="act">Sara</td></tr>
+              </tbody>
+            </table>
+            <div class="drwdim"></div>
+            <div class="drw">
+              <div class="dh"><b style="font-size:12.5px">Event detail</b><span class="x">✕</span></div>
+              <div class="secbadge">🔒 OTP lock-box · consumed</div>
+              <div class="kv"><span class="k">When</span><span class="v">2026-06-16 08:12:04 GST</span></div>
+              <div class="kv"><span class="k">Actor</span><span class="v">Customer · Demo Customer</span></div>
+              <div class="kv"><span class="k">Booking</span><span class="v">#BK-1039</span></div>
+              <div class="kv"><span class="k">Vehicle</span><span class="v">Nissan Sunny · plate D-23914</span></div>
+              <div class="kv"><span class="k">Branch</span><span class="v">Downtown</span></div>
+              <div class="kv"><span class="k">Valid window</span><span class="v">07:30 – 09:30 (in window ✓)</span></div>
+              <div class="kv"><span class="k">Result</span><span class="v" style="color:#1e7e44">success — box unlocked</span></div>
+              <div class="kv"><span class="k">Request</span><span class="v">94.x.x.x · iOS app v1.4</span></div>
+              <div class="divline"></div>
+              <div style="font-size:10px;color:#8a9099;margin-bottom:3px">Raw metadata</div>
+              <div class="json">{
+  "event": "otp.consumed",
+  "otpId": "otp_3f9c…",
+  "bookingId": "BK-1039",
+  "vehicleId": "veh_88",
+  "code": "•••• (never stored)",
+  "boundWindow": ["07:30","09:30"],
+  "ip": "94.x.x.x"
+}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="col-label new">NEW — booking transition detail</div>
+      <div class="win">
+        <div class="chrome"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">dashboard.yourbrand.com/logs?event=booking_status</span></div>
+        <div class="dash">
+          <div class="side">
+            <div class="brand">Provider<br>Dashboard</div>
+            <div class="nav">Overview</div>
+            <div class="nav">Fleet</div>
+            <div class="nav">Branches</div>
+            <div class="nav">Bookings</div>
+            <div class="nav">Branding</div>
+            <div class="nav newnav on">Logs</div>
+            <div class="grow"></div>
+            <div class="lang">Language ▾  EN</div>
+            <div class="logout">Log out</div>
+          </div>
+          <div class="main">
+            <table class="log" style="opacity:.55">
+              <thead><tr><th>Time</th><th>Event</th><th>Actor</th></tr></thead>
+              <tbody>
+                <tr><td class="tm">14:32</td><td><span class="evt book">booking</span></td><td class="act">System</td></tr>
+                <tr><td class="tm">13:58</td><td><span class="evt pay">payment</span></td><td class="act">Customer</td></tr>
+              </tbody>
+            </table>
+            <div class="drwdim"></div>
+            <div class="drw">
+              <div class="dh"><b style="font-size:12.5px">Event detail</b><span class="x">✕</span></div>
+              <div class="secbadge" style="background:#e6f0ff;color:#2563eb">🔄 Booking · status change</div>
+              <div class="kv"><span class="k">When</span><span class="v">2026-06-17 14:32:10 GST</span></div>
+              <div class="kv"><span class="k">Actor</span><span class="v">Sara · staff (Prepare)</span></div>
+              <div class="kv"><span class="k">Booking</span><span class="v">#BK-1042</span></div>
+              <div class="kv"><span class="k">Customer</span><span class="v">Demo Customer</span></div>
+              <div class="kv" style="align-items:center"><span class="k">Transition</span>
+                <span class="ba"><span class="chip">confirmed</span> → <span class="chip to">vehicle-prepared</span></span>
+              </div>
+              <div class="kv"><span class="k">Prep ready</span><span class="v">2026-06-17 15:00</span></div>
+              <div class="divline"></div>
+              <div class="callout info" style="margin:0;font-size:11px">Transition validated against the authoritative <code>BOOKING_TRANSITIONS</code> graph — illegal jumps can't be logged because the API rejects them first.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 4: ARABIC / RTL ===== -->
+<div class="section">
+  <div class="section-title">4 · Arabic (RTL) mirror <span class="label-pill hy">HYBRID</span></div>
+  <div class="section-subtitle">Same screen, no separate build. With AR active the sidebar moves to the <b>right</b>, the table aligns to the <b>start</b> edge, and the export button flips — all from logical-prop layout + <code>dir="rtl"</code>, exactly as the rest of the dashboard already behaves.</div>
+  <div class="secfid">Every label here resolves through <code>t()</code> with EN + AR keys in parity (enforced by the existing <code>i18n.test.ts</code> key-set test). Event-type and status values are localized via typed label maps — no raw enum is ever shown, consistent with the recent dashboard i18n fixes.</div>
+
+  <div class="row-wrap">
+    <div>
+      <div class="col-label hybrid">HYBRID — Activity Log in Arabic (RTL)</div>
+      <div class="win">
+        <div class="chrome"><span class="dot" style="background:#ff5f57"></span><span class="dot" style="background:#febc2e"></span><span class="dot" style="background:#28c840"></span><span class="url">dashboard.yourbrand.com/logs · العربية</span></div>
+        <div class="dash" dir="rtl">
+          <div class="side">
+            <div class="brand">لوحة تحكم<br>مزوّد الخدمة</div>
+            <div class="nav">نظرة عامة</div>
+            <div class="nav">الأسطول</div>
+            <div class="nav">الفروع</div>
+            <div class="nav">الحجوزات</div>
+            <div class="nav">الهوية البصرية</div>
+            <div class="nav newnav on">السجلّات</div>
+            <div class="grow"></div>
+            <div class="lang">اللغة ▾  AR</div>
+            <div class="logout">تسجيل الخروج</div>
+          </div>
+          <div class="main">
+            <div class="lt-toolbar">
+              <div class="lt-field">آخر ٧ أيام <span class="cv">▾</span></div>
+              <div class="lt-field">كل الأحداث <span class="cv">▾</span></div>
+              <div class="lt-field lt-search">🔍 بحث…</div>
+              <div class="lt-export">تصدير CSV</div>
+            </div>
+            <table class="log">
+              <thead><tr><th>الوقت</th><th>الحدث</th><th>المنفِّذ</th><th>الهدف</th></tr></thead>
+              <tbody>
+                <tr><td class="tm">١٤:٣٢</td><td><span class="evt book">حجز</span></td><td class="act">النظام</td><td>‏#BK-1042</td></tr>
+                <tr><td class="tm">١٤:٣٠</td><td><span class="evt otp">رمز فتح</span></td><td class="act">سارة · موظّفة</td><td>‏Corolla</td></tr>
+                <tr><td class="tm">١٣:٥٨</td><td><span class="evt pay">دفع</span></td><td class="act">العميل</td><td>‏AED ٣٧٨</td></tr>
+                <tr><td class="tm">أمس ٠٨:١٢</td><td><span class="evt otp">رمز فتح</span></td><td class="act">العميل</td><td>تم الفتح</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="notelist">
+      <li><div class="h"><span class="n">✓</span> Logical layout</div>
+      Sidebar + table flip from <code>dir</code> alone — no <code>left</code>/<code>right</code> in the styles, matching the codebase's RTL discipline.</li>
+      <li><div class="h"><span class="n">✓</span> Localized values</div>
+      Event types and booking statuses go through <code>t()</code>; numerals shown in Arabic-Indic per locale.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ===== SECTION 5: HOW AN ENTRY IS CREATED + BACKEND ===== -->
+<div class="section">
+  <div class="section-title">5 · How an entry is created <span class="label-pill new">NEW</span></div>
+  <div class="section-subtitle">The log is <b>written by the backend</b>, not the client — every domain module emits an audit event on the actions that matter; the Logs screen only reads them back. This keeps the trail honest even for actions taken via API or the mobile app.</div>
+
+  <div class="flow">
+    <div class="fstep">Provider / customer / system action<br><span style="font-weight:400;color:#777">(accept, issue OTP, pay, edit vehicle…)</span></div>
+    <div class="farrow">→</div>
+    <div class="fstep new">Domain module emits<br><code>audit.record(event)</code></div>
+    <div class="farrow">→</div>
+    <div class="fstep new">Row written to<br><code>AuditLog</code> (Postgres)</div>
+    <div class="farrow">→</div>
+    <div class="fstep q">Logs screen queries<br><code>GET /audit-logs</code> (filtered)</div>
+  </div>
+
+  <div class="callout">
+    <b>Backend impact (call-outs per project rules).</b>
+    <ul style="margin:8px 0 0 18px;font-size:12.5px">
+      <li><b>New API module</b> <code>apps/api/src/modules/audit</code> (route → controller → service → repository), plus <code>GET /audit-logs</code> (filter + paginate) and <code>GET /audit-logs/export.csv</code>.</li>
+      <li><b>Prisma migration</b> — new <code>AuditLog</code> model (see schema below). Relational FKs to provider / booking / vehicle for integrity.</li>
+      <li><b>Event hooks</b> — existing modules (bookings, otp, payments, fleet, auth, branding) call the audit service on their mutating paths. Emitting must never block the primary action (fire-and-forget / same-transaction — a §6 decision).</li>
+      <li><b>Env vars</b> — none new for the MVP. A retention job (cron / scheduled task) is only needed once retention policy is fixed (§6).</li>
+    </ul>
+  </div>
+
+  <div style="margin-top:18px">
+    <table class="model">
+      <thead><tr><th>AuditLog field</th><th>Type</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td>string (cuid)</td><td>PK</td></tr>
+        <tr><td><code>providerId</code></td><td>string</td><td>tenant scope — every query filters on it</td></tr>
+        <tr><td><code>actorId / actorRole</code></td><td>string / enum</td><td>staff · owner · customer · system</td></tr>
+        <tr><td><code>action</code></td><td>enum</td><td><code>booking.status</code>, <code>otp.issued</code>, <code>otp.consumed</code>, <code>payment.captured</code>, <code>vehicle.updated</code>, <code>auth.login</code>, <code>branding.updated</code> …</td></tr>
+        <tr><td><code>entityType / entityId</code></td><td>string</td><td>booking · vehicle · branch · payment · otp</td></tr>
+        <tr><td><code>metadata</code></td><td>JSON</td><td>before→after, window, masked refs — <b>never</b> raw OTP / card data</td></tr>
+        <tr><td><code>ip / userAgent</code></td><td>string?</td><td>security context for sensitive events</td></tr>
+        <tr><td><code>createdAt</code></td><td>DateTime</td><td>indexed; default sort desc</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ===== SECTION 6: OPEN DECISIONS ===== -->
+<div class="section">
+  <div class="section-title">6 · Open decisions <span class="label-pill pd">PENDING</span></div>
+  <div class="section-subtitle">These shape data model and scope — worth locking with the client/PM before build. Defaults proposed in brackets.</div>
+
+  <div class="pending-block">
+    <div class="ph">⏳ Awaiting client / PM input</div>
+    <ul>
+      <li><b>Audit scope</b> — which events to capture for v1? [<i>booking lifecycle + OTP + payments first; fleet/branding/auth next</i>]</li>
+      <li><b>Visibility / RBAC</b> — can all staff see logs, or owner/admin only? Security events (OTP, sign-ins) may need a tighter role. [<i>owner sees all; staff see non-security</i>]</li>
+      <li><b>Retention</b> — how long are entries kept? Drives a purge job + storage. [<i>13 months</i>]</li>
+      <li><b>Immutability</b> — is this a tamper-evident <i>audit</i> trail (append-only, no deletes) or a convenience <i>activity feed</i>? [<i>append-only</i>]</li>
+      <li><b>Export &amp; PII</b> — CSV includes customer names? Mask in export / require a reason? [<i>mask customer PII unless owner</i>]</li>
+      <li><b>Write coupling</b> — emit in the same DB transaction (consistent, slightly slower) or async (fast, can drop on crash)? [<i>same transaction for money/OTP, async otherwise</i>]</li>
+    </ul>
+  </div>
+</div>
+
+<div class="wireframe-footer">
+  <strong>Build summary.</strong>
+  Dashboard: <code class="modify">DashboardLayout.tsx</code> (add Logs nav + route) ·
+  <code class="new">features/logs/LogsScreen.tsx</code>, <code class="new">LogDetailDrawer.tsx</code>, <code class="new">store/auditApi.ts</code> ·
+  i18n: new <code class="new">logs.*</code> keys (EN + AR). &nbsp;
+  API: <code class="new">modules/audit/*</code> + <code class="modify">audit hooks in bookings/otp/payments/fleet/auth/branding</code> + Prisma <code class="new">AuditLog</code> migration. &nbsp;
+  <strong>Status:</strong> shell = hybrid · log views = new · RTL = hybrid · access/retention/PII = pending.
+  &nbsp;Wireframe fidelity — for review, not production styling.
+</div>
+
+</body>
+</html>

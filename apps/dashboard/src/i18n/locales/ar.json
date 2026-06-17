@@ -1,11 +1,15 @@
 {
+  "app": {
+    "loading": "جارٍ التحميل…"
+  },
   "common": {
     "remove": "إزالة",
     "delete": "حذف",
     "edit": "تعديل",
     "cancel": "إلغاء",
     "save": "حفظ",
-    "add": "إضافة"
+    "add": "إضافة",
+    "confirmDelete": "هل أنت متأكد من أنك تريد الحذف؟"
   },
   "auth": {
     "signInTitle": "تسجيل دخول مزوّد الخدمة",
@@ -33,6 +37,7 @@
     "branches": "الفروع",
     "bookings": "الحجوزات",
     "branding": "الهوية البصرية",
+    "logs": "السجلّات",
     "logout": "تسجيل الخروج"
   },
   "language": {
@@ -89,7 +94,18 @@
     "colTransmission": "ناقل الحركة",
     "colFuel": "الوقود",
     "colSeats": "المقاعد",
-    "colPrice": "السعر/اليوم"
+    "colPrice": "السعر/اليوم",
+    "actionFailed": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+    "transmissionValue": {
+      "automatic": "أوتوماتيك",
+      "manual": "يدوي"
+    },
+    "fuelValue": {
+      "petrol": "بنزين",
+      "diesel": "ديزل",
+      "electric": "كهرباء",
+      "hybrid": "هجين"
+    }
   },
   "branches": {
     "title": "الفروع",
@@ -98,13 +114,28 @@
     "adding": "جارٍ الإضافة…",
     "name": "الاسم",
     "address": "العنوان",
-    "hours": "ساعات العمل"
+    "lat": "خط العرض",
+    "lng": "خط الطول",
+    "hours": "ساعات العمل",
+    "actionFailed": "تعذّر حفظ الفرع. يرجى المحاولة مرة أخرى.",
+    "invalidCoords": "أدخل خط عرض وخط طول صحيحين."
   },
   "bookings": {
     "title": "الحجوزات الواردة",
     "loading": "جارٍ التحميل…",
     "loadFailed": "فشل تحميل الحجوزات.",
     "empty": "لا توجد حجوزات واردة بعد.",
+    "actionFailed": "تعذّر إكمال هذا الإجراء. يرجى المحاولة مرة أخرى.",
+    "status": {
+      "reserved": "محجوز",
+      "confirmed": "مؤكَّد",
+      "vehicle-prepared": "تم تجهيز المركبة",
+      "picked-up": "تم الاستلام",
+      "returned": "تمت الإعادة",
+      "completed": "مكتمل",
+      "rejected": "مرفوض",
+      "cancelled": "ملغى"
+    },
     "filterLabel": "عرض",
     "filterIncoming": "الواردة",
     "filterAll": "الكل",
@@ -151,6 +182,34 @@
       "service": "الخدمة: {{score}}/5",
       "comment": "تعليق: {{comment}}",
       "notRated": "لم يُقيَّم بعد"
+    }
+  },
+  "logs": {
+    "title": "السجلّات",
+    "subtitle": "سجلّات التطبيق وطلبات HTTP الحيّة (تتحدّث كل ٥ ثوانٍ).",
+    "loading": "جارٍ تحميل السجلّات…",
+    "loadFailed": "فشل تحميل السجلّات.",
+    "empty": "لا توجد سجلّات بعد.",
+    "autoScroll": "تمرير تلقائي",
+    "copyAll": "نسخ الكل",
+    "copied": "تم النسخ إلى الحافظة.",
+    "copyFailed": "فشل النسخ.",
+    "clear": "مسح",
+    "cleared": "تم مسح السجلّات.",
+    "clearFailed": "تعذّر مسح السجلّات.",
+    "entries": "{{n}} إدخالات",
+    "level": {
+      "all": "الكل",
+      "error": "خطأ",
+      "warn": "تحذير",
+      "info": "معلومة",
+      "debug": "تتبّع"
+    },
+    "stat": {
+      "total": "الإجمالي",
+      "errors": "الأخطاء",
+      "warnings": "التحذيرات",
+      "info": "معلومات"
     }
   }
 }

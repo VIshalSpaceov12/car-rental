@@ -18,19 +18,31 @@ export function BranchesPage() {
   const { data: branches = [] } = useBranchesQuery()
   const [createBranch, { isLoading }] = useCreateBranchMutation()
   const [deleteBranch] = useDeleteBranchMutation()
-  const [form, setForm] = useState({ name: '', address: '', lat: '25.2048', lng: '55.2708', hours: '08:00-20:00' })
+  const [form, setForm] = useState({ name: '', address: '', lat: '', lng: '', hours: '08:00-20:00' })
+  const [error, setError] = useState<string | null>(null)
 
   const add = async (e: FormEvent) => {
     e.preventDefault()
+    setError(null)
     if (!form.name.trim()) return
-    await createBranch({
-      name: form.name.trim(),
-      address: form.address,
-      lat: Number(form.lat),
-      lng: Number(form.lng),
-      hours: form.hours,
-    })
-    setForm({ ...form, name: '', address: '' })
+    const lat = Number(form.lat)
+    const lng = Number(form.lng)
+    // Coordinates are required and must parse — branches drive the Maps locator, so
+    // a blank/NaN coordinate can't be allowed to fall back to a default location.
+    if (!form.lat.trim() || !form.lng.trim() || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+      setError(t('branches.invalidCoords'))
+      return
+    }
+    try {
+      await createBranch({ name: form.name.trim(), address: form.address, lat, lng, hours: form.hours }).unwrap()
+      setForm({ name: '', address: '', lat: '', lng: '', hours: form.hours })
+    } catch {
+      setError(t('branches.actionFailed'))
+    }
+  }
+
+  const onDelete = (id: string) => {
+    if (window.confirm(t('common.confirmDelete'))) deleteBranch(id)
   }
 
   return (
@@ -40,7 +52,7 @@ export function BranchesPage() {
         {branches.map((b) => (
           <li key={b.id} style={{ marginBottom: theme.spacing.xs }}>
             <strong>{b.name}</strong> — {b.address} ({b.hours}){' '}
-            <a onClick={() => deleteBranch(b.id)} style={{ color: theme.color.danger, cursor: 'pointer' }}>
+            <a onClick={() => onDelete(b.id)} style={{ color: theme.color.danger, cursor: 'pointer' }}>
               {t('common.remove')}
             </a>
           </li>
@@ -56,7 +68,22 @@ export function BranchesPage() {
           value={form.address}
           onChange={(e) => setForm({ ...form, address: e.target.value })}
         />
+        <TextField
+          label={t('branches.lat')}
+          type="number"
+          step="any"
+          value={form.lat}
+          onChange={(e) => setForm({ ...form, lat: e.target.value })}
+        />
+        <TextField
+          label={t('branches.lng')}
+          type="number"
+          step="any"
+          value={form.lng}
+          onChange={(e) => setForm({ ...form, lng: e.target.value })}
+        />
         <TextField label={t('branches.hours')} value={form.hours} onChange={(e) => setForm({ ...form, hours: e.target.value })} />
+        {error && <p style={{ color: theme.color.danger }}>{error}</p>}
         <Button type="submit" disabled={isLoading}>
           {isLoading ? t('branches.adding') : t('branches.addBranch')}
         </Button>

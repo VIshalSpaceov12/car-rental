@@ -19,13 +19,19 @@ export function BookingsScreen() {
   const [cancel] = useCancelBookingMutation()
   const [prepare] = usePrepareBookingMutation()
   const [busyId, setBusyId] = useState<string | null>(null)
+  const [actionFailed, setActionFailed] = useState(false)
 
   const onAction = async (id: string, action: ProviderBookingAction, prepReadyAt?: string) => {
     setBusyId(id)
+    setActionFailed(false)
     try {
       if (action === 'reject') await reject(id).unwrap()
       else if (action === 'cancel') await cancel(id).unwrap()
       else await prepare({ id, body: prepReadyAt ? { prepReadyAt } : {} }).unwrap()
+    } catch {
+      // A rejected transition (409 conflict, server error) must not leave the row
+      // looking actionable with no feedback — surface it; the list refetches on success.
+      setActionFailed(true)
     } finally {
       setBusyId(null)
     }
@@ -36,6 +42,7 @@ export function BookingsScreen() {
       <h1 style={{ color: theme.color.primary, marginTop: 0 }}>{t('bookings.title')}</h1>
       {isLoading && <p style={{ color: theme.color.textMuted }}>{t('bookings.loading')}</p>}
       {isError && <p style={{ color: theme.color.danger }}>{t('bookings.loadFailed')}</p>}
+      {actionFailed && <p style={{ color: theme.color.danger }}>{t('bookings.actionFailed')}</p>}
       {bookings && (
         <IncomingBookingsList
           bookings={bookings}

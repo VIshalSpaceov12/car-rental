@@ -17,6 +17,27 @@ import { TextField } from '../../components/TextField'
 const TRANSMISSIONS: Transmission[] = ['automatic', 'manual']
 const FUELS: FuelType[] = ['petrol', 'diesel', 'electric', 'hybrid']
 
+// Enum values are localized for display; the raw enum is the wire/storage value.
+const TRANSMISSION_LABEL_KEY: Record<
+  Transmission,
+  'fleet.transmissionValue.automatic' | 'fleet.transmissionValue.manual'
+> = {
+  automatic: 'fleet.transmissionValue.automatic',
+  manual: 'fleet.transmissionValue.manual',
+}
+const FUEL_LABEL_KEY: Record<
+  FuelType,
+  | 'fleet.fuelValue.petrol'
+  | 'fleet.fuelValue.diesel'
+  | 'fleet.fuelValue.electric'
+  | 'fleet.fuelValue.hybrid'
+> = {
+  petrol: 'fleet.fuelValue.petrol',
+  diesel: 'fleet.fuelValue.diesel',
+  electric: 'fleet.fuelValue.electric',
+  hybrid: 'fleet.fuelValue.hybrid',
+}
+
 // One-off layout dimensions (no semantic size fits) — kept as named consts here,
 // not as design tokens.
 const ADD_BUTTON_WIDTH = 120
@@ -51,6 +72,7 @@ export function FleetPage() {
   // When set, the form edits this vehicle (reuses the create form in edit mode).
   const [editingId, setEditingId] = useState<string | null>(null)
   const [form, setForm] = useState(EMPTY_FORM)
+  const [actionFailed, setActionFailed] = useState(false)
 
   const resetForm = () => {
     setEditingId(null)
@@ -75,13 +97,19 @@ export function FleetPage() {
   const addCategory = async (e: FormEvent) => {
     e.preventDefault()
     if (!catName.trim()) return
-    await createCategory(catName.trim())
-    setCatName('')
+    setActionFailed(false)
+    try {
+      await createCategory(catName.trim()).unwrap()
+      setCatName('')
+    } catch {
+      setActionFailed(true)
+    }
   }
 
   const submitVehicle = async (e: FormEvent) => {
     e.preventDefault()
     if (!form.categoryId || !form.name.trim()) return
+    setActionFailed(false)
     const body = {
       name: form.name.trim(),
       categoryId: form.categoryId,
@@ -91,12 +119,36 @@ export function FleetPage() {
       pricePerDay: Number(form.pricePerDay),
       currency: form.currency,
     }
-    if (editingId) {
-      await updateVehicle({ id: editingId, body })
-    } else {
-      await createVehicle(body)
+    try {
+      if (editingId) {
+        await updateVehicle({ id: editingId, body }).unwrap()
+      } else {
+        await createVehicle(body).unwrap()
+      }
+      resetForm()
+    } catch {
+      setActionFailed(true)
     }
-    resetForm()
+  }
+
+  const onDeleteVehicle = async (id: string) => {
+    if (!window.confirm(t('common.confirmDelete'))) return
+    setActionFailed(false)
+    try {
+      await deleteVehicle(id).unwrap()
+    } catch {
+      setActionFailed(true)
+    }
+  }
+
+  const onDeleteCategory = async (id: string) => {
+    if (!window.confirm(t('common.confirmDelete'))) return
+    setActionFailed(false)
+    try {
+      await deleteCategory(id).unwrap()
+    } catch {
+      setActionFailed(true)
+    }
   }
 
   const selectStyle = {
@@ -113,6 +165,7 @@ export function FleetPage() {
   return (
     <div>
       <h1 style={{ color: theme.color.primary, marginTop: 0 }}>{t('fleet.title')}</h1>
+      {actionFailed && <p style={{ color: theme.color.danger }}>{t('fleet.actionFailed')}</p>}
 
       <section style={{ marginBottom: theme.spacing.xl }}>
         <h2 style={{ color: theme.color.text }}>{t('fleet.categories')}</h2>
@@ -121,7 +174,7 @@ export function FleetPage() {
             <li key={c.id} style={{ marginBottom: theme.spacing.xs }}>
               {c.name}{' '}
               <a
-                onClick={() => deleteCategory(c.id)}
+                onClick={() => onDeleteCategory(c.id)}
                 style={{ color: theme.color.danger, cursor: 'pointer' }}
               >
                 {t('common.remove')}
@@ -164,8 +217,8 @@ export function FleetPage() {
                 <tr key={v.id} style={{ borderTop: `1px solid ${theme.color.surface}` }}>
                   <td>{v.name}</td>
                   <td>{v.category}</td>
-                  <td>{v.transmission}</td>
-                  <td>{v.fuelType}</td>
+                  <td>{t(TRANSMISSION_LABEL_KEY[v.transmission])}</td>
+                  <td>{t(FUEL_LABEL_KEY[v.fuelType])}</td>
                   <td>{v.seats}</td>
                   <td>
                     {v.pricePerDay} {v.currency}
@@ -178,7 +231,7 @@ export function FleetPage() {
                       {t('common.edit')}
                     </a>
                     <a
-                      onClick={() => deleteVehicle(v.id)}
+                      onClick={() => onDeleteVehicle(v.id)}
                       style={{ color: theme.color.danger, cursor: 'pointer' }}
                     >
                       {t('common.delete')}
@@ -223,7 +276,7 @@ export function FleetPage() {
           >
             {TRANSMISSIONS.map((tr) => (
               <option key={tr} value={tr}>
-                {tr}
+                {t(TRANSMISSION_LABEL_KEY[tr])}
               </option>
             ))}
           </select>
@@ -235,7 +288,7 @@ export function FleetPage() {
           >
             {FUELS.map((f) => (
               <option key={f} value={f}>
-                {f}
+                {t(FUEL_LABEL_KEY[f])}
               </option>
             ))}
           </select>
