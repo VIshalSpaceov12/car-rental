@@ -51,6 +51,10 @@ export interface ColorScheme {
   warning: string
   // photo scrims / modal backdrops
   overlay: string
+  // accent gradient + glow (themeable; auto-derived from primary when a brand
+  // override omits them)
+  gradientPrimary: [string, string]
+  glow: string
 }
 
 /**
@@ -111,6 +115,22 @@ export interface Theme {
     control: { sm: number; md: number; lg: number }
     touchTarget: number
   }
+  /**
+   * Static motion group — durations (ms), cubic-bezier easing tuples, and a
+   * press spring. Shared across schemes (motion is layout, not brand). Web maps
+   * easing via `cubic-bezier(...)`; RN via `Easing.bezier(...)` / `withSpring`.
+   */
+  motion: {
+    duration: { fast: number; base: number; slow: number; hero: number }
+    easing: {
+      standard: [number, number, number, number]
+      enter: [number, number, number, number]
+      exit: [number, number, number, number]
+      /** Overshoot curve for press/FAB/tab-indicator/stagger bounce. */
+      spring: [number, number, number, number]
+    }
+    spring: { press: { damping: number; stiffness: number; mass: number } }
+  }
 }
 
 // ── Static layout tokens (shared by every scheme) ──────────────────────────
@@ -166,14 +186,52 @@ const size: Theme['size'] = {
   touchTarget: sizing.touchTarget,
 }
 
+const motion: Theme['motion'] = {
+  duration: { fast: 120, base: 200, slow: 320, hero: 480 },
+  easing: {
+    standard: [0.2, 0, 0, 1],
+    enter: [0, 0, 0, 1],
+    exit: [0.4, 0, 1, 1],
+    spring: [0.34, 1.56, 0.64, 1],
+  },
+  spring: { press: { damping: 18, stiffness: 240, mass: 0.8 } },
+}
+
+/**
+ * PRIVATE — convert a hex color to an `rgba()` string at the given alpha.
+ * Handles `#RGB` and `#RRGGBB`; a non-hex input falls back to a neutral black
+ * rgba so a malformed brand override still yields a usable glow string.
+ */
+function hexToRgba(hex: string, alpha: number): string {
+  const m = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(hex.trim())
+  if (!m) return `rgba(0,0,0,${alpha})`
+  const raw = m[1] ?? ''
+  const h =
+    raw.length === 3
+      ? raw.replace(/./g, (c) => c + c)
+      : raw
+  const r = parseInt(h.slice(0, 2), 16)
+  const g = parseInt(h.slice(2, 4), 16)
+  const b = parseInt(h.slice(4, 6), 16)
+  return `rgba(${r},${g},${b},${alpha})`
+}
+
 /**
  * Assemble a full theme from a color scheme + the shared static tokens.
  * `brandOverrides` applies per-provider white-label colors on top of the scheme
  * (e.g. `createTheme(darkScheme, { primary: provider.colors.primary })`).
  */
 export function createTheme(color: ColorScheme, brandOverrides?: Partial<ColorScheme>): Theme {
-  const resolved = brandOverrides ? { ...color, ...brandOverrides } : color
-  return { color: resolved, spacing, radius, typography, elevation, zIndex, size }
+  const resolved: ColorScheme = brandOverrides ? { ...color, ...brandOverrides } : color
+  // Derive accent gradient + glow from the resolved primary ONLY when the brand
+  // override didn't set them, so the default schemes' hand-picked values survive.
+  if (brandOverrides && brandOverrides.gradientPrimary === undefined) {
+    resolved.gradientPrimary = [resolved.primary, resolved.primaryDark]
+  }
+  if (brandOverrides && brandOverrides.glow === undefined) {
+    resolved.glow = hexToRgba(resolved.primary, 0.35)
+  }
+  return { color: resolved, spacing, radius, typography, elevation, zIndex, size, motion }
 }
 
 export const darkTheme: Theme = createTheme(darkScheme)

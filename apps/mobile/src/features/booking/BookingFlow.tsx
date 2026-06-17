@@ -5,6 +5,8 @@ import { useTheme } from '@car-rental/tokens'
 import type { PaymentMethod, Quote, RentalPlan } from '@car-rental/types'
 import { Button } from '../../components/Button'
 import { TextField } from '../../components/TextField'
+import { Skeleton } from '../../components/Skeleton'
+import { useToast } from '../../components/Toast'
 import { useVehiclesQuery } from '../../store/fleetApi'
 import {
   useCreateBookingMutation,
@@ -58,6 +60,7 @@ export function BookingFlow({
 }) {
   const theme = useTheme()
   const { t } = useTranslation()
+  const toast = useToast()
   // With a vehicle preselected from Details, skip the generic picker.
   const [step, setStep] = useState<Step>(initialVehicleId ? 'customize' : 'vehicle')
   const [draft, setDraft] = useState<BookingDraft>(() =>
@@ -91,6 +94,7 @@ export function BookingFlow({
       setStep('review')
     } catch {
       setError(t('booking.priceError'))
+      toast.show({ message: t('booking.priceError'), variant: 'error' })
     }
   }
 
@@ -103,6 +107,7 @@ export function BookingFlow({
       setStep('checkout')
     } catch {
       setError(t('booking.createError'))
+      toast.show({ message: t('booking.createError'), variant: 'error' })
     }
   }
 
@@ -116,12 +121,15 @@ export function BookingFlow({
       const payment = await pay({ bookingId, body: { method } }).unwrap()
       if (payment.status === 'failed') {
         setError(t('booking.paymentFailed'))
+        toast.show({ message: t('booking.paymentFailed'), variant: 'error' })
         return
       }
       setPaidMethod(method)
+      toast.show({ message: t('booking.confirmedTitle'), variant: 'success' })
       setStep('done')
     } catch {
       setError(t('booking.paymentError'))
+      toast.show({ message: t('booking.paymentError'), variant: 'error' })
     }
   }
 
@@ -144,7 +152,13 @@ export function BookingFlow({
       {step === 'vehicle' && (
         <View>
           <Text style={{ color: theme.color.text, marginBottom: theme.spacing.sm }}>{t('booking.chooseVehicle')}</Text>
-          {vehicles.isLoading && <ActivityIndicator color={theme.color.primary} />}
+          {vehicles.isLoading && (
+            <View style={{ gap: theme.spacing.sm }}>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <Skeleton key={i} height={56} radius={theme.radius.md} />
+              ))}
+            </View>
+          )}
           {vehicles.isError && <Text style={{ color: theme.color.danger }}>{t('booking.loadVehiclesError')}</Text>}
           {vehicles.data?.map((v) => (
             <SelectRow

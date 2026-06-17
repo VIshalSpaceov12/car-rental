@@ -14,6 +14,7 @@
     "@car-rental/tokens": "*",
     "@car-rental/types": "*",
     "@reduxjs/toolkit": "^2.12.0",
+    "framer-motion": "^12.40.0",
     "i18next": "^26.3.1",
     "react": "19.0.0",
     "react-dom": "19.0.0",

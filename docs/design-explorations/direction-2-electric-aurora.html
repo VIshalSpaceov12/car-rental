@@ -1,0 +1,1250 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Electric Aurora — Car Rental Design Direction</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+/* =========================================================================
+   ELECTRIC AURORA — design direction mockup (client review)
+   All component colors reference CSS custom properties: the palette is the
+   single source of truth, mirroring the @car-rental/tokens contract.
+   ========================================================================= */
+
+/* ---- DARK app scheme (default :root) -------------------------------------- */
+:root {
+  --color-primary: #7C5CFF;
+  --color-primary-dark: #5B3FD6;
+  --color-on-primary: #FFFFFF;
+  --color-background: #0A0B1A;
+  --color-surface: #15162B;
+  --color-surface-alt: #1E2040;
+  --color-text: #F4F5FF;
+  --color-text-muted: #A6A8C8;
+  --color-text-subtle: #6E708F;
+  --color-border: #2A2C4F;
+  --color-danger: #FB7185;
+  --color-success: #2DD4BF;
+  --color-warning: #FBBF24;
+  --color-overlay: rgba(8, 9, 24, 0.6);
+  --gradient-primary: linear-gradient(135deg, #7C5CFF 0%, #22D3EE 100%);
+  --glow-primary: 0 8px 32px rgba(124, 92, 255, 0.45);
+
+  /* Motion tokens — every transition pulls from these (no random durations) */
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --dur-slow: 320ms;
+  --dur-hero: 480ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  /* Static (non-themeable) layout primitives */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --space-xs: 6px;
+  --space-sm: 10px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 36px;
+}
+
+/* ---- LIGHT admin scheme (scoped to the dashboard container) --------------- */
+.scheme-light {
+  --color-primary: #7C5CFF;
+  --color-primary-dark: #5B3FD6;
+  --color-on-primary: #FFFFFF;
+  --color-background: #FFFFFF;
+  --color-surface: #F4F4FB;
+  --color-surface-alt: #EAEAF6;
+  --color-text: #14152B;
+  --color-text-muted: #5A5C7A;
+  --color-text-subtle: #9799B5;
+  --color-border: #D8D9EC;
+  --color-danger: #FB7185;
+  --color-success: #2DD4BF;
+  --color-warning: #FBBF24;
+  --color-overlay: rgba(20, 21, 43, 0.45);
+  --gradient-primary: linear-gradient(135deg, #7C5CFF 0%, #22D3EE 100%);
+  --glow-primary: 0 8px 32px rgba(124, 92, 255, 0.25);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  background: var(--color-background);
+  color: var(--color-text);
+  /* Aurora ambient field behind everything */
+  background-image:
+    radial-gradient(900px 600px at 12% -5%, rgba(124, 92, 255, 0.22), transparent 60%),
+    radial-gradient(800px 500px at 92% 8%, rgba(34, 211, 238, 0.16), transparent 60%),
+    radial-gradient(1000px 700px at 50% 110%, rgba(91, 63, 214, 0.18), transparent 55%);
+  background-attachment: fixed;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.45;
+}
+
+.page {
+  max-width: 1240px;
+  margin-inline: auto;
+  padding-inline: var(--space-lg);
+  padding-block: var(--space-xl);
+}
+
+/* ============================ HEADER BAND ================================= */
+.band {
+  position: relative;
+  border-radius: var(--radius-xl);
+  padding: var(--space-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  box-shadow: var(--glow-primary);
+}
+.band::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--gradient-primary);
+  opacity: 0.14;
+  pointer-events: none;
+}
+.band-top {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-lg);
+  flex-wrap: wrap;
+}
+.band h1 {
+  font-size: 42px;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.02em;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.band .mood {
+  margin-block-start: var(--space-sm);
+  margin-block-end: 0;
+  color: var(--color-text-muted);
+  max-width: 640px;
+  font-size: 16px;
+}
+
+.dir-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  padding: 8px 8px;
+}
+.dir-toggle button {
+  border: 0;
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background var(--dur-base) var(--ease-standard),
+              color var(--dur-base) var(--ease-standard);
+}
+.dir-toggle button.active {
+  background: var(--gradient-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--glow-primary);
+}
+
+/* Palette strip */
+.palette {
+  position: relative;
+  margin-block-start: var(--space-xl);
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  gap: var(--space-md);
+}
+.swatch {
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: transform var(--dur-base) var(--ease-spring);
+}
+.swatch:hover { transform: translateY(-4px); }
+.swatch .chip {
+  height: 60px;
+  width: 100%;
+  position: relative;
+  background-image:
+    linear-gradient(45deg, rgba(255,255,255,0.06) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.06) 75%),
+    linear-gradient(45deg, rgba(255,255,255,0.06) 25%, transparent 25%, transparent 75%, rgba(255,255,255,0.06) 75%);
+  background-size: 14px 14px;
+  background-position: 0 0, 7px 7px;
+}
+.swatch .chip .fill {
+  position: absolute;
+  inset: 0;
+}
+.swatch .meta {
+  padding: 10px 12px;
+}
+.swatch .name {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.swatch .hex {
+  font-size: 11px;
+  color: var(--color-text-subtle);
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+
+/* ============================ SECTION SHELL ============================== */
+.section {
+  margin-block-start: var(--space-xl);
+}
+.section-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-block-end: var(--space-lg);
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+  font-weight: 700;
+}
+.section-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+/* ============================ MOBILE MOCKUP ============================== */
+.mobile-stage {
+  display: flex;
+  justify-content: center;
+}
+.phone {
+  width: 390px;
+  border-radius: 46px;
+  padding: 12px;
+  background: linear-gradient(160deg, #20223f, #0d0e1f);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 30px 80px rgba(5, 6, 18, 0.7), var(--glow-primary);
+  position: relative;
+}
+.phone .notch {
+  position: absolute;
+  inset-block-start: 18px;
+  inset-inline: 0;
+  margin-inline: auto;
+  width: 130px;
+  height: 26px;
+  background: #06070f;
+  border-radius: 999px;
+  z-index: 5;
+}
+.screen {
+  position: relative;
+  border-radius: 36px;
+  background: var(--color-background);
+  background-image:
+    radial-gradient(420px 280px at 100% 0%, rgba(34, 211, 238, 0.14), transparent 60%),
+    radial-gradient(420px 300px at 0% 6%, rgba(124, 92, 255, 0.20), transparent 60%);
+  padding: 54px var(--space-md) 0;
+  overflow: hidden;
+  height: 780px;
+}
+.screen-scroll {
+  height: 100%;
+  overflow: hidden;
+  padding-block-end: 110px;
+}
+
+/* App top row */
+.app-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-block-end: var(--space-md);
+}
+.greeting { flex: 1; }
+.greeting .hi { font-size: 13px; color: var(--color-text-muted); }
+.greeting .name { font-size: 19px; font-weight: 700; color: var(--color-text); }
+.avatar {
+  width: 46px;
+  height: 46px;
+  border-radius: 999px;
+  background: var(--gradient-primary);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: var(--color-on-primary);
+  box-shadow: var(--glow-primary);
+  flex: none;
+}
+
+/* Glassy search pill */
+.search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px var(--space-md);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-subtle);
+  font-size: 14px;
+  margin-block-end: var(--space-lg);
+}
+.search svg { flex: none; }
+
+.app-h {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-block-end: var(--space-sm);
+}
+.app-h .title { font-size: 17px; font-weight: 700; }
+.app-h .more { font-size: 13px; color: var(--color-primary); font-weight: 600; }
+
+/* Car image area — pure CSS gradient + inline SVG silhouette */
+.car-art {
+  position: relative;
+  width: 100%;
+  background:
+    radial-gradient(120% 120% at 80% 0%, rgba(34, 211, 238, 0.45), transparent 55%),
+    linear-gradient(135deg, var(--color-primary-dark), #0c1130 70%);
+  overflow: hidden;
+}
+.car-art .scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, var(--color-overlay) 0%, transparent 55%);
+}
+.car-art svg.car {
+  position: absolute;
+  inset-block-end: 8%;
+  inset-inline-start: 50%;
+  transform: translateX(-50%);
+  width: 78%;
+  filter: drop-shadow(0 14px 26px rgba(8, 9, 24, 0.55));
+}
+
+/* HERO car card */
+.hero-card {
+  position: relative;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  margin-block-end: var(--space-lg);
+  box-shadow: 0 18px 40px rgba(5, 6, 18, 0.5);
+}
+.hero-card .car-art { height: 230px; }
+.hero-info {
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline: 0;
+  padding: var(--space-md);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+.hero-info .left .car-name { font-size: 21px; font-weight: 700; color: var(--color-text); }
+.hero-info .left .car-meta { font-size: 13px; color: var(--color-text-muted); margin-block-start: 2px; }
+.hero-info .price {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+.hero-info .price small { font-size: 12px; color: var(--color-text-muted); font-weight: 500; }
+
+.rating-badge {
+  position: absolute;
+  inset-block-start: var(--space-md);
+  inset-inline-start: var(--space-md);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: rgba(8, 9, 24, 0.55);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--color-border);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+/* FAB */
+.fab {
+  flex: none;
+  border: 0;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--gradient-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--glow-primary);
+  cursor: pointer;
+  transition: transform var(--dur-base) var(--ease-spring),
+              box-shadow var(--dur-base) var(--ease-standard);
+}
+.fab:hover { box-shadow: 0 10px 40px rgba(124, 92, 255, 0.7); }
+.fab:active { transform: scale(0.92); }
+.fab.lg { width: 54px; height: 54px; }
+.fab.sm { width: 38px; height: 38px; }
+
+/* CarListCard */
+.list-card {
+  position: relative;
+  display: flex;
+  gap: var(--space-md);
+  align-items: center;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--color-border);
+  padding: var(--space-sm);
+  margin-block-end: var(--space-sm);
+  overflow: hidden;
+}
+.list-card .thumb {
+  position: relative;
+  width: 104px;
+  height: 78px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  flex: none;
+}
+.list-card .thumb .car-art { height: 100%; }
+.list-card .thumb svg.car { width: 92%; inset-block-end: 4%; }
+.list-card .lc-body { flex: 1; min-width: 0; }
+.list-card .lc-name { font-size: 15px; font-weight: 700; }
+.list-card .lc-meta { font-size: 12px; color: var(--color-text-muted); margin-block: 2px 6px; }
+.list-card .lc-bottom { display: flex; align-items: center; gap: 10px; }
+.list-card .lc-rate {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 12.5px; font-weight: 700; color: var(--color-warning);
+}
+.list-card .lc-price { font-size: 14px; font-weight: 800; }
+.list-card .lc-price small { font-size: 11px; color: var(--color-text-muted); font-weight: 500; }
+.list-card .fab.sm { margin-inline-start: auto; }
+
+/* Floating bottom tab bar */
+.tabbar {
+  position: absolute;
+  inset-block-end: 22px;
+  inset-inline: 0;
+  margin-inline: auto;
+  width: max-content;
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: rgba(21, 22, 43, 0.72);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--color-border);
+  box-shadow: 0 16px 40px rgba(5, 6, 18, 0.6);
+  z-index: 6;
+}
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-text-subtle);
+  font-size: 10px;
+  font-weight: 600;
+}
+.tab.active { color: var(--color-text); }
+.tab .ico {
+  width: 44px; height: 44px;
+  display: grid; place-items: center;
+  border-radius: 999px;
+  transition: all var(--dur-base) var(--ease-spring);
+}
+.tab.active .ico {
+  background: var(--gradient-primary);
+  color: var(--color-on-primary);
+  box-shadow: var(--glow-primary);
+}
+
+/* ============================ DASHBOARD MOCKUP ========================== */
+.dash {
+  display: grid;
+  grid-template-columns: 232px 1fr;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  background: var(--color-background);
+  color: var(--color-text);
+  box-shadow: 0 24px 60px rgba(5, 6, 18, 0.5);
+  min-height: 540px;
+}
+.sidebar {
+  background: var(--color-surface);
+  border-inline-end: 1px solid var(--color-border);
+  padding: var(--space-lg);
+  display: flex;
+  flex-direction: column;
+}
+.brand {
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 800; font-size: 17px;
+  margin-block-end: var(--space-xl);
+}
+.brand .logo {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--gradient-primary);
+  box-shadow: var(--glow-primary);
+  display: grid; place-items: center; color: var(--color-on-primary);
+  flex: none;
+}
+.nav { display: flex; flex-direction: column; gap: 4px; }
+.nav a {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  text-decoration: none;
+  font-size: 14px; font-weight: 600;
+  transition: background var(--dur-base) var(--ease-standard),
+              color var(--dur-base) var(--ease-standard);
+}
+.nav a:hover { background: var(--color-surface-alt); color: var(--color-text); }
+.nav a.active {
+  color: var(--color-on-primary);
+  background: var(--gradient-primary);
+  box-shadow: var(--glow-primary);
+}
+.nav a svg { flex: none; opacity: 0.95; }
+.user-chip {
+  margin-block-start: auto;
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+}
+.user-chip .ua {
+  width: 34px; height: 34px; border-radius: 999px;
+  background: var(--gradient-primary); color: var(--color-on-primary);
+  display: grid; place-items: center; font-weight: 700; font-size: 13px; flex: none;
+}
+.user-chip .ut { font-size: 13px; }
+.user-chip .ut b { display: block; color: var(--color-text); }
+.user-chip .ut span { color: var(--color-text-subtle); font-size: 12px; }
+
+.dash-main { padding: var(--space-xl); background: var(--color-background); }
+.dash-main .page-title { font-size: 24px; font-weight: 800; margin: 0; }
+.dash-main .page-sub { color: var(--color-text-muted); font-size: 14px; margin-block: 4px var(--space-lg); }
+
+.stat-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+  margin-block-end: var(--space-lg);
+}
+.stat-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-md);
+  position: relative;
+  overflow: hidden;
+}
+.stat-card .label { font-size: 13px; color: var(--color-text-muted); font-weight: 600; }
+.stat-card .value {
+  font-size: 30px; font-weight: 800; margin-block-start: 6px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+.stat-card .trend {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; font-weight: 700; color: var(--color-success);
+  margin-block-start: 6px;
+}
+.spark {
+  position: absolute;
+  inset-block-end: 0; inset-inline-end: 0;
+  width: 100px; height: 46px; opacity: 0.9;
+}
+
+/* Bookings table */
+.table-wrap {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+.table-head {
+  padding: 14px var(--space-md);
+  font-weight: 700; font-size: 15px;
+  border-block-end: 1px solid var(--color-border);
+}
+table { width: 100%; border-collapse: collapse; }
+th {
+  text-align: start;
+  font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--color-text-subtle);
+  padding: 12px var(--space-md);
+  font-weight: 700;
+  border-block-end: 1px solid var(--color-border);
+}
+td {
+  padding: 13px var(--space-md);
+  font-size: 13.5px;
+  border-block-end: 1px solid var(--color-border);
+  color: var(--color-text);
+}
+tbody tr:last-child td { border-block-end: 0; }
+tbody tr { transition: background var(--dur-fast) var(--ease-standard); }
+tbody tr:hover { background: var(--color-surface-alt); }
+td .muted { color: var(--color-text-muted); }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 12px; font-weight: 700;
+  white-space: nowrap;
+}
+.chip::before {
+  content: ""; width: 7px; height: 7px; border-radius: 999px;
+  background: currentColor;
+}
+.chip.success { color: var(--color-success); background: color-mix(in srgb, var(--color-success) 16%, transparent); }
+.chip.primary { color: var(--color-primary); background: color-mix(in srgb, var(--color-primary) 16%, transparent); }
+.chip.warning { color: var(--color-warning); background: color-mix(in srgb, var(--color-warning) 16%, transparent); }
+.chip.danger  { color: var(--color-danger);  background: color-mix(in srgb, var(--color-danger) 16%, transparent); }
+.chip.muted   { color: var(--color-text-muted); background: color-mix(in srgb, var(--color-text-muted) 14%, transparent); }
+
+/* ============================ ANIMATION SHOWCASE ======================== */
+.anim-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--space-md);
+}
+.anim-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  padding: var(--space-md);
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+.anim-card .cap {
+  font-size: 12px; font-weight: 700; color: var(--color-text-subtle);
+  text-transform: uppercase; letter-spacing: 0.08em;
+  margin-block-end: var(--space-md);
+}
+.anim-stage {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  gap: var(--space-md);
+}
+
+/* a) Primary button — moving gradient + press + glow */
+.btn-primary {
+  border: 0;
+  position: relative;
+  color: var(--color-on-primary);
+  font: inherit; font-weight: 700; font-size: 15px;
+  padding: 14px 26px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background-image: var(--gradient-primary);
+  background-size: 220% 220%;
+  background-position: 0% 50%;
+  box-shadow: var(--glow-primary);
+  animation: gradient-pan 4s linear infinite;
+  transition: transform var(--dur-fast) var(--ease-spring),
+              box-shadow var(--dur-base) var(--ease-standard);
+}
+.btn-primary:hover { box-shadow: 0 10px 44px rgba(124, 92, 255, 0.7); }
+.btn-primary:active { transform: scale(0.97); }
+@keyframes gradient-pan {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* b) Skeleton shimmer */
+.skeleton {
+  width: 100%;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-alt);
+  overflow: hidden;
+  position: relative;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgba(124, 92, 255, 0.28) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: shimmer 1.5s var(--ease-standard) infinite;
+}
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+.sk-img { height: 86px; margin-block-end: 10px; }
+.sk-line { height: 12px; margin-block-end: 8px; }
+.sk-line.short { width: 55%; }
+
+/* c) OTP unlock hero */
+.unlock-wrap { width: 100%; display: grid; place-items: center; gap: var(--space-md); }
+.lock-ico { transition: transform var(--dur-hero) var(--ease-spring); transform-origin: 50% 50%; }
+.lock-ico .shackle {
+  transition: transform var(--dur-hero) var(--ease-spring);
+  transform-box: fill-box;
+  transform-origin: 78% 60%;
+}
+.unlock-wrap.unlocked .lock-ico { transform: rotate(-8deg) scale(1.05); }
+.unlock-wrap.unlocked .lock-ico .shackle { transform: rotate(34deg) translateY(-2px); }
+.unlock-wrap.unlocked .lock-ico .body { stroke: var(--color-success); }
+.unlock-wrap.unlocked .lock-ico .shackle { stroke: var(--color-success); }
+.check {
+  stroke-dasharray: 30;
+  stroke-dashoffset: 30;
+  transition: stroke-dashoffset var(--dur-slow) var(--ease-standard);
+}
+.unlock-wrap.unlocked .check { stroke-dashoffset: 0; }
+.ripple-host { position: relative; }
+.ripple {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 50%;
+  width: 12px; height: 12px;
+  border-radius: 999px;
+  background: var(--color-success);
+  transform: translate(-50%, -50%) scale(0);
+  opacity: 0.5;
+  pointer-events: none;
+}
+.ripple.go { animation: ripple var(--dur-hero) var(--ease-standard) forwards; }
+@keyframes ripple {
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0.45; }
+  100% { transform: translate(-50%, -50%) scale(9); opacity: 0; }
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  inset-block-start: 18px;
+  inset-inline-start: 50%;
+  transform: translate(-50%, -160%);
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 18px;
+  border-radius: 999px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-success);
+  color: var(--color-text);
+  font-weight: 700; font-size: 14px;
+  box-shadow: 0 14px 40px rgba(5, 6, 18, 0.6);
+  z-index: 100;
+  transition: transform var(--dur-hero) var(--ease-spring);
+}
+.toast.show { transform: translate(-50%, 0); }
+.toast .dot {
+  width: 22px; height: 22px; border-radius: 999px;
+  background: var(--color-success); display: grid; place-items: center;
+  color: var(--color-background); flex: none;
+}
+
+/* d) Status chip cross-fade loop */
+.chip-flip { position: relative; }
+.chip-flip .chip {
+  position: absolute;
+  inset-block-start: 0; inset-inline-start: 50%;
+  transform: translateX(-50%);
+  transition: opacity var(--dur-slow) var(--ease-standard);
+}
+.chip-flip .chip.reserved { opacity: 1; }
+.chip-flip .chip.confirmed { opacity: 0; }
+.chip-flip.flipped .chip.reserved { opacity: 0; }
+.chip-flip.flipped .chip.confirmed { opacity: 1; }
+.chip.pulsing { animation: chip-pulse 2.4s var(--ease-standard) infinite; }
+@keyframes chip-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50% { box-shadow: 0 0 0 6px color-mix(in srgb, var(--color-primary) 14%, transparent); }
+}
+
+/* e) Staggered entrance */
+.stagger { display: flex; gap: 10px; width: 100%; justify-content: center; }
+.mini-card {
+  width: 64px; height: 80px;
+  border-radius: var(--radius-sm);
+  background: var(--gradient-primary);
+  box-shadow: var(--glow-primary);
+  opacity: 0;
+  transform: translateY(16px);
+}
+.stagger.play .mini-card {
+  animation: enter var(--dur-slow) var(--ease-spring) forwards;
+}
+.stagger.play .mini-card:nth-child(1) { animation-delay: 0ms; }
+.stagger.play .mini-card:nth-child(2) { animation-delay: 90ms; }
+.stagger.play .mini-card:nth-child(3) { animation-delay: 180ms; }
+@keyframes enter {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ghost-btn {
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-alt);
+  color: var(--color-text);
+  font: inherit; font-weight: 600; font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-spring),
+              border-color var(--dur-base) var(--ease-standard);
+}
+.ghost-btn:hover { border-color: var(--color-primary); }
+.ghost-btn:active { transform: scale(0.96); }
+
+.footer-note {
+  margin-block-start: var(--space-xl);
+  text-align: center;
+  color: var(--color-text-subtle);
+  font-size: 12.5px;
+}
+
+/* ---- prefers-reduced-motion: degrade to instant / cross-fade ------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+  .btn-primary { animation: none; }
+  .skeleton::after { animation: none; }
+  /* keep opacity cross-fades readable but instant */
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ============================ 1. HEADER BAND ====================== -->
+  <header class="band">
+    <div class="band-top">
+      <div>
+        <h1>Electric Aurora</h1>
+        <p class="mood">Indigo-navy canvas lit by violet-to-cyan aurora gradients, neon glow and glassmorphism — a confident, futuristic EV-era look that feels premium and high-tech without losing clarity.</p>
+      </div>
+      <div class="dir-toggle" role="group" aria-label="Direction">
+        <button id="btn-en" class="active" onclick="setDir('ltr')">EN</button>
+        <button id="btn-ar" onclick="setDir('rtl')">AR (RTL)</button>
+      </div>
+    </div>
+
+    <div class="palette" id="palette"><!-- swatches injected by JS --></div>
+  </header>
+
+  <!-- ============================ 2. MOBILE MOCKUP =================== -->
+  <section class="section">
+    <div class="section-label">Mobile — Customer · Browse / Home (dark scheme)</div>
+    <div class="mobile-stage">
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="screen">
+          <div class="screen-scroll">
+
+            <!-- top row -->
+            <div class="app-top">
+              <div class="avatar">NM</div>
+              <div class="greeting">
+                <div class="hi">Good evening</div>
+                <div class="name">Nael</div>
+              </div>
+            </div>
+            <div class="search">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>
+              <span>Search electric cars, branches…</span>
+            </div>
+
+            <!-- HERO -->
+            <div class="app-h"><span class="title">Top Trends</span><span class="more">See all</span></div>
+            <div class="hero-card">
+              <div class="car-art">
+                <div class="scrim"></div>
+                <!-- inline SVG car silhouette, offline-safe -->
+                <svg class="car" viewBox="0 0 260 110" fill="none">
+                  <path d="M12 78c-4 0-8-3-8-9 0-7 6-10 12-12l18-5 22-23c5-5 12-8 20-8h54c10 0 19 4 27 11l20 18 36 6c12 2 21 8 21 19 0 5-4 8-9 8H12Z" fill="#F4F5FF" fill-opacity="0.92"/>
+                  <path d="M62 31c4-4 9-6 15-6h44c8 0 15 3 21 9l13 12H58l4-15Z" fill="#22D3EE" fill-opacity="0.55"/>
+                  <circle cx="66" cy="80" r="17" fill="#0A0B1A"/><circle cx="66" cy="80" r="8" fill="#A6A8C8"/>
+                  <circle cx="196" cy="80" r="17" fill="#0A0B1A"/><circle cx="196" cy="80" r="8" fill="#A6A8C8"/>
+                </svg>
+              </div>
+              <div class="rating-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--color-warning)"><path d="m12 2 3 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.9 21l1.2-6.8-5-4.9 6.9-1L12 2Z"/></svg>
+                4.9
+              </div>
+              <div class="hero-info">
+                <div class="left">
+                  <div class="car-name">Tesla Model S Plaid</div>
+                  <div class="car-meta">Electric · Automatic</div>
+                </div>
+                <div style="display:flex; align-items:flex-end; gap:12px;">
+                  <div class="price">420 AED<br><small>/ day</small></div>
+                  <button class="fab lg" aria-label="Book now">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path class="arrow-x" d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- list -->
+            <div class="app-h"><span class="title">Choose a Car</span><span class="more">Filter</span></div>
+
+            <div class="list-card">
+              <div class="thumb">
+                <div class="car-art">
+                  <div class="scrim"></div>
+                  <svg class="car" viewBox="0 0 260 110" fill="none"><path d="M12 78c-4 0-8-3-8-9 0-7 6-10 12-12l18-5 22-23c5-5 12-8 20-8h54c10 0 19 4 27 11l20 18 36 6c12 2 21 8 21 19 0 5-4 8-9 8H12Z" fill="#F4F5FF" fill-opacity="0.92"/><circle cx="66" cy="80" r="14" fill="#0A0B1A"/><circle cx="196" cy="80" r="14" fill="#0A0B1A"/></svg>
+                </div>
+              </div>
+              <div class="lc-body">
+                <div class="lc-name">Polestar 2</div>
+                <div class="lc-meta">Sedan · Automatic</div>
+                <div class="lc-bottom">
+                  <span class="lc-rate">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.9 21l1.2-6.8-5-4.9 6.9-1L12 2Z"/></svg>4.7
+                  </span>
+                  <span class="lc-price">290 AED<small>/day</small></span>
+                  <button class="fab sm" aria-label="Book Polestar 2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button>
+                </div>
+              </div>
+            </div>
+
+            <div class="list-card">
+              <div class="thumb">
+                <div class="car-art" style="background:radial-gradient(120% 120% at 80% 0%, rgba(45,212,191,0.4), transparent 55%), linear-gradient(135deg, var(--color-primary-dark), #0c1130 70%);">
+                  <div class="scrim"></div>
+                  <svg class="car" viewBox="0 0 260 110" fill="none"><path d="M12 78c-4 0-8-3-8-9 0-7 6-10 12-12l18-5 22-23c5-5 12-8 20-8h54c10 0 19 4 27 11l20 18 36 6c12 2 21 8 21 19 0 5-4 8-9 8H12Z" fill="#F4F5FF" fill-opacity="0.92"/><circle cx="66" cy="80" r="14" fill="#0A0B1A"/><circle cx="196" cy="80" r="14" fill="#0A0B1A"/></svg>
+                </div>
+              </div>
+              <div class="lc-body">
+                <div class="lc-name">Hyundai Ioniq 5</div>
+                <div class="lc-meta">SUV · Automatic</div>
+                <div class="lc-bottom">
+                  <span class="lc-rate">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="m12 2 3 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.9 21l1.2-6.8-5-4.9 6.9-1L12 2Z"/></svg>4.8
+                  </span>
+                  <span class="lc-price">340 AED<small>/day</small></span>
+                  <button class="fab sm" aria-label="Book Ioniq 5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- floating tab bar -->
+          <div class="tabbar">
+            <div class="tab active">
+              <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 10 9-7 9 7v9a2 2 0 0 1-2 2h-4v-6H9v6H5a2 2 0 0 1-2-2Z"/></svg></div>
+              Home
+            </div>
+            <div class="tab">
+              <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg></div>
+              Bookings
+            </div>
+            <div class="tab">
+              <div class="ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7 1.1V21a2 2 0 0 1-4 0v-.1A1.6 1.6 0 0 0 7 19.4a1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1A1.6 1.6 0 0 0 3 14.1a1.6 1.6 0 0 0-1.5-1H1a2 2 0 0 1 0-4h.1A1.6 1.6 0 0 0 2.6 7a1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1A1.6 1.6 0 0 0 9 2.6V1a2 2 0 0 1 4 0v.1a1.6 1.6 0 0 0 2.7 1.1l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0 1.1 2.7H22a2 2 0 0 1 0 4h-.1a1.6 1.6 0 0 0-1.5 1Z" transform="scale(0.78) translate(3.4 3.4)"/></svg></div>
+              Settings
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ 3. DASHBOARD MOCKUP =============== -->
+  <section class="section">
+    <div class="section-label">Web — Service Provider Dashboard (light scheme)</div>
+    <div class="dash scheme-light">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="logo"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m13 2-9 12h7l-2 8 9-12h-7l2-8Z"/></svg></div>
+          AuroraFleet
+        </div>
+        <nav class="nav">
+          <a href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>Overview</a>
+          <a href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 16 6.5 9.5C6.8 8.5 7.7 8 8.7 8h6.6c1 0 1.9.5 2.2 1.5L19 16M5 16h14M5 16v3M19 16v3"/><circle cx="8" cy="16" r="1"/><circle cx="16" cy="16" r="1"/></svg>Fleet</a>
+          <a href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-6.3 7-11a7 7 0 0 0-14 0c0 4.7 7 11 7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg>Branches</a>
+          <a href="#" class="active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>Bookings</a>
+          <a href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12a10 10 0 1 0 20 0 10 10 0 0 0-20 0Z"/><path d="M2 12h20M12 2c2.5 2.7 4 6.3 4 10s-1.5 7.3-4 10c-2.5-2.7-4-6.3-4-10s1.5-7.3 4-10Z"/></svg>Branding</a>
+          <a href="#"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>Logs</a>
+        </nav>
+        <div class="user-chip">
+          <div class="ua">RA</div>
+          <div class="ut"><b>Rana Aziz</b><span>Fleet manager</span></div>
+        </div>
+      </aside>
+
+      <main class="dash-main">
+        <h2 class="page-title">Bookings</h2>
+        <p class="page-sub">Live overview of reservations across every branch.</p>
+
+        <div class="stat-row">
+          <div class="stat-card">
+            <div class="label">Active bookings</div>
+            <div class="value" data-count="128" data-suffix="">0</div>
+            <div class="trend">▲ 12% vs last week</div>
+            <svg class="spark" viewBox="0 0 100 46" preserveAspectRatio="none" fill="none"><path d="M0 38 14 30 28 33 42 20 56 24 70 12 84 16 100 6" stroke="var(--color-primary)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="stat-card">
+            <div class="label">Fleet utilization</div>
+            <div class="value" data-count="84" data-suffix="%">0%</div>
+            <div class="trend">▲ 5% vs last week</div>
+            <svg class="spark" viewBox="0 0 100 46" preserveAspectRatio="none" fill="none"><path d="M0 30 14 28 28 22 42 26 56 16 70 18 84 10 100 12" stroke="var(--color-success)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+          <div class="stat-card">
+            <div class="label">Revenue (MTD)</div>
+            <div class="value" data-count="96400" data-suffix=" AED">0 AED</div>
+            <div class="trend">▲ 9% vs last month</div>
+            <svg class="spark" viewBox="0 0 100 46" preserveAspectRatio="none" fill="none"><path d="M0 36 14 32 28 34 42 24 56 26 70 18 84 14 100 8" stroke="var(--color-primary)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+
+        <div class="table-wrap">
+          <div class="table-head">Recent bookings</div>
+          <table>
+            <thead>
+              <tr><th>Customer</th><th>Vehicle</th><th>Plan</th><th>Dates</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Layla Hassan</td><td>Tesla Model S Plaid</td><td>Weekly</td><td class="muted">17–24 Jun</td><td><span class="chip success">confirmed</span></td></tr>
+              <tr><td>Omar Khalid</td><td>Hyundai Ioniq 5</td><td>Daily</td><td class="muted">17–18 Jun</td><td><span class="chip warning">reserved</span></td></tr>
+              <tr><td>Sara Naeem</td><td>Polestar 2</td><td>Monthly</td><td class="muted">01–30 Jun</td><td><span class="chip primary">picked-up</span></td></tr>
+              <tr><td>Yousef Amir</td><td>Kia EV6</td><td>Weekly</td><td class="muted">10–17 Jun</td><td><span class="chip muted">returned</span></td></tr>
+              <tr><td>Mona Saleh</td><td>BMW i4</td><td>Daily</td><td class="muted">16–17 Jun</td><td><span class="chip warning">vehicle-prepared</span></td></tr>
+              <tr><td>Khalid Reda</td><td>Audi e-tron GT</td><td>Long-term</td><td class="muted">May–Aug</td><td><span class="chip danger">cancelled</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </section>
+
+  <!-- ============================ 4. ANIMATION SHOWCASE ============== -->
+  <section class="section">
+    <div class="section-label">Live motion — interaction showcase</div>
+    <div class="anim-grid">
+
+      <!-- a -->
+      <div class="anim-card">
+        <div class="cap">a · Primary button</div>
+        <div class="anim-stage">
+          <button class="btn-primary">Book this car</button>
+          <span style="font-size:12px;color:var(--color-text-subtle);">Moving gradient · hover glow · press-scale</span>
+        </div>
+      </div>
+
+      <!-- b -->
+      <div class="anim-card">
+        <div class="cap">b · Skeleton loading</div>
+        <div class="anim-stage">
+          <div style="width:100%;">
+            <div class="skeleton sk-img"></div>
+            <div class="skeleton sk-line"></div>
+            <div class="skeleton sk-line short"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- c -->
+      <div class="anim-card">
+        <div class="cap">c · OTP keyless unlock</div>
+        <div class="anim-stage">
+          <div class="unlock-wrap" id="unlockWrap">
+            <div class="ripple-host">
+              <svg class="lock-ico" width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect class="body" x="5" y="11" width="14" height="9" rx="2"/>
+                <path class="shackle" d="M8 11V8a4 4 0 0 1 8 0v3"/>
+                <path class="check" d="m9.5 15.5 1.7 1.8 3.3-3.6" stroke="var(--color-success)" stroke-width="2.2"/>
+              </svg>
+              <span class="ripple" id="ripple"></span>
+            </div>
+            <button class="btn-primary" id="unlockBtn" onclick="doUnlock()">Unlock vehicle</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- d -->
+      <div class="anim-card">
+        <div class="cap">d · Status transition</div>
+        <div class="anim-stage">
+          <div class="chip-flip" id="chipFlip" style="height:26px;" onclick="toggleChip()">
+            <span class="chip warning reserved pulsing">reserved</span>
+            <span class="chip success confirmed pulsing">confirmed</span>
+          </div>
+          <span style="font-size:12px;color:var(--color-text-subtle);">Auto-loops · click to toggle</span>
+        </div>
+      </div>
+
+      <!-- e -->
+      <div class="anim-card">
+        <div class="cap">e · Staggered entrance</div>
+        <div class="anim-stage">
+          <div class="stagger play" id="stagger">
+            <div class="mini-card"></div>
+            <div class="mini-card"></div>
+            <div class="mini-card"></div>
+          </div>
+          <button class="ghost-btn" onclick="replayStagger()">↻ Replay</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <p class="footer-note">Electric Aurora — design direction mockup for client review. Every component color resolves through <code>var(--color-…)</code> tokens (the single source of truth). Toggle EN / AR (RTL) in the header to preview mirroring.</p>
+</div>
+
+<!-- Toast (shared) -->
+<div class="toast" id="toast">
+  <span class="dot"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg></span>
+  Vehicle unlocked · enjoy your ride
+</div>
+
+<script>
+'use strict';
+
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---- Palette strip: build from the actual CSS custom properties --------- */
+const TOKENS = [
+  ['primary', '--color-primary'],
+  ['primary-dark', '--color-primary-dark'],
+  ['on-primary', '--color-on-primary'],
+  ['background', '--color-background'],
+  ['surface', '--color-surface'],
+  ['surface-alt', '--color-surface-alt'],
+  ['text', '--color-text'],
+  ['text-muted', '--color-text-muted'],
+  ['text-subtle', '--color-text-subtle'],
+  ['border', '--color-border'],
+  ['danger', '--color-danger'],
+  ['success', '--color-success'],
+  ['warning', '--color-warning'],
+  ['overlay', '--color-overlay'],
+];
+(function buildPalette() {
+  const root = getComputedStyle(document.documentElement);
+  const host = document.getElementById('palette');
+  let html = '';
+  for (const [name, varName] of TOKENS) {
+    const val = root.getPropertyValue(varName).trim();
+    html += `<div class="swatch"><div class="chip"><div class="fill" style="background:var(${varName});"></div></div>`
+          + `<div class="meta"><div class="name">${name}</div><div class="hex">${val}</div></div></div>`;
+  }
+  // gradient swatch
+  html += `<div class="swatch"><div class="chip"><div class="fill" style="background:var(--gradient-primary);"></div></div>`
+        + `<div class="meta"><div class="name">gradient-primary</div><div class="hex">violet → cyan</div></div></div>`;
+  host.innerHTML = html;
+})();
+
+/* ---- EN / AR (RTL) direction toggle ------------------------------------- */
+function setDir(dir) {
+  document.documentElement.setAttribute('dir', dir);
+  document.documentElement.setAttribute('lang', dir === 'rtl' ? 'ar' : 'en');
+  document.getElementById('btn-en').classList.toggle('active', dir === 'ltr');
+  document.getElementById('btn-ar').classList.toggle('active', dir === 'rtl');
+}
+
+/* ---- Stat count-up ------------------------------------------------------- */
+function animateCount(el) {
+  const target = parseInt(el.dataset.count, 10);
+  const suffix = el.dataset.suffix || '';
+  if (reduceMotion) { el.textContent = target.toLocaleString('en-US') + suffix; return; }
+  const dur = 1100;
+  const start = performance.now();
+  function frame(now) {
+    const t = Math.min(1, (now - start) / dur);
+    const eased = 1 - Math.pow(1 - t, 3); // easeOutCubic
+    el.textContent = Math.round(target * eased).toLocaleString('en-US') + suffix;
+    if (t < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+const countObserver = new IntersectionObserver((entries) => {
+  for (const e of entries) {
+    if (e.isIntersecting) { animateCount(e.target); countObserver.unobserve(e.target); }
+  }
+}, { threshold: 0.5 });
+document.querySelectorAll('.value[data-count]').forEach((el) => countObserver.observe(el));
+
+/* ---- c) OTP unlock hero -------------------------------------------------- */
+let toastTimer = null;
+function doUnlock() {
+  const wrap = document.getElementById('unlockWrap');
+  const ripple = document.getElementById('ripple');
+  const toast = document.getElementById('toast');
+
+  wrap.classList.add('unlocked');
+
+  // ripple
+  ripple.classList.remove('go');
+  void ripple.offsetWidth; // restart animation
+  ripple.classList.add('go');
+
+  // toast slides down, auto-dismiss
+  toast.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
+
+  // re-lock after a beat so the demo can be replayed
+  setTimeout(() => wrap.classList.remove('unlocked'), 3200);
+}
+
+/* ---- d) Status chip auto-loop + click toggle ----------------------------- */
+const chipFlip = document.getElementById('chipFlip');
+function toggleChip() { chipFlip.classList.toggle('flipped'); }
+if (!reduceMotion) {
+  setInterval(() => chipFlip.classList.toggle('flipped'), 2400);
+}
+
+/* ---- e) Staggered entrance replay --------------------------------------- */
+function replayStagger() {
+  const el = document.getElementById('stagger');
+  el.classList.remove('play');
+  void el.offsetWidth; // force reflow to restart animation
+  el.classList.add('play');
+}
+</script>
+</body>
+</html>

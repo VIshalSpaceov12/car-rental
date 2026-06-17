@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next'
 import { useTheme } from '@car-rental/tokens'
 import { Button } from '../../components/Button'
 import { TextField } from '../../components/TextField'
+import { UnlockButton } from '../../components/UnlockButton'
+import { useToast } from '../../components/Toast'
 import {
   useGetContractQuery,
   useSignContractMutation,
@@ -32,6 +34,7 @@ export function PickupFlow({
 }) {
   const theme = useTheme()
   const { t } = useTranslation()
+  const toast = useToast()
 
   const [step, setStep] = useState<Step>('otp')
   const [otp, setOtp] = useState('')
@@ -44,17 +47,23 @@ export function PickupFlow({
   // The contract is fetched only once we reach the contract step.
   const contract = useGetContractQuery(bookingId, { skip: step !== 'contract' })
 
+  // Fired after the UnlockButton's lock→unlock animation completes. Verifies the
+  // OTP; a valid code advances to the contract + a success toast, otherwise we
+  // surface the error via toast (and inline) so the user can retry.
   const onVerify = async () => {
     setError(null)
     try {
       const { valid } = await verifyOtp({ bookingId, vehicleId, otp: otp.trim() }).unwrap()
       if (!valid) {
         setError(t('pickup.otpInvalid'))
+        toast.show({ message: t('pickup.otpInvalid'), variant: 'error' })
         return
       }
+      toast.show({ message: t('pickup.unlocked'), variant: 'success' })
       setStep('contract')
     } catch {
       setError(t('pickup.otpError'))
+      toast.show({ message: t('pickup.otpError'), variant: 'error' })
     }
   }
 
@@ -65,6 +74,7 @@ export function PickupFlow({
       setStep('done')
     } catch {
       setError(t('pickup.signError'))
+      toast.show({ message: t('pickup.signError'), variant: 'error' })
     }
   }
 
@@ -103,11 +113,16 @@ export function PickupFlow({
             autoCapitalize="none"
             maxLength={OTP_LENGTH}
           />
-          <Button
-            title={verifying.isLoading ? t('pickup.verifying') : t('pickup.verify')}
-            onPress={onVerify}
-            disabled={otp.length !== OTP_LENGTH || verifying.isLoading}
-          />
+          <View style={{ alignItems: 'center', marginTop: theme.spacing.lg, gap: theme.spacing.sm }}>
+            <UnlockButton
+              accessibilityLabel={t('pickup.verify')}
+              disabled={otp.length !== OTP_LENGTH || verifying.isLoading}
+              onUnlocked={() => void onVerify()}
+            />
+            <Text style={{ color: theme.color.textMuted, fontSize: theme.typography.caption.fontSize }}>
+              {verifying.isLoading ? t('pickup.verifying') : t('pickup.unlockHint')}
+            </Text>
+          </View>
         </View>
       )}
 

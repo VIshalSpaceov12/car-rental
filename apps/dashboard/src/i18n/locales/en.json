@@ -11,6 +11,16 @@
     "add": "Add",
     "confirmDelete": "Are you sure you want to delete this?"
   },
+  "toast": {
+    "saved": "Saved.",
+    "deleted": "Deleted.",
+    "saveFailed": "Couldn't save. Please try again.",
+    "deleteFailed": "Couldn't delete. Please try again.",
+    "bookingRejected": "Booking rejected.",
+    "bookingPrepared": "Vehicle marked as prepared.",
+    "bookingCancelled": "Booking cancelled.",
+    "actionFailed": "Couldn't complete that action. Please try again."
+  },
   "auth": {
     "signInTitle": "Provider Sign In",
     "email": "Email",
@@ -64,10 +74,17 @@
     "saveFailed": "Could not save branding. Please try again."
   },
   "overview": {
-    "title": "Provider Dashboard",
+    "title": "Overview",
+    "subtitle": "Live across all branches · updated just now",
     "welcome": "Welcome, {{name}} ({{role}})",
     "tenant": "Tenant: {{tenant}}",
-    "intro": "Manage your fleet, branches, and incoming bookings from the menu."
+    "intro": "Manage your fleet, branches, and incoming bookings from the menu.",
+    "statVehicles": "Vehicles",
+    "statBranches": "Branches",
+    "statBookings": "Bookings",
+    "statActiveBookings": "Active bookings",
+    "statUtilization": "Fleet utilization",
+    "statRevenue": "Revenue (MTD)"
   },
   "fleet": {
     "title": "Fleet",
@@ -121,11 +138,19 @@
     "invalidCoords": "Enter a valid latitude and longitude."
   },
   "bookings": {
-    "title": "Incoming Bookings",
+    "title": "Bookings",
+    "subtitle": "Live across all branches · updated just now",
+    "newBooking": "New booking",
     "loading": "Loading…",
     "loadFailed": "Failed to load bookings.",
     "empty": "No incoming bookings yet.",
     "actionFailed": "Couldn't complete that action. Please try again.",
+    "colCustomer": "Customer",
+    "colVehicle": "Vehicle",
+    "colPlan": "Plan",
+    "colDates": "Dates",
+    "colStatus": "Status",
+    "colActions": "Actions",
     "status": {
       "reserved": "Reserved",
       "confirmed": "Confirmed",

@@ -6,13 +6,14 @@ const COLOR_ROLES: (keyof ColorScheme)[] = [
   'background', 'surface', 'surfaceAlt',
   'text', 'textMuted', 'textSubtle',
   'border', 'danger', 'success', 'warning', 'overlay',
+  'gradientPrimary', 'glow',
 ]
 
 describe('@car-rental/tokens', () => {
   it('defaultTheme is the dark scheme (brand-first)', () => {
     expect(defaultTheme).toBe(darkTheme)
-    expect(defaultTheme.color.background).toBe('#0A0A0B')
-    expect(defaultTheme.color.primary).toBe('#E5322B')
+    expect(defaultTheme.color.background).toBe('#08080A')
+    expect(defaultTheme.color.primary).toBe('#FF453A')
   })
 
   it('every scheme fills every semantic color role', () => {
@@ -53,5 +54,51 @@ describe('@car-rental/tokens', () => {
     expect(branded.color.background).toBe(darkTheme.color.background)
     expect(branded.color.onPrimary).toBe(darkTheme.color.onPrimary)
     expect(branded.spacing).toBe(darkTheme.spacing)
+  })
+
+  it('every scheme carries an accent gradient (2-tuple of strings) + glow string', () => {
+    for (const theme of [darkTheme, lightTheme]) {
+      const g = theme.color.gradientPrimary
+      expect(Array.isArray(g)).toBe(true)
+      expect(g).toHaveLength(2)
+      expect(typeof g[0]).toBe('string')
+      expect(typeof g[1]).toBe('string')
+      expect(typeof theme.color.glow).toBe('string')
+    }
+  })
+
+  it('exposes a static motion group (durations ms, easing tuples, press spring)', () => {
+    const m = defaultTheme.motion
+    expect(Object.keys(m.duration).sort()).toEqual(['base', 'fast', 'hero', 'slow'])
+    expect(m.duration.fast).toBe(120)
+    expect(m.duration.hero).toBe(480)
+    expect(Object.keys(m.easing).sort()).toEqual(['enter', 'exit', 'spring', 'standard'])
+    expect(m.easing.standard).toHaveLength(4)
+    expect(m.easing.spring).toHaveLength(4)
+    expect(m.spring.press.damping).toBe(18)
+    expect(m.spring.press.stiffness).toBe(240)
+    expect(m.spring.press.mass).toBe(0.8)
+    // motion is static — shared identity across schemes
+    expect(lightTheme.motion).toBe(darkTheme.motion)
+  })
+
+  it('derives gradientPrimary + glow from a partial brand override that omits them', () => {
+    const branded = createTheme(darkTheme.color, { primary: '#123456' })
+    expect(branded.color.gradientPrimary[0]).toBe('#123456')
+    expect(branded.color.gradientPrimary[1]).toBe(darkTheme.color.primaryDark)
+    expect(branded.color.glow).toBe('rgba(18,52,86,0.35)')
+    // base scheme keeps its hand-picked values (no mutation leak)
+    expect(darkTheme.color.gradientPrimary).toEqual(['#FF8A3D', '#FF3B30'])
+    expect(darkTheme.color.glow).toBe('rgba(255,69,58,0.35)')
+  })
+
+  it('keeps an explicit gradient/glow override instead of deriving', () => {
+    const branded = createTheme(darkTheme.color, {
+      primary: '#123456',
+      gradientPrimary: ['#AAA', '#BBB'],
+      glow: 'rgba(1,2,3,0.5)',
+    })
+    expect(branded.color.gradientPrimary).toEqual(['#AAA', '#BBB'])
+    expect(branded.color.glow).toBe('rgba(1,2,3,0.5)')
   })
 })

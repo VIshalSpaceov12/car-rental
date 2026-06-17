@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Car Rental — Redesign Directions</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #0b0c10;
+      --bar: #15161c;
+      --bar-border: #25262f;
+      --txt: #f4f5f8;
+      --muted: #9a9aa6;
+      --d1: linear-gradient(135deg, #FF8A3D, #FF3B30);
+      --d2: linear-gradient(135deg, #7C5CFF, #22D3EE);
+      --d3: linear-gradient(135deg, #6366F1, #4F46E5);
+      --ease: cubic-bezier(0.2, 0, 0, 1);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    header {
+      flex: none;
+      background: var(--bar);
+      border-block-end: 1px solid var(--bar-border);
+      padding: 14px 22px;
+      display: flex;
+      align-items: center;
+      gap: 22px;
+      flex-wrap: wrap;
+    }
+    .brand { display: flex; flex-direction: column; gap: 2px; margin-inline-end: auto; }
+    .brand h1 { font-size: 15px; font-weight: 700; margin: 0; letter-spacing: -0.2px; }
+    .brand p { font-size: 12px; color: var(--muted); margin: 0; }
+    .tabs { display: flex; gap: 8px; background: #0e0f14; padding: 5px; border-radius: 999px; border: 1px solid var(--bar-border); }
+    .tab {
+      appearance: none; border: 0; cursor: pointer;
+      font-family: inherit; font-size: 13px; font-weight: 600; color: var(--muted);
+      padding: 9px 16px; border-radius: 999px; background: transparent;
+      display: flex; align-items: center; gap: 9px;
+      transition: color var(--ease) 200ms, background var(--ease) 200ms, transform var(--ease) 200ms;
+    }
+    .tab:hover { color: var(--txt); }
+    .tab:active { transform: scale(0.97); }
+    .tab .dot { width: 13px; height: 13px; border-radius: 50%; box-shadow: 0 0 0 1px rgba(255,255,255,0.12) inset; }
+    .tab[data-k="d1"] .dot { background: var(--d1); }
+    .tab[data-k="d2"] .dot { background: var(--d2); }
+    .tab[data-k="d3"] .dot { background: var(--d3); }
+    .tab.active { color: #0b0c10; background: var(--txt); }
+    .tab.active .dot { box-shadow: 0 0 0 2px rgba(0,0,0,0.18) inset; }
+    .hint { font-size: 11.5px; color: var(--muted); }
+    main { flex: 1; position: relative; }
+    iframe {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      border: 0; opacity: 0; pointer-events: none;
+      transition: opacity 260ms var(--ease);
+    }
+    iframe.active { opacity: 1; pointer-events: auto; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>Car Rental — Redesign Directions</h1>
+      <p>Three modern looks · same token contract · live animations · EN/AR toggle inside each</p>
+    </div>
+    <div class="tabs" role="tablist">
+      <button class="tab active" data-k="d1" role="tab"><span class="dot"></span>Midnight&nbsp;GT</button>
+      <button class="tab" data-k="d2" role="tab"><span class="dot"></span>Electric&nbsp;Aurora</button>
+      <button class="tab" data-k="d3" role="tab"><span class="dot"></span>Daylight&nbsp;Premium</button>
+    </div>
+    <span class="hint">Tip: scroll each preview · click the OTP “Unlock” demo · toggle EN/AR (RTL)</span>
+  </header>
+  <main>
+    <iframe class="active" data-k="d1" src="direction-1-midnight-gt.html" title="Midnight GT"></iframe>
+    <iframe data-k="d2" src="direction-2-electric-aurora.html" title="Electric Aurora" loading="lazy"></iframe>
+    <iframe data-k="d3" src="direction-3-daylight-premium.html" title="Daylight Premium" loading="lazy"></iframe>
+  </main>
+  <script>
+    const tabs = document.querySelectorAll('.tab');
+    const frames = document.querySelectorAll('iframe');
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const k = tab.dataset.k;
+        tabs.forEach((t) => t.classList.toggle('active', t === tab));
+        frames.forEach((f) => f.classList.toggle('active', f.dataset.k === k));
+      });
+    });
+  </script>
+</body>
+</html>

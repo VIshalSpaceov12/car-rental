@@ -13,6 +13,9 @@ import {
 } from '../../store/fleetApi'
 import { Button } from '../../components/Button'
 import { TextField } from '../../components/TextField'
+import { Skeleton } from '../../components/Skeleton'
+import { AnimatedTableBody, AnimatedTableRow } from '../../components/AnimatedRow'
+import { useToast } from '../../components/Toast'
 
 const TRANSMISSIONS: Transmission[] = ['automatic', 'manual']
 const FUELS: FuelType[] = ['petrol', 'diesel', 'electric', 'hybrid']
@@ -56,6 +59,7 @@ const EMPTY_FORM = {
 export function FleetPage() {
   const theme = useTheme()
   const { t } = useTranslation()
+  const toast = useToast()
   const {
     data: vehicles = [],
     isLoading: vehiclesLoading,
@@ -101,8 +105,10 @@ export function FleetPage() {
     try {
       await createCategory(catName.trim()).unwrap()
       setCatName('')
+      toast.show(t('toast.saved'), 'success')
     } catch {
       setActionFailed(true)
+      toast.show(t('toast.saveFailed'), 'error')
     }
   }
 
@@ -126,8 +132,10 @@ export function FleetPage() {
         await createVehicle(body).unwrap()
       }
       resetForm()
+      toast.show(t('toast.saved'), 'success')
     } catch {
       setActionFailed(true)
+      toast.show(t('toast.saveFailed'), 'error')
     }
   }
 
@@ -136,8 +144,10 @@ export function FleetPage() {
     setActionFailed(false)
     try {
       await deleteVehicle(id).unwrap()
+      toast.show(t('toast.deleted'), 'success')
     } catch {
       setActionFailed(true)
+      toast.show(t('toast.deleteFailed'), 'error')
     }
   }
 
@@ -146,8 +156,10 @@ export function FleetPage() {
     setActionFailed(false)
     try {
       await deleteCategory(id).unwrap()
+      toast.show(t('toast.deleted'), 'success')
     } catch {
       setActionFailed(true)
+      toast.show(t('toast.deleteFailed'), 'error')
     }
   }
 
@@ -197,7 +209,13 @@ export function FleetPage() {
 
       <section style={{ marginBottom: theme.spacing.xl }}>
         <h2 style={{ color: theme.color.text }}>{t('fleet.vehicles', { count: vehicles.length })}</h2>
-        {vehiclesLoading && <p style={{ color: theme.color.textMuted }}>{t('fleet.loading')}</p>}
+        {vehiclesLoading && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} height={theme.spacing.xl} />
+            ))}
+          </div>
+        )}
         {vehiclesError && <p style={{ color: theme.color.danger }}>{t('fleet.loadFailed')}</p>}
         {!vehiclesLoading && !vehiclesError && (
           <table style={{ width: '100%', borderCollapse: 'collapse', color: theme.color.text }}>
@@ -212,9 +230,9 @@ export function FleetPage() {
                 <th />
               </tr>
             </thead>
-            <tbody>
+            <AnimatedTableBody>
               {vehicles.map((v) => (
-                <tr key={v.id} style={{ borderTop: `1px solid ${theme.color.surface}` }}>
+                <AnimatedTableRow key={v.id} style={{ borderTop: `1px solid ${theme.color.surface}` }}>
                   <td>{v.name}</td>
                   <td>{v.category}</td>
                   <td>{t(TRANSMISSION_LABEL_KEY[v.transmission])}</td>
@@ -237,7 +255,7 @@ export function FleetPage() {
                       {t('common.delete')}
                     </a>
                   </td>
-                </tr>
+                </AnimatedTableRow>
               ))}
               {vehicles.length === 0 && (
                 <tr>
@@ -246,7 +264,7 @@ export function FleetPage() {
                   </td>
                 </tr>
               )}
-            </tbody>
+            </AnimatedTableBody>
           </table>
         )}
       </section>

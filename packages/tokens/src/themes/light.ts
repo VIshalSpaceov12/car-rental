@@ -17,7 +17,7 @@ export const lightScheme: ColorScheme = {
 
   text: palette.neutral[900],
   textMuted: palette.neutral[500],
-  textSubtle: palette.neutral[400],
+  textSubtle: palette.neutral[350],
 
   border: palette.neutral[200],
 
@@ -25,5 +25,8 @@ export const lightScheme: ColorScheme = {
   success: palette.green[500],
   warning: palette.gold[500],
 
-  overlay: alpha.scrimLight,
+  overlay: alpha.scrimLightAdmin,
+
+  gradientPrimary: [palette.ember[500], palette.red[450]],
+  glow: 'rgba(255,69,58,0.28)',
 }

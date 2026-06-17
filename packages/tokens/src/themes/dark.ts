@@ -17,7 +17,7 @@ export const darkScheme: ColorScheme = {
 
   text: palette.neutral.white,
   textMuted: palette.neutral[300],
-  textSubtle: palette.neutral[400],
+  textSubtle: palette.neutral[450],
 
   border: palette.neutral[700],
 
@@ -26,4 +26,7 @@ export const darkScheme: ColorScheme = {
   warning: palette.gold[500],
 
   overlay: alpha.scrimDark,
+
+  gradientPrimary: [palette.ember[500], palette.red[450]],
+  glow: 'rgba(255,69,58,0.35)',
 }

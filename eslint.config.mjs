@@ -45,7 +45,7 @@ export default tseslint.config(
   },
   {
     // RN/Expo tooling configs are CommonJS Node scripts.
-    files: ['**/babel.config.js', '**/jest.config.js', '**/metro.config.js'],
+    files: ['**/babel.config.js', '**/jest.config.js', '**/metro.config.js', '**/jest.setup.js'],
     languageOptions: {
       sourceType: 'commonjs',
       globals: {
@@ -54,6 +54,7 @@ export default tseslint.config(
         __dirname: 'readonly',
         process: 'readonly',
         exports: 'writable',
+        jest: 'readonly',
       },
     },
     rules: {

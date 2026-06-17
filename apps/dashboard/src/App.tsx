@@ -10,6 +10,7 @@ import { useMeQuery } from './store/authApi'
 import { logout, setBranding } from './store/authSlice'
 import { AuthScreen } from './features/auth/AuthScreen'
 import { DashboardLayout } from './features/dashboard/DashboardLayout'
+import { ToastProvider } from './components/Toast'
 
 /** Perceived (sRGB-weighted) luminance test; unparseable colors read as light. */
 function isDarkColor(hex: string): boolean {
@@ -88,7 +89,9 @@ function ThemedApp() {
   const theme = useMemo(() => resolveTheme(branding), [branding])
   return (
     <ThemeProvider theme={theme}>
-      <Root />
+      <ToastProvider>
+        <Root />
+      </ToastProvider>
     </ThemeProvider>
   )
 }

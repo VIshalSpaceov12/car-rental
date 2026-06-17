@@ -12,6 +12,8 @@ import {
 } from '@car-rental/types'
 import { Icon } from '../../components/Icon'
 import { Button } from '../../components/Button'
+import { StatusChip } from '../../components/StatusChip'
+import { AnimatedListItem } from '../../components/AnimatedListItem'
 import type { RootStackParamList } from '../../navigation/types'
 import { useCancelBookingMutation, useGetBookingsQuery } from '../../store/bookingApi'
 import { activeBookings, pastBookings } from './history'
@@ -20,12 +22,6 @@ type Nav = NativeStackNavigationProp<RootStackParamList>
 
 /** Customer's cancel action is offered only where the lifecycle allows it. */
 const canCancel = (status: BookingStatus) => BOOKING_TRANSITIONS[status].includes('cancelled')
-
-const statusColor = (theme: Theme, status: BookingStatus): string => {
-  if (status === 'rejected' || status === 'cancelled') return theme.color.danger
-  if (status === 'completed' || status === 'returned' || status === 'confirmed') return theme.color.success
-  return theme.color.textMuted
-}
 
 const paymentStatusColor = (theme: Theme, status: PaymentStatus): string => {
   if (status === 'paid') return theme.color.success
@@ -101,9 +97,9 @@ export function BookingsScreen() {
           {t('bookings.noActive')}
         </Text>
       ) : (
-        active.map((b) => (
+        active.map((b, i) => (
+          <AnimatedListItem key={b.id} index={i}>
           <BookingRow
-            key={b.id}
             booking={b}
             cancelling={cancelling.isLoading}
             onCancel={() => onCancel(b.id)}
@@ -113,6 +109,7 @@ export function BookingsScreen() {
             onReceipt={() => navigation.navigate('Receipt', { bookingId: b.id })}
             onRebook={() => navigation.navigate('Booking', { vehicleId: b.vehicleId })}
           />
+          </AnimatedListItem>
         ))
       )}
 
@@ -128,9 +125,9 @@ export function BookingsScreen() {
           >
             {t('bookings.historyTitle')}
           </Text>
-          {past.map((b) => (
+          {past.map((b, i) => (
+            <AnimatedListItem key={b.id} index={i}>
             <BookingRow
-              key={b.id}
               booking={b}
               cancelling={cancelling.isLoading}
               onCancel={() => onCancel(b.id)}
@@ -140,6 +137,7 @@ export function BookingsScreen() {
               onReceipt={() => navigation.navigate('Receipt', { bookingId: b.id })}
               onRebook={() => navigation.navigate('Booking', { vehicleId: b.vehicleId })}
             />
+            </AnimatedListItem>
           ))}
         </>
       )}
@@ -203,9 +201,7 @@ function BookingRow({
               </Text>
             </View>
           )}
-          <Text style={{ color: statusColor(theme, booking.status), fontSize: theme.typography.caption.fontSize, fontWeight: '600' }}>
-            {t(`bookings.status.${booking.status}`)}
-          </Text>
+          <StatusChip status={booking.status} label={t(`bookings.status.${booking.status}`)} />
         </View>
       </View>
       <Text style={{ color: theme.color.textMuted, fontSize: theme.typography.caption.fontSize }}>

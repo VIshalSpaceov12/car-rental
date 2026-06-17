@@ -4,6 +4,7 @@ import { useAppDispatch, useAppSelector } from '../../store/hooks'
 import { setBranding } from '../../store/authSlice'
 import { useUpdateBrandingMutation } from '../../store/authApi'
 import { BrandingForm } from './BrandingForm'
+import { useToast } from '../../components/Toast'
 
 /**
  * Container for the white-label branding editor: prefills from `auth.branding`,
@@ -13,6 +14,7 @@ import { BrandingForm } from './BrandingForm'
 export function BrandingPage() {
   const { t } = useTranslation()
   const dispatch = useAppDispatch()
+  const toast = useToast()
   const branding = useAppSelector((s) => s.auth.branding)
   const [updateBranding, { isLoading, isSuccess, isError }] = useUpdateBrandingMutation()
 
@@ -20,8 +22,10 @@ export function BrandingPage() {
     try {
       const updated = await updateBranding(body).unwrap()
       dispatch(setBranding(updated))
+      toast.show(t('branding.saved'), 'success')
     } catch {
       // Surfaced via the mutation's isError flag → status line below.
+      toast.show(t('branding.saveFailed'), 'error')
     }
   }
 

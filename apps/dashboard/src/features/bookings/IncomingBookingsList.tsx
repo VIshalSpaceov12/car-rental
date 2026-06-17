@@ -7,6 +7,8 @@ import {
   type BookingSummary,
   type PaymentStatus,
 } from '@car-rental/types'
+import { StatusChip } from '../../components/StatusChip'
+import { AnimatedTableBody, AnimatedTableRow } from '../../components/AnimatedRow'
 
 export type ProviderBookingAction = 'reject' | 'prepare' | 'cancel'
 
@@ -29,8 +31,25 @@ const ACTIONABLE_STATUSES: BookingStatus[] = ['reserved', 'confirmed', 'vehicle-
 
 type StatusFilter = 'incoming' | 'all'
 
+// One-off layout dimensions (no semantic size fits) — kept as named consts here.
+/** Circular initials avatar in the Customer cell. */
+const CUSTOMER_AVATAR_SIZE = 28
+/** Header label tracking — the mockup's 0.06em uppercase header. */
+const HEADER_LETTER_SPACING = '0.06em'
+
 function availableActions(status: BookingStatus) {
   return PROVIDER_ACTIONS.filter((a) => BOOKING_TRANSITIONS[status].includes(a.target))
+}
+
+/** First letters of the first two name words, uppercased — the avatar monogram. */
+function initials(name: string): string {
+  return name
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((w) => w.charAt(0))
+    .join('')
+    .toUpperCase()
 }
 
 const ACTION_LABEL_KEY: Record<ProviderBookingAction, 'bookings.reject' | 'bookings.prepare' | 'bookings.cancel'> = {
@@ -158,98 +177,151 @@ export function IncomingBookingsList({ bookings, onAction, busyId, renderPhase5 
     )
   }
 
+  const cellStyle: React.CSSProperties = {
+    padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+    fontSize: theme.typography.caption.fontSize,
+    color: theme.color.text,
+    borderBlockEnd: `1px solid ${theme.color.border}`,
+    verticalAlign: 'middle',
+  }
+  const headStyle: React.CSSProperties = {
+    textAlign: 'start',
+    padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+    fontSize: theme.typography.caption.fontSize,
+    textTransform: 'uppercase',
+    letterSpacing: HEADER_LETTER_SPACING,
+    color: theme.color.textSubtle,
+    fontWeight: theme.typography.label.fontWeight,
+    background: theme.color.surfaceAlt,
+    borderBlockEnd: `1px solid ${theme.color.border}`,
+  }
+
   return (
     <div>
       {filterControl}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.md }}>
-        {visible.map((b) => {
-          const actions = availableActions(b.status)
-          const busy = busyId === b.id
-          return (
-            <div
-              key={b.id}
-              style={{
-                background: theme.color.surface,
-                borderRadius: theme.radius.card,
-                padding: theme.spacing.md,
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                gap: theme.spacing.md,
-              }}
-            >
-              <div style={{ color: theme.color.text }}>
-                <div style={{ fontWeight: theme.typography.label.fontWeight }}>{b.vehicleName}</div>
-                <div style={{ color: theme.color.textMuted, fontSize: theme.typography.body.fontSize }}>
-                  <span>{b.customerName}</span> · {fmtDate(b.startAt)} → {fmtDate(b.endAt)} · {b.plan}
-                </div>
-                {b.status === 'vehicle-prepared' && b.prepReadyAt && (
-                  <div style={{ color: theme.color.success, fontSize: theme.typography.caption.fontSize }}>
-                    {t('bookings.prepReadyAt', { when: fmtDateTime(b.prepReadyAt) })}
-                  </div>
-                )}
-              </div>
-
-              <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: theme.spacing.md }}>
-                <strong style={{ color: theme.color.text }}>
-                  {b.total} {b.currency}
-                </strong>
-                <span style={{ color: theme.color.textMuted }}>{t(BOOKING_STATUS_LABEL_KEY[b.status])}</span>
-                {renderPaymentChip(b.paymentStatus)}
-                {actions.map((a) => (
-                  <div key={a.action} style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
-                    {a.action === 'prepare' && (
-                      <label
-                        style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.xs, color: theme.color.textMuted }}
+      {/* .table-card — surface card, 1px border, rounded, clipping the table. */}
+      <div
+        style={{
+          background: theme.color.surface,
+          border: `1px solid ${theme.color.border}`,
+          borderRadius: theme.radius.md,
+          overflow: 'hidden',
+        }}
+      >
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr>
+              <th style={headStyle}>{t('bookings.colCustomer')}</th>
+              <th style={headStyle}>{t('bookings.colVehicle')}</th>
+              <th style={headStyle}>{t('bookings.colPlan')}</th>
+              <th style={headStyle}>{t('bookings.colDates')}</th>
+              <th style={headStyle}>{t('bookings.colStatus')}</th>
+              <th style={headStyle}>{t('bookings.colActions')}</th>
+            </tr>
+          </thead>
+          <AnimatedTableBody>
+            {visible.map((b) => {
+              const actions = availableActions(b.status)
+              const busy = busyId === b.id
+              return (
+                <AnimatedTableRow key={b.id}>
+                  <td style={cellStyle}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.sm }}>
+                      <span
+                        aria-hidden
+                        style={{
+                          width: CUSTOMER_AVATAR_SIZE,
+                          height: CUSTOMER_AVATAR_SIZE,
+                          flexShrink: 0,
+                          borderRadius: theme.radius.pill,
+                          background: theme.color.surfaceAlt,
+                          border: `1px solid ${theme.color.border}`,
+                          display: 'grid',
+                          placeItems: 'center',
+                          fontSize: theme.typography.caption.fontSize,
+                          fontWeight: theme.typography.label.fontWeight,
+                          color: theme.color.textMuted,
+                        }}
                       >
-                        {t('bookings.prepReadyLabel')}
-                        <input
-                          type="datetime-local"
-                          value={prepReadyAt[b.id] ?? ''}
-                          onChange={(e) =>
-                            setPrepReadyAt((prev) => ({ ...prev, [b.id]: e.target.value }))
-                          }
-                          style={{
-                            padding: theme.spacing.xs,
-                            borderRadius: theme.radius.sm,
-                            border: `1px solid ${theme.color.border}`,
-                          }}
-                        />
-                      </label>
+                        {initials(b.customerName)}
+                      </span>
+                      {b.customerName}
+                    </span>
+                  </td>
+                  <td style={cellStyle}>{b.vehicleName}</td>
+                  <td style={cellStyle}>{b.plan}</td>
+                  <td style={{ ...cellStyle, color: theme.color.textMuted }}>
+                    {fmtDate(b.startAt)} → {fmtDate(b.endAt)}
+                    {b.status === 'vehicle-prepared' && b.prepReadyAt && (
+                      <div style={{ color: theme.color.success, fontSize: theme.typography.caption.fontSize }}>
+                        {t('bookings.prepReadyAt', { when: fmtDateTime(b.prepReadyAt) })}
+                      </div>
                     )}
-                    <button
-                      onClick={() => {
-                        const draft = prepReadyAt[b.id]
-                        if (a.action === 'prepare' && draft) {
-                          onAction(b.id, a.action, new Date(draft).toISOString())
-                        } else {
-                          onAction(b.id, a.action)
-                        }
-                      }}
-                      disabled={busy}
-                      style={{
-                        background:
-                          a.action === 'reject' || a.action === 'cancel' ? theme.color.danger : theme.color.primary,
-                        color: theme.color.onPrimary,
-                        border: 'none',
-                        borderRadius: theme.radius.md,
-                        padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
-                        fontSize: theme.typography.body.fontSize,
-                        cursor: busy ? 'default' : 'pointer',
-                        opacity: busy ? 0.6 : 1,
-                      }}
-                    >
-                      {t(ACTION_LABEL_KEY[a.action])}
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              {renderPhase5?.(b)}
-            </div>
-          )
-        })}
+                  </td>
+                  <td style={cellStyle}>
+                    <StatusChip status={b.status} label={t(BOOKING_STATUS_LABEL_KEY[b.status])} />
+                  </td>
+                  <td style={cellStyle}>
+                    <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: theme.spacing.sm }}>
+                      <strong style={{ color: theme.color.text }}>
+                        {b.total} {b.currency}
+                      </strong>
+                      {renderPaymentChip(b.paymentStatus)}
+                      {actions.map((a) => (
+                        <div key={a.action} style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.xs }}>
+                          {a.action === 'prepare' && (
+                            <label
+                              style={{ display: 'flex', alignItems: 'center', gap: theme.spacing.xs, color: theme.color.textMuted }}
+                            >
+                              {t('bookings.prepReadyLabel')}
+                              <input
+                                type="datetime-local"
+                                value={prepReadyAt[b.id] ?? ''}
+                                onChange={(e) =>
+                                  setPrepReadyAt((prev) => ({ ...prev, [b.id]: e.target.value }))
+                                }
+                                style={{
+                                  padding: theme.spacing.xs,
+                                  borderRadius: theme.radius.sm,
+                                  border: `1px solid ${theme.color.border}`,
+                                }}
+                              />
+                            </label>
+                          )}
+                          <button
+                            onClick={() => {
+                              const draft = prepReadyAt[b.id]
+                              if (a.action === 'prepare' && draft) {
+                                onAction(b.id, a.action, new Date(draft).toISOString())
+                              } else {
+                                onAction(b.id, a.action)
+                              }
+                            }}
+                            disabled={busy}
+                            style={{
+                              background:
+                                a.action === 'reject' || a.action === 'cancel' ? theme.color.danger : theme.color.primary,
+                              color: theme.color.onPrimary,
+                              border: 'none',
+                              borderRadius: theme.radius.md,
+                              padding: `${theme.spacing.xs}px ${theme.spacing.md}px`,
+                              fontSize: theme.typography.body.fontSize,
+                              cursor: busy ? 'default' : 'pointer',
+                              opacity: busy ? 0.6 : 1,
+                            }}
+                          >
+                            {t(ACTION_LABEL_KEY[a.action])}
+                          </button>
+                        </div>
+                      ))}
+                      {renderPhase5?.(b)}
+                    </div>
+                  </td>
+                </AnimatedTableRow>
+              )
+            })}
+          </AnimatedTableBody>
+        </table>
       </div>
     </div>
   )

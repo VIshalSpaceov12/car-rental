@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
+import { Pressable, ScrollView, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import type { CompositeScreenProps } from '@react-navigation/native'
@@ -10,10 +10,14 @@ import type { VehicleFilters } from '@car-rental/types'
 import { useVehiclesQuery } from '../../store/fleetApi'
 import { useAppSelector } from '../../store/hooks'
 import { Avatar } from '../../components/Avatar'
+import { Icon } from '../../components/Icon'
 import { SectionHeader } from '../../components/SectionHeader'
+import { CarHeroCard } from '../../components/CarHeroCard'
 import { CarTrendCard } from '../../components/CarTrendCard'
 import { CarListCard } from '../../components/CarListCard'
 import { Button } from '../../components/Button'
+import { Skeleton } from '../../components/Skeleton'
+import { AnimatedListItem } from '../../components/AnimatedListItem'
 import { FilterSheet } from './FilterSheet'
 import type { HomeTabParamList, RootStackParamList } from '../../navigation/types'
 
@@ -34,6 +38,13 @@ const tripsFor = (id: string) => 20 + (hash(id, 13) % 80)
 
 // Browse always shows available vehicles; the filter sheet refines from there.
 const BASE_FILTERS: VehicleFilters = { available: true }
+
+// Number of skeleton placeholders shown for the "Choose a car" list on load.
+const SKELETON_ROWS = 3
+const TREND_SKELETON_HEIGHT = 200
+const LIST_SKELETON_HEIGHT = 96
+// Vertical padding for the glass search pill (mockup: 13px block padding).
+const SEARCH_PAD_Y = 13
 
 export function BrowseScreen({ navigation }: Props) {
   const theme = useTheme()
@@ -56,22 +67,49 @@ export function BrowseScreen({ navigation }: Props) {
           paddingBottom: insets.bottom + theme.spacing.xxl * 2,
         }}
       >
-        {/* Greeting header */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, marginBottom: theme.spacing.lg }}>
-          <Avatar name={user?.name} />
+        {/* Greeting header — greeting block on the inline-start, avatar on the end. */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, marginBottom: theme.spacing.md }}>
           <View style={{ flex: 1 }}>
-            <Text style={{ color: theme.color.text, fontSize: theme.typography.title.fontSize, fontWeight: '700' }}>
-              {t('browse.greeting', { name: user?.name ?? t('browse.greetingFallback') })}
-            </Text>
             <Text style={{ color: theme.color.textMuted, fontSize: theme.typography.caption.fontSize }}>
               {t('browse.tagline')}
             </Text>
+            <Text style={{ color: theme.color.text, fontSize: theme.typography.title.fontSize, fontWeight: '700' }}>
+              {t('browse.greeting', { name: user?.name ?? t('browse.greetingFallback') })}
+            </Text>
           </View>
+          <Avatar name={user?.name} />
         </View>
 
+        {/* Glass search pill — opens the filter sheet (no dedicated search route yet). */}
+        <Pressable
+          accessibilityRole="search"
+          accessibilityLabel={t('common.search')}
+          onPress={() => setFilterOpen(true)}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: theme.spacing.sm,
+            paddingHorizontal: theme.spacing.md,
+            paddingVertical: SEARCH_PAD_Y,
+            borderRadius: theme.radius.pill,
+            backgroundColor: theme.color.surfaceAlt,
+            borderWidth: 1,
+            borderColor: theme.color.border,
+            marginBottom: theme.spacing.lg,
+          }}
+        >
+          <Icon name="search" size={theme.size.icon.md} color={theme.color.textSubtle} />
+          <Text style={{ color: theme.color.textSubtle, fontSize: theme.typography.caption.fontSize }}>
+            {t('common.searchPlaceholder')}
+          </Text>
+        </Pressable>
+
         {isLoading ? (
-          <View style={{ alignItems: 'center', marginTop: theme.spacing.xxl }}>
-            <ActivityIndicator color={theme.color.primary} />
+          <View style={{ gap: theme.spacing.md }}>
+            <Skeleton height={TREND_SKELETON_HEIGHT} radius={theme.radius.card} />
+            {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
+              <Skeleton key={i} height={LIST_SKELETON_HEIGHT} radius={theme.radius.card} />
+            ))}
           </View>
         ) : isError ? (
           <View style={{ alignItems: 'center', marginTop: theme.spacing.xxl, gap: theme.spacing.md }}>
@@ -88,23 +126,35 @@ export function BrowseScreen({ navigation }: Props) {
           </>
         ) : (
           <>
-            {/* Top trends carousel */}
-            <SectionHeader title={t('browse.topTrends')} />
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={{ marginBottom: theme.spacing.lg, marginHorizontal: -theme.spacing.lg }}
-              contentContainerStyle={{ paddingHorizontal: theme.spacing.lg }}
-            >
-              {vehicles.map((v) => (
-                <CarTrendCard key={v.id} vehicle={v} rating={ratingFor(v.id)} trips={tripsFor(v.id)} onPress={() => openDetail(v.id)} />
-              ))}
-            </ScrollView>
+            {/* Top Trends — single full-width hero (the focal element). */}
+            <SectionHeader title={t('browse.topTrends')} onSeeAll={() => setFilterOpen(true)} />
+            <CarHeroCard
+              vehicle={vehicles[0]!}
+              rating={ratingFor(vehicles[0]!.id)}
+              badgeLabel={t('browse.topTrendBadge')}
+              onPress={() => openDetail(vehicles[0]!.id)}
+            />
+
+            {/* Secondary trend carousel below the hero (remaining popular cars). */}
+            {vehicles.length > 1 && (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={{ marginBottom: theme.spacing.lg, marginHorizontal: -theme.spacing.lg }}
+                contentContainerStyle={{ paddingHorizontal: theme.spacing.lg }}
+              >
+                {vehicles.slice(1).map((v) => (
+                  <CarTrendCard key={v.id} vehicle={v} rating={ratingFor(v.id)} trips={tripsFor(v.id)} onPress={() => openDetail(v.id)} />
+                ))}
+              </ScrollView>
+            )}
 
             {/* Choose a car list */}
             <SectionHeader title={t('browse.chooseACar')} onFilter={() => setFilterOpen(true)} />
-            {vehicles.map((v) => (
-              <CarListCard key={v.id} vehicle={v} rating={ratingFor(v.id)} onPress={() => openDetail(v.id)} />
+            {vehicles.map((v, i) => (
+              <AnimatedListItem key={v.id} index={i}>
+                <CarListCard vehicle={v} rating={ratingFor(v.id)} onPress={() => openDetail(v.id)} />
+              </AnimatedListItem>
             ))}
           </>
         )}

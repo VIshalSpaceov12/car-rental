@@ -8,14 +8,16 @@
 /** Neutral ramp, dark→light. Anchors the surfaces + text of every scheme. */
 const neutral = {
   black: '#000000',
-  950: '#0A0A0B',
+  950: '#08080A',
   900: '#121214',
-  850: '#161618',
-  800: '#1F1F22',
-  700: '#2A2A2E',
+  850: '#141417',
+  800: '#1C1C21',
+  700: '#2A2A30',
   600: '#3A3A40',
   500: '#55555C',
+  450: '#6E6E76',
   400: '#76767E',
+  350: '#8A8A92',
   300: '#9A9AA2',
   200: '#C9C9CF',
   100: '#ECECEF',
@@ -26,26 +28,32 @@ const neutral = {
 /** Racing red — the brand accent (FABs, active states, prices, the red 930). */
 const red = {
   700: '#B71C16',
-  600: '#C9261E',
-  500: '#E5322B',
+  600: '#D42E26',
+  500: '#FF453A',
+  450: '#FF3B30',
   400: '#FF4A40',
+} as const
+
+/** Ember — the warm start stop of the brand gradient (ember→red). */
+const ember = {
+  500: '#FF8A3D',
 } as const
 
 /** Gold — rating stars. */
 const gold = {
-  500: '#FFBF3F',
+  500: '#FBBF24',
 } as const
 
 /** Status hues kept distinct from brand red so lifecycle state reads clearly. */
 const green = {
-  500: '#32C36A',
+  500: '#34D399',
 } as const
 
 const alert = {
-  500: '#FF4438',
+  500: '#FF453A',
 } as const
 
-export const palette = { neutral, red, gold, green, alert } as const
+export const palette = { neutral, red, ember, gold, green, alert } as const
 
 /**
  * Translucent layers (photo scrims over hero/cards). Both are black; the
@@ -55,6 +63,8 @@ export const palette = { neutral, red, gold, green, alert } as const
 export const alpha = {
   scrimDark: 'rgba(0,0,0,0.55)',
   scrimLight: 'rgba(0,0,0,0.45)',
+  /** Lighter scrim for the light admin scheme (toast/modal backdrops). */
+  scrimLightAdmin: 'rgba(0,0,0,0.25)',
 } as const
 
 /**
@@ -73,7 +83,7 @@ export const sizing = {
 export const space = [0, 4, 8, 12, 16, 24, 32, 48] as const
 
 /** Corner radii in px/dp; `999` reads as a pill/circle. */
-export const radii = { sm: 8, md: 12, lg: 16, xl: 20, pill: 999 } as const
+export const radii = { sm: 10, md: 16, lg: 24, xl: 32, pill: 999 } as const
 
 /** Type scale primitives — font sizes + line heights paired by role. */
 export const fontSize = {

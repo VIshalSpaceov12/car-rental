@@ -40,8 +40,17 @@ export function SectionHeader({
         </Pressable>
       )}
       {onFilter && (
-        <Pressable onPress={onFilter} accessibilityRole="button" accessibilityLabel={t('common.filter')} hitSlop={8}>
-          <Icon name="filter" size={theme.size.icon.lg} color={theme.color.text} />
+        <Pressable
+          onPress={onFilter}
+          accessibilityRole="button"
+          accessibilityLabel={t('common.filters')}
+          hitSlop={8}
+          style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.xs }}
+        >
+          <Text style={{ color: theme.color.textMuted, fontSize: theme.typography.caption.fontSize }}>
+            {t('common.filters')}
+          </Text>
+          <Icon name="filter" size={theme.size.icon.sm} color={theme.color.textMuted} />
         </Pressable>
       )}
     </View>

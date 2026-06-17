@@ -8,6 +8,9 @@ import {
 } from '../../store/fleetApi'
 import { Button } from '../../components/Button'
 import { TextField } from '../../components/TextField'
+import { Skeleton } from '../../components/Skeleton'
+import { AnimatedList, AnimatedRow } from '../../components/AnimatedRow'
+import { useToast } from '../../components/Toast'
 
 // One-off form width (no semantic size fits) — named const, not a token.
 const FORM_MAX_WIDTH = 420
@@ -15,7 +18,8 @@ const FORM_MAX_WIDTH = 420
 export function BranchesPage() {
   const theme = useTheme()
   const { t } = useTranslation()
-  const { data: branches = [] } = useBranchesQuery()
+  const toast = useToast()
+  const { data: branches = [], isLoading: branchesLoading } = useBranchesQuery()
   const [createBranch, { isLoading }] = useCreateBranchMutation()
   const [deleteBranch] = useDeleteBranchMutation()
   const [form, setForm] = useState({ name: '', address: '', lat: '', lng: '', hours: '08:00-20:00' })
@@ -36,29 +40,45 @@ export function BranchesPage() {
     try {
       await createBranch({ name: form.name.trim(), address: form.address, lat, lng, hours: form.hours }).unwrap()
       setForm({ name: '', address: '', lat: '', lng: '', hours: form.hours })
+      toast.show(t('toast.saved'), 'success')
     } catch {
       setError(t('branches.actionFailed'))
+      toast.show(t('toast.saveFailed'), 'error')
     }
   }
 
-  const onDelete = (id: string) => {
-    if (window.confirm(t('common.confirmDelete'))) deleteBranch(id)
+  const onDelete = async (id: string) => {
+    if (!window.confirm(t('common.confirmDelete'))) return
+    try {
+      await deleteBranch(id).unwrap()
+      toast.show(t('toast.deleted'), 'success')
+    } catch {
+      toast.show(t('toast.deleteFailed'), 'error')
+    }
   }
 
   return (
     <div>
       <h1 style={{ color: theme.color.primary, marginTop: 0 }}>{t('branches.title')}</h1>
-      <ul style={{ color: theme.color.text }}>
-        {branches.map((b) => (
-          <li key={b.id} style={{ marginBottom: theme.spacing.xs }}>
-            <strong>{b.name}</strong> — {b.address} ({b.hours}){' '}
-            <a onClick={() => onDelete(b.id)} style={{ color: theme.color.danger, cursor: 'pointer' }}>
-              {t('common.remove')}
-            </a>
-          </li>
-        ))}
-        {branches.length === 0 && <li style={{ color: theme.color.textMuted }}>{t('branches.noBranches')}</li>}
-      </ul>
+      {branchesLoading ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm, marginBottom: theme.spacing.md }}>
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} height={theme.spacing.lg} />
+          ))}
+        </div>
+      ) : (
+        <AnimatedList style={{ color: theme.color.text }}>
+          {branches.map((b) => (
+            <AnimatedRow key={b.id} style={{ marginBottom: theme.spacing.xs }}>
+              <strong>{b.name}</strong> — {b.address} ({b.hours}){' '}
+              <a onClick={() => onDelete(b.id)} style={{ color: theme.color.danger, cursor: 'pointer' }}>
+                {t('common.remove')}
+              </a>
+            </AnimatedRow>
+          ))}
+          {branches.length === 0 && <div style={{ color: theme.color.textMuted }}>{t('branches.noBranches')}</div>}
+        </AnimatedList>
+      )}
 
       <h2 style={{ color: theme.color.text }}>{t('branches.addBranch')}</h2>
       <form onSubmit={add} style={{ maxWidth: FORM_MAX_WIDTH }}>

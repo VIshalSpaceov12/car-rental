@@ -1,4 +1,5 @@
 import { Pressable, Text, View } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { useTheme } from '@car-rental/tokens'
 import { Icon, type IconName } from './Icon'
 
@@ -36,18 +37,25 @@ export function CtaBar({
         opacity: pressed ? PRESSED_OPACITY : 1,
       })}
     >
-      <View
+      <LinearGradient
+        colors={theme.color.gradientPrimary}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={{
           width: theme.size.control.md,
           height: theme.size.control.md,
           borderRadius: theme.radius.pill,
-          backgroundColor: theme.color.primary,
           alignItems: 'center',
           justifyContent: 'center',
+          shadowColor: theme.color.glow,
+          shadowOpacity: 1,
+          shadowRadius: theme.elevation.md.shadowRadius,
+          shadowOffset: theme.elevation.md.shadowOffset,
+          elevation: theme.elevation.md.elevation,
         }}
       >
         <Icon name={icon} size={theme.size.icon.xxl} color={theme.color.onPrimary} />
-      </View>
+      </LinearGradient>
       <Text
         style={{
           flex: 1,

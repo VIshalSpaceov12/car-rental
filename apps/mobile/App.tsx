@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ActivityIndicator, View } from 'react-native'
 import { StatusBar } from 'expo-status-bar'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { Provider } from 'react-redux'
 import { ThemeProvider, createTheme, darkTheme, useTheme, type Theme } from '@car-rental/tokens'
@@ -13,6 +14,7 @@ import { loadAuth } from './src/storage/authStorage'
 import { OnboardingScreen } from './src/features/onboarding/OnboardingScreen'
 import { AuthScreen } from './src/features/auth/AuthScreen'
 import { AppNavigator } from './src/navigation/AppNavigator'
+import { ToastProvider } from './src/components/Toast'
 
 function Root() {
   const theme = useTheme()
@@ -67,19 +69,25 @@ function Branded() {
       })
     : darkTheme
 
+  // ToastProvider sits inside ThemeProvider/SafeAreaProvider so toasts resolve
+  // theme colors + safe-area insets, yet is high enough for any screen to fire one.
   return (
     <ThemeProvider theme={theme}>
-      <Root />
+      <ToastProvider>
+        <Root />
+      </ToastProvider>
     </ThemeProvider>
   )
 }
 
 export default function App() {
   return (
-    <Provider store={store}>
-      <SafeAreaProvider>
-        <Branded />
-      </SafeAreaProvider>
-    </Provider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <Provider store={store}>
+        <SafeAreaProvider>
+          <Branded />
+        </SafeAreaProvider>
+      </Provider>
+    </GestureHandlerRootView>
   )
 }

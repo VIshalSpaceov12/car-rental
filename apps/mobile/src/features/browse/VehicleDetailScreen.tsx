@@ -9,6 +9,7 @@ import { CircleButton } from '../../components/CircleButton'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { FeatureTile } from '../../components/FeatureTile'
 import { CtaBar } from '../../components/CtaBar'
+import { AnimatedListItem } from '../../components/AnimatedListItem'
 import type { RootStackParamList } from '../../navigation/types'
 
 type Props = NativeStackScreenProps<RootStackParamList, 'VehicleDetail'>
@@ -66,6 +67,7 @@ export function VehicleDetailScreen({ route, navigation }: Props) {
         )}
 
         {/* Info card */}
+        <AnimatedListItem index={0}>
         <View
           style={{
             flexDirection: 'row',
@@ -98,16 +100,21 @@ export function VehicleDetailScreen({ route, navigation }: Props) {
           </View>
           <CircleButton icon="heartOutline" variant="surface" size="sm" accessibilityLabel={t('detail.save')} onPress={() => {}} />
         </View>
+        </AnimatedListItem>
 
         {/* Spec grid (from real Vehicle fields) */}
+        <AnimatedListItem index={1}>
         <View style={{ flexDirection: 'row', gap: theme.spacing.md, marginTop: theme.spacing.md }}>
           <FeatureTile icon="gearbox" title={cap(v.transmission)} subtitle={t('detail.gearBox')} />
           <FeatureTile icon="seat" title={`${v.seats}`} subtitle={t('detail.seats')} />
         </View>
+        </AnimatedListItem>
+        <AnimatedListItem index={2}>
         <View style={{ flexDirection: 'row', gap: theme.spacing.md, marginTop: theme.spacing.md }}>
           <FeatureTile icon="fuel" title={cap(v.fuelType)} subtitle={t('detail.fuelType')} />
           <FeatureTile icon="car" title={cap(v.category)} subtitle={t('detail.class')} />
         </View>
+        </AnimatedListItem>
       </ScrollView>
 
       <View style={{ paddingHorizontal: theme.spacing.lg, paddingBottom: insets.bottom + theme.spacing.md, paddingTop: theme.spacing.sm }}>

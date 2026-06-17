@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Midnight GT — Design Direction 1</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  /* ============================================================
+     DESIGN TOKENS — single source of truth
+     DARK app scheme on :root, LIGHT admin scheme scoped to .scheme-light
+     ============================================================ */
+  :root {
+    /* --- DARK (customer mobile) scheme --- */
+    --color-primary: #FF453A;
+    --color-primary-dark: #D42E26;
+    --color-on-primary: #FFFFFF;
+    --color-background: #08080A;
+    --color-surface: #141417;
+    --color-surface-alt: #1C1C21;
+    --color-text: #FFFFFF;
+    --color-text-muted: #9A9AA2;
+    --color-text-subtle: #6E6E76;
+    --color-border: #2A2A30;
+    --color-danger: #FF453A;
+    --color-success: #34D399;
+    --color-warning: #FBBF24;
+    --color-overlay: rgba(0, 0, 0, 0.55);
+    --gradient-primary: linear-gradient(135deg, #FF8A3D 0%, #FF3B30 100%);
+    --glow-primary: 0 8px 30px rgba(255, 69, 58, 0.35);
+
+    /* --- Motion tokens --- */
+    --dur-fast: 120ms;
+    --dur-base: 200ms;
+    --dur-slow: 320ms;
+    --dur-hero: 480ms;
+    --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* --- Static layout primitives (NOT themeable) --- */
+    --radius-sm: 10px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-xl: 32px;
+    --radius-pill: 999px;
+    --space-xs: 6px;
+    --space-sm: 10px;
+    --space-md: 16px;
+    --space-lg: 24px;
+    --space-xl: 36px;
+  }
+
+  /* LIGHT admin scheme — scoped, so both schemes coexist in one document */
+  .scheme-light {
+    --color-primary: #FF453A;
+    --color-primary-dark: #D42E26;
+    --color-on-primary: #FFFFFF;
+    --color-background: #FFFFFF;
+    --color-surface: #F5F5F7;
+    --color-surface-alt: #ECECEF;
+    --color-text: #121214;
+    --color-text-muted: #55555C;
+    --color-text-subtle: #8A8A92;
+    --color-border: #C9C9CF;
+    --color-danger: #FF453A;
+    --color-success: #34D399;
+    --color-warning: #FBBF24;
+    --color-overlay: rgba(0, 0, 0, 0.25);
+    --gradient-primary: linear-gradient(135deg, #FF8A3D 0%, #FF3B30 100%);
+    --glow-primary: 0 8px 30px rgba(255, 69, 58, 0.28);
+  }
+
+  /* ============================================================
+     RESET / BASE
+     ============================================================ */
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(255, 69, 58, 0.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 20%, rgba(255, 138, 61, 0.06), transparent 55%),
+      var(--color-background);
+    color: var(--color-text);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    line-height: 1.45;
+    min-height: 100vh;
+  }
+  h1, h2, h3, h4 { margin: 0; font-weight: 700; letter-spacing: -0.02em; }
+  p { margin: 0; }
+  button { font-family: inherit; cursor: pointer; border: none; }
+
+  .wrap {
+    max-width: 1180px;
+    margin-inline: auto;
+    padding-inline: var(--space-lg);
+    padding-block: var(--space-xl);
+  }
+
+  /* ============================================================
+     HEADER BAND
+     ============================================================ */
+  .header-band {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background:
+      radial-gradient(700px 280px at 90% -40%, rgba(255, 69, 58, 0.18), transparent 60%),
+      var(--color-surface);
+    padding: var(--space-xl);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+    overflow: hidden;
+    position: relative;
+  }
+  .header-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--space-md);
+    justify-content: space-between;
+  }
+  .header-kicker {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    margin-bottom: var(--space-sm);
+  }
+  .header-title {
+    font-size: clamp(34px, 5vw, 56px);
+    font-weight: 800;
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    line-height: 1.02;
+  }
+  .header-mood {
+    color: var(--color-text-muted);
+    margin-top: var(--space-sm);
+    max-width: 56ch;
+    font-size: 15px;
+  }
+  .lang-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding-inline: 16px;
+    padding-block: 10px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+    color: var(--color-text);
+    font-size: 13px;
+    font-weight: 600;
+    transition: transform var(--dur-fast) var(--ease-standard),
+                box-shadow var(--dur-base) var(--ease-standard);
+    flex-shrink: 0;
+  }
+  .lang-toggle:hover { box-shadow: var(--glow-primary); transform: translateY(-1px); }
+  .lang-toggle:active { transform: scale(0.97); }
+  .lang-toggle .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--gradient-primary);
+  }
+
+  /* PALETTE STRIP */
+  .palette {
+    margin-top: var(--space-xl);
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+    gap: var(--space-sm);
+  }
+  .swatch {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: var(--color-surface-alt);
+    transition: transform var(--dur-base) var(--ease-spring);
+  }
+  .swatch:hover { transform: translateY(-3px); }
+  .swatch .chip { height: 52px; }
+  .swatch .chip.bordered { box-shadow: inset 0 0 0 1px var(--color-border); }
+  .swatch .meta { padding: 8px 10px; }
+  .swatch .name { font-size: 12px; font-weight: 600; color: var(--color-text); }
+  .swatch .hex {
+    font-size: 11px; color: var(--color-text-subtle);
+    font-variant-numeric: tabular-nums; margin-top: 2px;
+    text-transform: uppercase;
+  }
+  .swatch.wide { grid-column: span 2; }
+
+  /* ============================================================
+     SECTION SCAFFOLD
+     ============================================================ */
+  .section { margin-top: var(--space-xl); }
+  .section-head {
+    display: flex; align-items: baseline; gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+  }
+  .section-head h2 { font-size: 22px; }
+  .section-head .num {
+    font-size: 13px; font-weight: 700; color: var(--color-primary);
+    border: 1px solid var(--color-border); border-radius: var(--radius-pill);
+    padding: 4px 12px; background: var(--color-surface);
+  }
+  .section-head .hint { color: var(--color-text-subtle); font-size: 13px; }
+
+  .stage {
+    display: flex; flex-wrap: wrap; gap: var(--space-xl);
+    align-items: flex-start;
+  }
+
+  /* ============================================================
+     MOBILE MOCKUP — phone frame, DARK scheme
+     ============================================================ */
+  .phone {
+    width: 390px;
+    max-width: 100%;
+    border-radius: 46px;
+    padding: 12px;
+    background: linear-gradient(160deg, #232329, #0c0c0e);
+    box-shadow:
+      0 40px 90px rgba(0, 0, 0, 0.6),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    position: relative;
+  }
+  .phone-screen {
+    border-radius: 36px;
+    background:
+      radial-gradient(600px 320px at 100% -5%, rgba(255, 69, 58, 0.16), transparent 60%),
+      var(--color-background);
+    overflow: hidden;
+    position: relative;
+    height: 780px;
+    display: flex;
+    flex-direction: column;
+  }
+  .phone-notch {
+    position: absolute;
+    inset-block-start: 12px;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    width: 120px; height: 26px;
+    background: #000;
+    border-radius: var(--radius-pill);
+    z-index: 20;
+  }
+  .phone-scroll {
+    flex: 1;
+    overflow: hidden;
+    padding: 48px var(--space-md) 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+
+  /* greeting row */
+  .greet-row { display: flex; align-items: center; gap: var(--space-md); }
+  .greet { flex: 1; }
+  .greet .hi { font-size: 13px; color: var(--color-text-muted); }
+  .greet .name { font-size: 19px; font-weight: 700; }
+  .avatar {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: var(--gradient-primary);
+    display: grid; place-items: center;
+    color: var(--color-on-primary); font-weight: 700; font-size: 16px;
+    box-shadow: var(--glow-primary);
+  }
+  .search {
+    display: flex; align-items: center; gap: 10px;
+    padding-inline: var(--space-md);
+    padding-block: 13px;
+    border-radius: var(--radius-pill);
+    background: rgba(28, 28, 33, 0.6);
+    border: 1px solid var(--color-border);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    color: var(--color-text-subtle);
+    font-size: 14px;
+  }
+  .search svg { flex-shrink: 0; }
+
+  .mob-section-title {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: var(--space-xs);
+  }
+  .mob-section-title h3 { font-size: 16px; }
+  .mob-section-title .see {
+    font-size: 12px; color: var(--color-primary); font-weight: 600;
+  }
+
+  /* HERO car card */
+  .car-hero {
+    position: relative;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    aspect-ratio: 16 / 11;
+    border: 1px solid var(--color-border);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  }
+  .car-art {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(120% 90% at 50% 120%, rgba(255, 69, 58, 0.30), transparent 60%),
+      linear-gradient(160deg, #2a2a32 0%, #121216 70%);
+    display: grid; place-items: center;
+  }
+  .car-art svg { width: 82%; height: auto; filter: drop-shadow(0 12px 18px rgba(0, 0, 0, 0.55)); }
+  .car-scrim {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, var(--color-overlay) 0%, transparent 55%);
+  }
+  .car-info {
+    position: absolute;
+    inset-block-end: 0; inset-inline: 0;
+    padding: var(--space-md);
+    display: flex; align-items: flex-end; justify-content: space-between;
+    gap: var(--space-sm);
+  }
+  .car-name { font-size: 19px; font-weight: 700; }
+  .car-meta { font-size: 12px; color: var(--color-text-muted); margin-top: 2px; }
+  .rating-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding-inline: 9px; padding-block: 4px;
+    border-radius: var(--radius-pill);
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    font-size: 12px; font-weight: 700;
+    border: 1px solid var(--color-border);
+    margin-top: 8px;
+  }
+  .rating-badge .star { color: var(--color-warning); }
+  .price-tag { text-align: end; }
+  .price-tag .amt { font-size: 18px; font-weight: 800; }
+  .price-tag .per { font-size: 11px; color: var(--color-text-muted); }
+  .car-badge-top {
+    position: absolute; inset-block-start: var(--space-md); inset-inline-start: var(--space-md);
+    font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
+    padding-inline: 10px; padding-block: 5px;
+    border-radius: var(--radius-pill);
+    background: var(--gradient-primary); color: var(--color-on-primary);
+    box-shadow: var(--glow-primary);
+  }
+  .fab {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: var(--gradient-primary);
+    box-shadow: var(--glow-primary);
+    display: grid; place-items: center; color: var(--color-on-primary);
+    flex-shrink: 0;
+    transition: transform var(--dur-base) var(--ease-spring),
+                box-shadow var(--dur-base) var(--ease-standard);
+  }
+  .fab:hover { transform: scale(1.08); }
+  .fab:active { transform: scale(0.92); }
+  .fab.sm { width: 36px; height: 36px; }
+
+  /* list cards */
+  .car-list { display: flex; flex-direction: column; gap: var(--space-md); }
+  .car-list-card {
+    display: flex; gap: var(--space-md);
+    padding: var(--space-sm);
+    border-radius: var(--radius-md);
+    background: rgba(20, 20, 23, 0.7);
+    border: 1px solid var(--color-border);
+    backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+    align-items: center;
+  }
+  .car-list-art {
+    width: 104px; height: 78px; flex-shrink: 0;
+    border-radius: var(--radius-sm); overflow: hidden;
+    position: relative;
+    background:
+      radial-gradient(120% 100% at 50% 130%, rgba(255, 69, 58, 0.28), transparent 60%),
+      linear-gradient(160deg, #26262d, #141417);
+    display: grid; place-items: center;
+  }
+  .car-list-art svg { width: 88%; filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.5)); }
+  .car-list-body { flex: 1; min-width: 0; }
+  .car-list-body .nm { font-size: 15px; font-weight: 700; }
+  .car-list-body .mt { font-size: 12px; color: var(--color-text-muted); margin-top: 1px; }
+  .car-list-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-top: 6px;
+  }
+  .car-list-foot .rating-badge { margin-top: 0; background: var(--color-surface-alt); }
+  .car-list-price { font-size: 14px; font-weight: 800; }
+
+  /* floating tab bar */
+  .tabbar-wrap {
+    position: absolute;
+    inset-block-end: 18px; inset-inline: 0;
+    display: flex; justify-content: center;
+    z-index: 15; pointer-events: none;
+  }
+  .tabbar {
+    pointer-events: auto;
+    display: flex; align-items: center; gap: var(--space-lg);
+    padding-inline: var(--space-lg); padding-block: 12px;
+    border-radius: var(--radius-pill);
+    background: rgba(20, 20, 23, 0.72);
+    border: 1px solid var(--color-border);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6);
+  }
+  .tab {
+    background: none; color: var(--color-text-subtle);
+    display: grid; place-items: center;
+    transition: color var(--dur-base) var(--ease-standard);
+  }
+  .tab.active {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: var(--gradient-primary); color: var(--color-on-primary);
+    box-shadow: var(--glow-primary);
+  }
+  .car-art-fade {
+    position: absolute; inset-block-end: 0; inset-inline: 0; height: 90px;
+    background: linear-gradient(to top, var(--color-background), transparent);
+    z-index: 14; pointer-events: none;
+  }
+
+  /* ============================================================
+     DASHBOARD MOCKUP — web frame, LIGHT scheme
+     ============================================================ */
+  .dash {
+    flex: 1; min-width: 320px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    background: var(--color-background);
+    color: var(--color-text);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.45);
+    display: flex;
+    min-height: 640px;
+  }
+  .dash-sidebar {
+    width: 224px; flex-shrink: 0;
+    background: var(--color-surface);
+    border-inline-end: 1px solid var(--color-border);
+    padding: var(--space-lg) var(--space-md);
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .dash-brand {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: var(--space-lg);
+    padding-inline: 8px;
+  }
+  .dash-brand .logo {
+    width: 32px; height: 32px; border-radius: 9px;
+    background: var(--gradient-primary);
+    display: grid; place-items: center; color: var(--color-on-primary);
+    box-shadow: var(--glow-primary);
+    flex-shrink: 0;
+  }
+  .dash-brand .bn { font-size: 15px; font-weight: 800; color: var(--color-text); }
+  .nav-item {
+    display: flex; align-items: center; gap: 12px;
+    padding-inline: 12px; padding-block: 11px;
+    border-radius: var(--radius-sm);
+    color: var(--color-text-muted);
+    font-size: 14px; font-weight: 600;
+    background: none; width: 100%; text-align: start;
+    transition: background var(--dur-base) var(--ease-standard),
+                color var(--dur-base) var(--ease-standard);
+  }
+  .nav-item:hover { background: var(--color-surface-alt); color: var(--color-text); }
+  .nav-item.active {
+    color: var(--color-primary);
+    background: linear-gradient(90deg, rgba(255, 69, 58, 0.14), rgba(255, 69, 58, 0.04));
+    position: relative;
+  }
+  .nav-item.active::before {
+    content: ""; position: absolute;
+    inset-inline-start: 0; inset-block: 8px;
+    width: 3px; border-radius: var(--radius-pill);
+    background: var(--gradient-primary);
+  }
+  .nav-item svg { flex-shrink: 0; }
+  .dash-userchip {
+    margin-top: auto;
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px; border-radius: var(--radius-md);
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+  }
+  .dash-userchip .av {
+    width: 34px; height: 34px; border-radius: 50%;
+    background: var(--gradient-primary); color: var(--color-on-primary);
+    display: grid; place-items: center; font-weight: 700; font-size: 13px;
+    flex-shrink: 0;
+  }
+  .dash-userchip .un { font-size: 13px; font-weight: 700; color: var(--color-text); line-height: 1.1; }
+  .dash-userchip .ur { font-size: 11px; color: var(--color-text-subtle); }
+
+  .dash-main { flex: 1; padding: var(--space-lg); overflow: hidden; }
+  .dash-title-row {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: var(--space-lg); flex-wrap: wrap; gap: var(--space-sm);
+  }
+  .dash-title-row h2 { font-size: 22px; color: var(--color-text); }
+  .dash-title-row .sub { font-size: 13px; color: var(--color-text-muted); }
+  .dash-newbtn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding-inline: 16px; padding-block: 10px;
+    border-radius: var(--radius-sm);
+    background: var(--gradient-primary); color: var(--color-on-primary);
+    font-weight: 700; font-size: 13px; box-shadow: var(--glow-primary);
+    transition: transform var(--dur-fast) var(--ease-standard);
+  }
+  .dash-newbtn:active { transform: scale(0.97); }
+
+  .stat-row {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-md); margin-bottom: var(--space-lg);
+  }
+  .stat-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-md);
+  }
+  .stat-card .label { font-size: 12px; color: var(--color-text-muted); font-weight: 600; }
+  .stat-card .value {
+    font-size: 30px; font-weight: 800; color: var(--color-text);
+    margin-top: 6px; font-variant-numeric: tabular-nums;
+    display: flex; align-items: baseline; gap: 4px;
+  }
+  .stat-card .value .unit { font-size: 14px; color: var(--color-text-muted); font-weight: 700; }
+  .stat-foot {
+    display: flex; align-items: center; gap: 8px; margin-top: 10px;
+  }
+  .stat-trend { font-size: 11px; font-weight: 700; color: var(--color-success); }
+  .stat-trend.down { color: var(--color-danger); }
+  .sparkline { flex: 1; height: 26px; }
+
+  /* bookings table */
+  .table-card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead th {
+    text-align: start; font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--color-text-subtle);
+    font-weight: 700; padding: 12px var(--space-md);
+    background: var(--color-surface-alt);
+    border-bottom: 1px solid var(--color-border);
+  }
+  tbody td {
+    padding: 13px var(--space-md);
+    font-size: 13px; color: var(--color-text);
+    border-bottom: 1px solid var(--color-border);
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr { transition: background var(--dur-base) var(--ease-standard); }
+  tbody tr:hover { background: var(--color-surface-alt); }
+  .cust { display: flex; align-items: center; gap: 10px; }
+  .cust .ci {
+    width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+    background: var(--color-surface-alt); border: 1px solid var(--color-border);
+    display: grid; place-items: center; font-size: 11px; font-weight: 700;
+    color: var(--color-text-muted);
+  }
+  .muted-cell { color: var(--color-text-muted); }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding-inline: 10px; padding-block: 4px;
+    border-radius: var(--radius-pill);
+    font-size: 11px; font-weight: 700;
+    text-transform: capitalize;
+  }
+  .chip::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor;
+  }
+  .chip--warning { color: var(--color-warning); background: rgba(251, 191, 36, 0.14); }
+  .chip--success { color: var(--color-success); background: rgba(52, 211, 153, 0.14); }
+  .chip--primary { color: var(--color-primary); background: rgba(255, 69, 58, 0.14); }
+  .chip--danger  { color: var(--color-danger);  background: rgba(255, 69, 58, 0.14); }
+  .chip--muted   { color: var(--color-text-muted); background: var(--color-surface-alt); }
+
+  /* ============================================================
+     ANIMATION SHOWCASE
+     ============================================================ */
+  .anim-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-md);
+  }
+  .anim-card {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    padding: var(--space-md);
+    min-height: 220px;
+    display: flex; flex-direction: column;
+  }
+  .anim-card .ac-label {
+    font-size: 12px; font-weight: 700; color: var(--color-text);
+    display: flex; align-items: center; gap: 8px; margin-bottom: 4px;
+  }
+  .anim-card .ac-label .tag {
+    font-size: 10px; color: var(--color-primary);
+    border: 1px solid var(--color-border); border-radius: var(--radius-pill);
+    padding: 2px 8px; font-weight: 700;
+  }
+  .anim-card .ac-desc { font-size: 12px; color: var(--color-text-subtle); margin-bottom: var(--space-md); }
+  .anim-card .ac-stage {
+    flex: 1; display: grid; place-items: center;
+    position: relative;
+  }
+
+  /* (a) gradient button */
+  .btn-primary {
+    position: relative; overflow: hidden;
+    padding-inline: 28px; padding-block: 14px;
+    border-radius: var(--radius-pill);
+    color: var(--color-on-primary); font-weight: 700; font-size: 15px;
+    background: linear-gradient(120deg, #FF8A3D, #FF3B30, #D42E26, #FF8A3D);
+    background-size: 300% 100%;
+    animation: gradient-pan 4s linear infinite;
+    box-shadow: var(--glow-primary);
+    transition: transform var(--dur-fast) var(--ease-standard),
+                box-shadow var(--dur-base) var(--ease-standard);
+  }
+  .btn-primary:hover { box-shadow: 0 12px 44px rgba(255, 69, 58, 0.55); }
+  .btn-primary:active { transform: scale(0.97); }
+  @keyframes gradient-pan {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 300% 50%; }
+  }
+
+  /* (b) skeleton shimmer */
+  .skeleton-card {
+    width: 100%; border-radius: var(--radius-md);
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+    padding: var(--space-md);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .sk {
+    border-radius: var(--radius-sm);
+    background: linear-gradient(
+      100deg,
+      var(--color-surface-alt) 0%,
+      rgba(255, 255, 255, 0.10) 40%,
+      var(--color-surface-alt) 70%
+    );
+    background-size: 250% 100%;
+    animation: shimmer 1.4s linear infinite;
+  }
+  .scheme-light .sk {
+    background: linear-gradient(
+      100deg,
+      var(--color-surface-alt) 0%,
+      rgba(255, 255, 255, 0.9) 45%,
+      var(--color-surface-alt) 70%
+    );
+    background-size: 250% 100%;
+  }
+  .sk.thumb { height: 70px; }
+  .sk.line { height: 12px; }
+  .sk.line.short { width: 55%; }
+  .sk.line.mid { width: 80%; }
+  @keyframes shimmer {
+    0% { background-position: 150% 0; }
+    100% { background-position: -150% 0; }
+  }
+
+  /* (c) OTP unlock */
+  .unlock-stage { gap: var(--space-md); display: flex; flex-direction: column; align-items: center; }
+  .lock-wrap {
+    position: relative; width: 80px; height: 80px;
+    display: grid; place-items: center;
+  }
+  .lock-ring {
+    position: absolute; inset: 0; border-radius: 50%;
+    border: 2px solid var(--color-border);
+  }
+  .lock-ripple {
+    position: absolute; inset: 0; border-radius: 50%;
+    border: 2px solid var(--color-success);
+    opacity: 0; transform: scale(0.6);
+  }
+  .lock-ripple.go { animation: ripple var(--dur-hero) var(--ease-standard) forwards; }
+  @keyframes ripple {
+    0% { opacity: 0.8; transform: scale(0.6); }
+    100% { opacity: 0; transform: scale(1.7); }
+  }
+  .lock-svg {
+    transition: transform var(--dur-hero) var(--ease-spring);
+    color: var(--color-text);
+  }
+  .lock-wrap.unlocked .lock-svg { transform: rotate(-12deg); color: var(--color-success); }
+  .shackle {
+    transform-box: fill-box; transform-origin: 80% 100%;
+    transition: transform var(--dur-hero) var(--ease-spring);
+  }
+  .lock-wrap.unlocked .shackle { transform: rotate(38deg) translateX(-2px); }
+  .check-mark {
+    position: absolute; opacity: 0; transform: scale(0.4);
+    color: var(--color-success);
+    transition: opacity var(--dur-base) var(--ease-standard),
+                transform var(--dur-base) var(--ease-spring);
+  }
+  .lock-wrap.unlocked .check-mark { opacity: 1; transform: scale(1); transition-delay: 180ms; }
+  .btn-unlock {
+    padding-inline: 22px; padding-block: 12px;
+    border-radius: var(--radius-pill);
+    background: var(--gradient-primary); color: var(--color-on-primary);
+    font-weight: 700; font-size: 13px; box-shadow: var(--glow-primary);
+    transition: transform var(--dur-fast) var(--ease-standard);
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-unlock:active { transform: scale(0.96); }
+  .btn-unlock.done { background: var(--color-surface-alt); color: var(--color-success); box-shadow: none; }
+
+  .toast {
+    position: absolute;
+    inset-block-start: -6px; inset-inline: var(--space-md);
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-success);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 12px; font-weight: 600; color: var(--color-text);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+    transform: translateY(-140%); opacity: 0;
+    transition: transform var(--dur-slow) var(--ease-spring),
+                opacity var(--dur-base) var(--ease-standard);
+    z-index: 5;
+  }
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast .ti { color: var(--color-success); flex-shrink: 0; }
+
+  /* (d) status chip cross-fade */
+  .status-toggle-stage { display: flex; flex-direction: column; gap: var(--space-md); align-items: center; }
+  .status-flip {
+    position: relative; height: 30px; min-width: 120px;
+    display: grid; place-items: center;
+  }
+  .status-flip .chip {
+    position: absolute; transition: opacity var(--dur-slow) var(--ease-standard),
+                                     transform var(--dur-slow) var(--ease-spring);
+  }
+  .status-flip .chip.hidden { opacity: 0; transform: translateY(6px) scale(0.9); }
+  .pulse { animation: chip-pulse 2.4s var(--ease-standard) infinite; }
+  @keyframes chip-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 69, 58, 0); }
+    50% { box-shadow: 0 0 0 6px rgba(255, 69, 58, 0.10); }
+  }
+  .mini-btn {
+    padding-inline: 16px; padding-block: 8px;
+    border-radius: var(--radius-pill);
+    background: var(--color-surface-alt); border: 1px solid var(--color-border);
+    color: var(--color-text); font-size: 12px; font-weight: 600;
+    transition: transform var(--dur-fast) var(--ease-standard), border-color var(--dur-base);
+  }
+  .mini-btn:hover { border-color: var(--color-primary); }
+  .mini-btn:active { transform: scale(0.96); }
+
+  /* (e) staggered entrance */
+  .stagger-stage { width: 100%; display: flex; flex-direction: column; gap: var(--space-sm); }
+  .stagger-card {
+    padding: 12px var(--space-md);
+    border-radius: var(--radius-sm);
+    background: var(--color-surface-alt);
+    border: 1px solid var(--color-border);
+    font-size: 13px; font-weight: 600; color: var(--color-text);
+    display: flex; align-items: center; gap: 10px;
+    opacity: 0; transform: translateY(14px);
+  }
+  .stagger-card .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--gradient-primary); }
+  .stagger-card.in { animation: stagger-in var(--dur-slow) var(--ease-spring) forwards; }
+  .stagger-card.in:nth-child(1) { animation-delay: 0ms; }
+  .stagger-card.in:nth-child(2) { animation-delay: 90ms; }
+  .stagger-card.in:nth-child(3) { animation-delay: 180ms; }
+  @keyframes stagger-in {
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .footer-note {
+    margin-top: var(--space-xl); text-align: center;
+    color: var(--color-text-subtle); font-size: 12px;
+    padding-block: var(--space-lg);
+  }
+
+  /* ============================================================
+     REDUCED MOTION
+     ============================================================ */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+    }
+    .btn-primary { animation: none; background-position: 0 0; }
+    .sk { animation: none; }
+  }
+
+  /* RTL: logical props handle mirroring automatically; flip directional glyphs */
+  [dir="rtl"] .arrow-glyph { transform: scaleX(-1); }
+  [dir="rtl"] .car-art svg,
+  [dir="rtl"] .car-list-art svg { transform: scaleX(-1); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ========================================================
+       1. HEADER BAND
+       ======================================================== -->
+  <header class="header-band">
+    <div class="header-top">
+      <div>
+        <div class="header-kicker">Design Direction 01</div>
+        <h1 class="header-title">Midnight GT</h1>
+        <p class="header-mood">
+          Deepened blacks, ember-to-red energy and soft red glow over glassmorphic surfaces —
+          a richer, more modern evolution of a sporty dark racing-red brand. Premium, confident, fast.
+        </p>
+      </div>
+      <button class="lang-toggle" id="langToggle" aria-label="Toggle language direction">
+        <span class="dot"></span>
+        <span id="langLabel">EN · LTR</span>
+      </button>
+    </div>
+
+    <div class="palette" id="palette"><!-- swatches injected by JS --></div>
+  </header>
+
+  <!-- ========================================================
+       2 + 3. MOBILE + DASHBOARD MOCKUPS
+       ======================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <span class="num">02 / 03</span>
+      <h2>Product surfaces</h2>
+      <span class="hint">Customer mobile (dark) &amp; provider dashboard (light) — same UI vocabulary, two schemes</span>
+    </div>
+
+    <div class="stage">
+
+      <!-- ===== MOBILE PHONE FRAME (DARK) ===== -->
+      <div class="phone" aria-label="Customer mobile browse screen">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="phone-scroll">
+
+            <!-- greeting + search -->
+            <div class="greet-row">
+              <div class="greet">
+                <div class="hi">Good evening,</div>
+                <div class="name">Layla</div>
+              </div>
+              <div class="avatar">L</div>
+            </div>
+
+            <div class="search">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path>
+              </svg>
+              <span>Search cars, brands, branches…</span>
+            </div>
+
+            <!-- Top Trends hero -->
+            <div class="mob-section-title">
+              <h3>Top Trends</h3>
+              <span class="see">See all</span>
+            </div>
+
+            <div class="car-hero">
+              <div class="car-art">
+                <!-- inline car silhouette -->
+                <svg viewBox="0 0 260 90" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path d="M14 64 C18 44 40 34 70 32 L96 16 C104 11 116 9 128 9 L160 9 C176 9 190 16 200 28 L222 34 C238 38 248 50 250 64 L250 70 C250 73 248 75 245 75 L18 75 C15 75 13 73 13 70 Z"
+                        fill="#0e0e11" stroke="#FF453A" stroke-width="2" stroke-linejoin="round"/>
+                  <path d="M96 18 C104 13 114 12 124 12 L156 12 C170 12 182 18 191 28 L150 30 L102 31 Z" fill="#1c1c21"/>
+                  <rect x="6" y="60" width="248" height="6" rx="3" fill="#FF453A" opacity="0.5"/>
+                  <circle cx="78" cy="74" r="15" fill="#08080a" stroke="#FF8A3D" stroke-width="3"/>
+                  <circle cx="78" cy="74" r="5" fill="#FF453A"/>
+                  <circle cx="196" cy="74" r="15" fill="#08080a" stroke="#FF8A3D" stroke-width="3"/>
+                  <circle cx="196" cy="74" r="5" fill="#FF453A"/>
+                </svg>
+              </div>
+              <div class="car-scrim"></div>
+              <span class="car-badge-top">Top trend</span>
+              <div class="car-info">
+                <div>
+                  <div class="car-name">Porsche 911 Carrera</div>
+                  <div class="car-meta">Sports · Automatic</div>
+                  <span class="rating-badge"><span class="star">★</span> 4.9</span>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:10px;">
+                  <div class="price-tag">
+                    <div class="amt">320 AED</div>
+                    <div class="per">/ day</div>
+                  </div>
+                  <div class="fab" role="button" aria-label="Book car">
+                    <svg class="arrow-glyph" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M5 12h14M13 6l6 6-6 6"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Choose a Car -->
+            <div class="mob-section-title">
+              <h3>Choose a Car</h3>
+              <span class="see">Filters</span>
+            </div>
+
+            <div class="car-list">
+              <!-- card 1 -->
+              <div class="car-list-card">
+                <div class="car-list-art">
+                  <svg viewBox="0 0 260 90" fill="none" aria-hidden="true">
+                    <path d="M14 64 C18 46 40 36 70 34 L96 18 C104 13 116 11 128 11 L160 11 C176 11 190 18 200 30 L222 36 C238 40 248 50 250 64 L250 70 C250 73 248 75 245 75 L18 75 C15 75 13 73 13 70 Z" fill="#0e0e11" stroke="#FF8A3D" stroke-width="2"/>
+                    <circle cx="78" cy="74" r="13" fill="#08080a" stroke="#FF453A" stroke-width="3"/>
+                    <circle cx="196" cy="74" r="13" fill="#08080a" stroke="#FF453A" stroke-width="3"/>
+                  </svg>
+                </div>
+                <div class="car-list-body">
+                  <div class="nm">BMW M4 Competition</div>
+                  <div class="mt">Coupe · Automatic</div>
+                  <div class="car-list-foot">
+                    <span class="rating-badge"><span class="star">★</span> 4.8</span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                      <span class="car-list-price">410 AED</span>
+                      <div class="fab sm" role="button" aria-label="Book BMW M4">
+                        <svg class="arrow-glyph" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- card 2 -->
+              <div class="car-list-card">
+                <div class="car-list-art">
+                  <svg viewBox="0 0 260 90" fill="none" aria-hidden="true">
+                    <path d="M14 64 C18 48 38 38 68 36 L92 20 C100 15 112 13 126 13 L158 13 C174 13 188 19 198 31 L222 37 C238 41 248 50 250 64 L250 70 C250 73 248 75 245 75 L18 75 C15 75 13 73 13 70 Z" fill="#0e0e11" stroke="#FF453A" stroke-width="2"/>
+                    <circle cx="78" cy="74" r="13" fill="#08080a" stroke="#FF8A3D" stroke-width="3"/>
+                    <circle cx="196" cy="74" r="13" fill="#08080a" stroke="#FF8A3D" stroke-width="3"/>
+                  </svg>
+                </div>
+                <div class="car-list-body">
+                  <div class="nm">Mercedes-AMG GT</div>
+                  <div class="mt">Sports · Automatic</div>
+                  <div class="car-list-foot">
+                    <span class="rating-badge"><span class="star">★</span> 4.7</span>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                      <span class="car-list-price">480 AED</span>
+                      <div class="fab sm" role="button" aria-label="Book Mercedes AMG GT">
+                        <svg class="arrow-glyph" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="height:90px;"></div><!-- breathing room above tab bar -->
+          </div>
+
+          <div class="car-art-fade"></div>
+
+          <!-- floating tab bar -->
+          <div class="tabbar-wrap">
+            <nav class="tabbar">
+              <button class="tab active" aria-label="Home" aria-current="page">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8M5 10v10h5v-6h4v6h5V10"/></svg>
+              </button>
+              <button class="tab" aria-label="Bookings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+              </button>
+              <button class="tab" aria-label="Settings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.6 1.6 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.6 1.6 0 0 0-2.7.6 1.6 1.6 0 0 0-.3 1.7 2 2 0 1 1-3.8 0 1.6 1.6 0 0 0-1-1.1 1.6 1.6 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.6 1.6 0 0 0-1.7-2.7 2 2 0 1 1 0-3.8 1.6 1.6 0 0 0 1.1-1 1.6 1.6 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.6 1.6 0 0 0 1.8.3H9a1.6 1.6 0 0 0 1-1.5 2 2 0 1 1 3.8 0 1.6 1.6 0 0 0 1 1.5 1.6 1.6 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.6 1.6 0 0 0-.3 1.8V9a1.6 1.6 0 0 0 1.5 1 2 2 0 1 1 0 3.8 1.6 1.6 0 0 0-1.5 1z"/></svg>
+              </button>
+            </nav>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== DASHBOARD FRAME (LIGHT) ===== -->
+      <div class="dash scheme-light" aria-label="Provider dashboard bookings page">
+        <aside class="dash-sidebar">
+          <div class="dash-brand">
+            <div class="logo">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l1.5-4.5A2 2 0 0 1 8.4 7h7.2a2 2 0 0 1 1.9 1.5L19 13M5 13h14v4H5zM7 17v2M17 17v2"/></svg>
+            </div>
+            <span class="bn">Velocity Rentals</span>
+          </div>
+
+          <button class="nav-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+            Overview
+          </button>
+          <button class="nav-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13l1.5-4.5A2 2 0 0 1 8.4 7h7.2a2 2 0 0 1 1.9 1.5L19 13M5 13h14v4H5zM7 17v2M17 17v2"/></svg>
+            Fleet
+          </button>
+          <button class="nav-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>
+            Branches
+          </button>
+          <button class="nav-item active" aria-current="page">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+            Bookings
+          </button>
+          <button class="nav-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><circle cx="16" cy="16" r="2.5"/><path d="M3 21c1.5-3 4-4.5 7-4.5"/></svg>
+            Branding
+          </button>
+          <button class="nav-item">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h10M4 18h13"/></svg>
+            Logs
+          </button>
+
+          <div class="dash-userchip">
+            <div class="av">NM</div>
+            <div>
+              <div class="un">Nael Mattar</div>
+              <div class="ur">Owner · Admin</div>
+            </div>
+          </div>
+        </aside>
+
+        <main class="dash-main">
+          <div class="dash-title-row">
+            <div>
+              <h2>Bookings</h2>
+              <p class="sub">Live across all branches · updated just now</p>
+            </div>
+            <button class="dash-newbtn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+              New booking
+            </button>
+          </div>
+
+          <!-- STAT CARDS -->
+          <div class="stat-row">
+            <div class="stat-card">
+              <div class="label">Active bookings</div>
+              <div class="value"><span class="count" data-target="128">0</span></div>
+              <div class="stat-foot">
+                <span class="stat-trend">▲ 12%</span>
+                <svg class="sparkline" viewBox="0 0 100 26" preserveAspectRatio="none" fill="none" stroke="var(--color-success)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20 L18 16 L34 18 L50 10 L66 13 L82 6 L98 4"/></svg>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Fleet utilization</div>
+              <div class="value"><span class="count" data-target="84">0</span><span class="unit">%</span></div>
+              <div class="stat-foot">
+                <span class="stat-trend">▲ 5%</span>
+                <svg class="sparkline" viewBox="0 0 100 26" preserveAspectRatio="none" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 18 L18 19 L34 12 L50 14 L66 8 L82 10 L98 5"/></svg>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="label">Revenue (MTD)</div>
+              <div class="value"><span class="count" data-target="96400">0</span><span class="unit">AED</span></div>
+              <div class="stat-foot">
+                <span class="stat-trend down">▼ 3%</span>
+                <svg class="sparkline" viewBox="0 0 100 26" preserveAspectRatio="none" fill="none" stroke="var(--color-warning)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6 L18 9 L34 7 L50 13 L66 11 L82 16 L98 14"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- BOOKINGS TABLE -->
+          <div class="table-card">
+            <table>
+              <thead>
+                <tr>
+                  <th>Customer</th><th>Vehicle</th><th>Plan</th><th>Dates</th><th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><div class="cust"><span class="ci">LH</span> Layla Haddad</div></td>
+                  <td>Porsche 911 Carrera</td>
+                  <td>Weekly</td>
+                  <td class="muted-cell">Jun 18 – Jun 25</td>
+                  <td><span class="chip chip--success">confirmed</span></td>
+                </tr>
+                <tr>
+                  <td><div class="cust"><span class="ci">OK</span> Omar Khalil</div></td>
+                  <td>BMW M4 Competition</td>
+                  <td>Daily</td>
+                  <td class="muted-cell">Jun 17 – Jun 19</td>
+                  <td><span class="chip chip--warning">reserved</span></td>
+                </tr>
+                <tr>
+                  <td><div class="cust"><span class="ci">SR</span> Sara Rahman</div></td>
+                  <td>Mercedes-AMG GT</td>
+                  <td>Monthly</td>
+                  <td class="muted-cell">Jun 01 – Jun 30</td>
+                  <td><span class="chip chip--primary">picked-up</span></td>
+                </tr>
+                <tr>
+                  <td><div class="cust"><span class="ci">YA</span> Yusuf Aziz</div></td>
+                  <td>Range Rover Sport</td>
+                  <td>Weekly</td>
+                  <td class="muted-cell">Jun 12 – Jun 19</td>
+                  <td><span class="chip chip--warning">vehicle-prepared</span></td>
+                </tr>
+                <tr>
+                  <td><div class="cust"><span class="ci">MN</span> Mariam Nasser</div></td>
+                  <td>Audi RS7</td>
+                  <td>Long-term</td>
+                  <td class="muted-cell">May 20 – Jun 10</td>
+                  <td><span class="chip chip--muted">returned</span></td>
+                </tr>
+                <tr>
+                  <td><div class="cust"><span class="ci">FT</span> Faisal Tariq</div></td>
+                  <td>Tesla Model S</td>
+                  <td>Daily</td>
+                  <td class="muted-cell">Jun 15 – Jun 16</td>
+                  <td><span class="chip chip--danger">cancelled</span></td>
+                </tr>
+                <tr>
+                  <td><div class="cust"><span class="ci">DA</span> Dana Aziz</div></td>
+                  <td>Lamborghini Huracán</td>
+                  <td>Daily</td>
+                  <td class="muted-cell">Jun 08 – Jun 09</td>
+                  <td><span class="chip chip--success">completed</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </main>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ========================================================
+       4. ANIMATION SHOWCASE
+       ======================================================== -->
+  <section class="section">
+    <div class="section-head">
+      <span class="num">04</span>
+      <h2>Live motion</h2>
+      <span class="hint">All durations use the motion tokens · respects prefers-reduced-motion</span>
+    </div>
+
+    <div class="anim-grid">
+
+      <!-- (a) gradient button -->
+      <div class="anim-card">
+        <div class="ac-label"><span class="tag">a</span> Primary button</div>
+        <div class="ac-desc">Moving gradient · press-scale 0.97 · glow on hover/active</div>
+        <div class="ac-stage">
+          <button class="btn-primary">Reserve now</button>
+        </div>
+      </div>
+
+      <!-- (b) skeleton shimmer -->
+      <div class="anim-card">
+        <div class="ac-label"><span class="tag">b</span> Loading skeleton</div>
+        <div class="ac-desc">Shimmer sweep across surfaces while data loads</div>
+        <div class="ac-stage">
+          <div class="skeleton-card">
+            <div class="sk thumb"></div>
+            <div class="sk line mid"></div>
+            <div class="sk line short"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- (c) OTP unlock -->
+      <div class="anim-card">
+        <div class="ac-label"><span class="tag">c</span> OTP keyless unlock</div>
+        <div class="ac-desc">Signature moment: lock → unlock + ripple + check + toast (~480ms)</div>
+        <div class="ac-stage">
+          <div class="toast" id="unlockToast">
+            <svg class="ti" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            Lock-box opened · enjoy your drive
+          </div>
+          <div class="unlock-stage">
+            <div class="lock-wrap" id="lockWrap">
+              <div class="lock-ring"></div>
+              <div class="lock-ripple" id="lockRipple"></div>
+              <svg class="lock-svg" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="4" y="11" width="16" height="10" rx="2.5"></rect>
+                <path class="shackle" d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+                <circle cx="12" cy="16" r="1.4" fill="currentColor" stroke="none"></circle>
+              </svg>
+              <svg class="check-mark" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="position:absolute; inset-block-start:-8px; inset-inline-end:-8px;"><circle cx="12" cy="12" r="10" fill="var(--color-background)"/><path d="M17 9l-6 6-3-3"/></svg>
+            </div>
+            <button class="btn-unlock" id="unlockBtn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7a4 4 0 0 1 7.5-2"/></svg>
+              <span id="unlockBtnLabel">Unlock vehicle</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- (d) status chip cross-fade -->
+      <div class="anim-card">
+        <div class="ac-label"><span class="tag">d</span> Booking status</div>
+        <div class="ac-desc">Cross-fades reserved → confirmed on a loop (or click)</div>
+        <div class="ac-stage">
+          <div class="status-toggle-stage">
+            <div class="status-flip" id="statusFlip">
+              <span class="chip chip--warning pulse" id="chipReserved">reserved</span>
+              <span class="chip chip--success hidden" id="chipConfirmed">confirmed</span>
+            </div>
+            <button class="mini-btn" id="statusBtn">Toggle status</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- (e) staggered entrance -->
+      <div class="anim-card">
+        <div class="ac-label"><span class="tag">e</span> Staggered entrance</div>
+        <div class="ac-desc">Cards fade + rise with staggered delays</div>
+        <div class="ac-stage">
+          <div class="stagger-stage" id="staggerStage">
+            <div class="stagger-card in"><span class="dot"></span> Booking confirmed</div>
+            <div class="stagger-card in"><span class="dot"></span> OTP generated</div>
+            <div class="stagger-card in"><span class="dot"></span> Ready for pickup</div>
+          </div>
+          <button class="mini-btn" id="replayBtn" style="position:absolute; inset-block-start:0; inset-inline-end:0;">Replay</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <p class="footer-note">Midnight GT · Direction 01 — design mockup for client review. All colors resolve from CSS custom-property tokens (single source of truth).</p>
+
+</div>
+
+<script>
+  "use strict";
+
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ---------- 1. Palette strip (built from the actual token values) ---------- */
+  (function buildPalette() {
+    var tokens = [
+      "primary", "primary-dark", "on-primary",
+      "background", "surface", "surface-alt",
+      "text", "text-muted", "text-subtle",
+      "border", "danger", "success", "warning", "overlay"
+    ];
+    var root = getComputedStyle(document.documentElement);
+    var host = document.getElementById("palette");
+    var frag = document.createDocumentFragment();
+
+    tokens.forEach(function (t) {
+      var val = root.getPropertyValue("--color-" + t).trim();
+      var el = document.createElement("div");
+      el.className = "swatch";
+      var bordered = (t === "background" || t === "surface" || t === "border") ? " bordered" : "";
+      el.innerHTML =
+        '<div class="chip' + bordered + '" style="background: var(--color-' + t + ')"></div>' +
+        '<div class="meta"><div class="name">' + t + '</div>' +
+        '<div class="hex">' + val + '</div></div>';
+      frag.appendChild(el);
+    });
+
+    // gradient swatch (wide)
+    var g = document.createElement("div");
+    g.className = "swatch wide";
+    g.innerHTML =
+      '<div class="chip" style="background: var(--gradient-primary)"></div>' +
+      '<div class="meta"><div class="name">gradient-primary</div>' +
+      '<div class="hex">#FF8A3D → #FF3B30</div></div>';
+    frag.appendChild(g);
+
+    host.appendChild(frag);
+  })();
+
+  /* ---------- 2. Language / RTL toggle ---------- */
+  (function langToggle() {
+    var btn = document.getElementById("langToggle");
+    var label = document.getElementById("langLabel");
+    btn.addEventListener("click", function () {
+      var rtl = document.documentElement.getAttribute("dir") === "rtl";
+      document.documentElement.setAttribute("dir", rtl ? "ltr" : "rtl");
+      document.documentElement.setAttribute("lang", rtl ? "en" : "ar");
+      label.textContent = rtl ? "EN · LTR" : "AR · RTL";
+    });
+  })();
+
+  /* ---------- 3. Count-up stat numbers ---------- */
+  (function countUp() {
+    var els = document.querySelectorAll(".count");
+    function fmt(n) { return n.toLocaleString("en-US"); }
+
+    function run(el) {
+      var target = parseInt(el.getAttribute("data-target"), 10);
+      if (reduceMotion) { el.textContent = fmt(target); return; }
+      var dur = 1100, start = null;
+      function step(ts) {
+        if (start === null) start = ts;
+        var p = Math.min((ts - start) / dur, 1);
+        // easeOutCubic
+        var eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = fmt(Math.round(target * eased));
+        if (p < 1) requestAnimationFrame(step);
+        else el.textContent = fmt(target);
+      }
+      requestAnimationFrame(step);
+    }
+
+    // run when the dashboard scrolls into view
+    if ("IntersectionObserver" in window) {
+      var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) { run(e.target); io.unobserve(e.target); }
+        });
+      }, { threshold: 0.6 });
+      els.forEach(function (el) { io.observe(el); });
+    } else {
+      els.forEach(run);
+    }
+  })();
+
+  /* ---------- 4. OTP unlock micro-interaction ---------- */
+  (function otpUnlock() {
+    var wrap = document.getElementById("lockWrap");
+    var ripple = document.getElementById("lockRipple");
+    var toast = document.getElementById("unlockToast");
+    var btn = document.getElementById("unlockBtn");
+    var label = document.getElementById("unlockBtnLabel");
+    var busy = false;
+
+    function reset() {
+      wrap.classList.remove("unlocked");
+      ripple.classList.remove("go");
+      toast.classList.remove("show");
+      btn.classList.remove("done");
+      label.textContent = "Unlock vehicle";
+      busy = false;
+    }
+
+    btn.addEventListener("click", function () {
+      if (busy) { reset(); return; }
+      busy = true;
+      wrap.classList.add("unlocked");
+      btn.classList.add("done");
+      label.textContent = "Unlocked";
+
+      if (!reduceMotion) {
+        // retrigger ripple
+        ripple.classList.remove("go");
+        void ripple.offsetWidth;
+        ripple.classList.add("go");
+      }
+
+      window.setTimeout(function () { toast.classList.add("show"); }, reduceMotion ? 0 : 220);
+      window.setTimeout(reset, reduceMotion ? 1600 : 2600);
+    });
+  })();
+
+  /* ---------- 5. Status chip cross-fade (loop + click) ---------- */
+  (function statusFlip() {
+    var reserved = document.getElementById("chipReserved");
+    var confirmed = document.getElementById("chipConfirmed");
+    var btn = document.getElementById("statusBtn");
+    var showingReserved = true;
+
+    function flip() {
+      showingReserved = !showingReserved;
+      reserved.classList.toggle("hidden", !showingReserved);
+      confirmed.classList.toggle("hidden", showingReserved);
+    }
+
+    btn.addEventListener("click", flip);
+    if (!reduceMotion) window.setInterval(flip, 2600);
+  })();
+
+  /* ---------- 6. Staggered entrance replay ---------- */
+  (function staggerReplay() {
+    var stage = document.getElementById("staggerStage");
+    var btn = document.getElementById("replayBtn");
+    var cards = stage.querySelectorAll(".stagger-card");
+
+    btn.addEventListener("click", function () {
+      cards.forEach(function (c) { c.classList.remove("in"); });
+      // force reflow so the animation restarts
+      void stage.offsetWidth;
+      cards.forEach(function (c) { c.classList.add("in"); });
+    });
+  })();
+</script>
+</body>
+</html>
