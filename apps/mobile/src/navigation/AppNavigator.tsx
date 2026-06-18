@@ -2,6 +2,7 @@ import { NavigationContainer, DefaultTheme, type Theme as NavTheme } from '@reac
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import { useTheme } from '@car-rental/tokens'
 import { HomeTabs } from './HomeTabs'
+import { AllCarsScreen } from '../features/browse/AllCarsScreen'
 import { VehicleDetailScreen } from '../features/browse/VehicleDetailScreen'
 import { BookingFlow } from '../features/booking/BookingFlow'
 import { PickupFlow } from '../features/pickup/PickupFlow'
@@ -36,6 +37,7 @@ export function AppNavigator() {
     <NavigationContainer theme={navTheme}>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         <Stack.Screen name="Tabs" component={HomeTabs} />
+        <Stack.Screen name="AllCars" component={AllCarsScreen} />
         <Stack.Screen name="VehicleDetail" component={VehicleDetailScreen} />
         <Stack.Screen name="Booking">
           {({ navigation, route }) => (

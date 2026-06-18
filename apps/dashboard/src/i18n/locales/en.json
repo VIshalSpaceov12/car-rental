@@ -79,12 +79,22 @@
     "welcome": "Welcome, {{name}} ({{role}})",
     "tenant": "Tenant: {{tenant}}",
     "intro": "Manage your fleet, branches, and incoming bookings from the menu.",
+    "heroGreeting": "Welcome back, {{name}}",
+    "heroSubtitle": "Here's what's happening across your fleet today.",
+    "heroCta": "New booking",
+    "heroFleet": "{{vehicles}} vehicles · {{branches}} branches",
+    "revenueTitle": "Revenue",
+    "revenueRange": "Last 7 days",
+    "recentTitle": "Recent bookings",
+    "recentEmpty": "No bookings yet.",
+    "viewAll": "View all",
     "statVehicles": "Vehicles",
     "statBranches": "Branches",
     "statBookings": "Bookings",
     "statActiveBookings": "Active bookings",
     "statUtilization": "Fleet utilization",
-    "statRevenue": "Revenue (MTD)"
+    "statRevenue": "Revenue (MTD)",
+    "statPending": "Pending approval"
   },
   "fleet": {
     "title": "Fleet",

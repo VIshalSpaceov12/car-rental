@@ -79,12 +79,22 @@
     "welcome": "مرحباً، {{name}} ({{role}})",
     "tenant": "المستأجر: {{tenant}}",
     "intro": "أدِر أسطولك وفروعك والحجوزات الواردة من القائمة.",
+    "heroGreeting": "مرحباً بعودتك، {{name}}",
+    "heroSubtitle": "إليك ما يجري في أسطولك اليوم.",
+    "heroCta": "حجز جديد",
+    "heroFleet": "{{vehicles}} مركبة · {{branches}} فرع",
+    "revenueTitle": "الإيرادات",
+    "revenueRange": "آخر ٧ أيام",
+    "recentTitle": "أحدث الحجوزات",
+    "recentEmpty": "لا توجد حجوزات بعد.",
+    "viewAll": "عرض الكل",
     "statVehicles": "المركبات",
     "statBranches": "الفروع",
     "statBookings": "الحجوزات",
     "statActiveBookings": "الحجوزات النشطة",
     "statUtilization": "استخدام الأسطول",
-    "statRevenue": "الإيرادات (هذا الشهر)"
+    "statRevenue": "الإيرادات (هذا الشهر)",
+    "statPending": "بانتظار الموافقة"
   },
   "fleet": {
     "title": "الأسطول",

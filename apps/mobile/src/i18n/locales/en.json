@@ -22,6 +22,7 @@
     "getStarted": "Get Started"
   },
   "auth": {
+    "brandTitle": "Car Rental",
     "signInTitle": "Sign in",
     "signInAction": "Sign in",
     "signingIn": "Signing in…",
@@ -46,7 +47,35 @@
     "topTrendBadge": "Top trend",
     "chooseACar": "Choose a car",
     "noVehicles": "No vehicles available.",
-    "loadError": "Could not load vehicles."
+    "loadError": "Could not load vehicles.",
+    "location": "Tokyo, Japan",
+    "hero": "Discover Destinations in Ultimate Comfort",
+    "allBrands": "All Brands",
+    "allCollections": "All Collections",
+    "viewAll": "View All"
+  },
+  "allCars": {
+    "title": "All Cars",
+    "filter": "Filter",
+    "searchPlaceholder": "Search cars"
+  },
+  "favorites": {
+    "title": "Favorites",
+    "empty": "Cars you save will appear here."
+  },
+  "nav": {
+    "home": "Home",
+    "favorites": "Favorites",
+    "bookings": "Bookings",
+    "profile": "Profile"
+  },
+  "specs": {
+    "horsepower": "{{value}} hp",
+    "engine": "Engine",
+    "fuelType": "Fuel Type",
+    "transmission": "Transmission",
+    "seats": "Seats",
+    "seatsValue": "{{count}} Seats"
   },
   "detail": {
     "title": "Details",
@@ -55,8 +84,12 @@
     "seats": "Seats",
     "fuelType": "Fuel type",
     "class": "Class",
-    "bookNow": "Book now",
-    "noImage": "No image available"
+    "bookNow": "Book Now",
+    "noImage": "No image available",
+    "descriptions": "Descriptions",
+    "readMore": "Read More",
+    "readLess": "Read Less",
+    "descriptionBody": "It combines cutting-edge technology with luxurious craftsmanship for an exhilarating driving experience. Refined aerodynamics, a hand-finished cabin, and effortless power come together in a car built to turn every journey into an occasion."
   },
   "booking": {
     "title": "Book a car",

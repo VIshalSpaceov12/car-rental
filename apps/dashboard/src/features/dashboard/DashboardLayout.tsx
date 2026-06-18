@@ -292,7 +292,7 @@ export function DashboardLayout() {
             animate={{ opacity: 1, y: 0, transition: m.enter }}
             exit={{ opacity: 0, y: m.reduce ? 0 : -m.riseY, transition: m.exit }}
           >
-            {section === 'overview' && <Overview user={user} />}
+            {section === 'overview' && <Overview user={user} onViewBookings={() => setSection('bookings')} />}
             {section === 'fleet' && <FleetPage />}
             {section === 'branches' && <BranchesPage />}
             {section === 'bookings' && <BookingsScreen />}

@@ -1,13 +1,15 @@
 import { describe, it, expect } from 'vitest'
-import { createTheme, darkTheme, lightTheme, defaultTheme, type ColorScheme } from './theme'
+import { createTheme, darkTheme, lightTheme, minimalTheme, defaultTheme, type ColorScheme } from './theme'
 
 const COLOR_ROLES: (keyof ColorScheme)[] = [
-  'primary', 'primaryDark', 'onPrimary',
+  'primary', 'primaryDark', 'onPrimary', 'accent',
   'background', 'surface', 'surfaceAlt',
   'text', 'textMuted', 'textSubtle',
   'border', 'danger', 'success', 'warning', 'overlay',
   'gradientPrimary', 'glow',
 ]
+
+const ALL_THEMES = [darkTheme, lightTheme, minimalTheme]
 
 describe('@car-rental/tokens', () => {
   it('defaultTheme is the dark scheme (brand-first)', () => {
@@ -17,18 +19,39 @@ describe('@car-rental/tokens', () => {
   })
 
   it('every scheme fills every semantic color role', () => {
-    for (const theme of [darkTheme, lightTheme]) {
+    for (const theme of ALL_THEMES) {
       for (const role of COLOR_ROLES) {
         expect(theme.color[role], role).toBeTruthy()
       }
     }
   })
 
+  it('the minimal scheme is the Electric Aurora dark customer theme', () => {
+    expect(minimalTheme.color.background).toBe('#0A0B1A')
+    expect(minimalTheme.color.surface).toBe('#15162B')
+    expect(minimalTheme.color.primary).toBe('#7C5CFF')
+    expect(minimalTheme.color.accent).toBe('#22D3EE')
+    expect(minimalTheme.color.gradientPrimary).toEqual(['#7C5CFF', '#22D3EE'])
+    // shares the static layout tokens (reskin ≠ relayout)
+    expect(minimalTheme.spacing).toBe(darkTheme.spacing)
+    expect(minimalTheme.motion).toBe(darkTheme.motion)
+  })
+
   it('shares static layout tokens across schemes (reskin ≠ relayout)', () => {
     expect(lightTheme.spacing).toBe(darkTheme.spacing)
     expect(lightTheme.radius).toBe(darkTheme.radius)
     expect(lightTheme.typography).toBe(darkTheme.typography)
-    expect(darkTheme.color.primary).toBe(lightTheme.color.primary)
+  })
+
+  it('the light scheme is the Electric Aurora admin theme (distinct violet→cyan brand)', () => {
+    expect(lightTheme.color.primary).toBe('#7C5CFF')
+    expect(lightTheme.color.background).toBe('#FFFFFF')
+    expect(lightTheme.color.text).toBe('#14152B')
+    expect(lightTheme.color.gradientPrimary).toEqual(['#7C5CFF', '#22D3EE'])
+    // intentionally a different brand hue than the dark app scheme (red)
+    expect(lightTheme.color.primary).not.toBe(darkTheme.color.primary)
+    // reskin ≠ relayout — static tokens still shared with dark
+    expect(lightTheme.spacing).toBe(darkTheme.spacing)
   })
 
   it('exposes the expanded scale used by composed components', () => {

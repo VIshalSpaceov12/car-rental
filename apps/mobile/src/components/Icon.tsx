@@ -30,8 +30,17 @@ const ICONS = {
   acceleration: ['ion', 'speedometer-outline'],
   electricity: ['ion', 'battery-charging-outline'],
   gearbox: ['mci', 'car-shift-pattern'],
+  transmission: ['mci', 'car-shift-pattern'],
   seat: ['mci', 'car-seat'],
   fuel: ['mci', 'gas-station-outline'],
+  // Spec / detail glyphs
+  engine: ['mci', 'engine-outline'],
+  horsepower: ['mci', 'flash-outline'],
+  // Header / navigation glyphs
+  pin: ['ion', 'location-sharp'],
+  person: ['ion', 'person'],
+  bookmark: ['ion', 'bookmark'],
+  bookmarkOutline: ['ion', 'bookmark-outline'],
 } satisfies Record<string, IconDef>
 
 export type IconName = keyof typeof ICONS

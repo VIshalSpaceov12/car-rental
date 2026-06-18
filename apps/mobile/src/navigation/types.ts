@@ -3,6 +3,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native'
 /** Bottom tabs shown once authenticated. */
 export type HomeTabParamList = {
   Home: undefined
+  Favorites: undefined
   Bookings: undefined
   Settings: undefined
 }
@@ -10,6 +11,7 @@ export type HomeTabParamList = {
 /** Root native stack: the tabs + the screens pushed over them. */
 export type RootStackParamList = {
   Tabs: NavigatorScreenParams<HomeTabParamList>
+  AllCars: undefined
   VehicleDetail: { vehicleId: string }
   Booking: { vehicleId: string }
   // Phase 5: keyless pickup (OTP + contract signing) and vehicle return.

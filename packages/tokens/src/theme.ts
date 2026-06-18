@@ -1,6 +1,7 @@
 import { space, radii, fontSize, fontFamily, sizing } from './primitives'
 import { darkScheme } from './themes/dark'
 import { lightScheme } from './themes/light'
+import { minimalScheme } from './themes/minimal'
 
 export type FontWeight = '300' | '400' | '500' | '600' | '700' | '800'
 
@@ -35,6 +36,8 @@ export interface ColorScheme {
   primary: string
   primaryDark: string
   onPrimary: string
+  /** Secondary accent (prices, small highlights) — distinct from the primary CTA. */
+  accent: string
   // surfaces (canvas → card → raised tile/input)
   background: string
   surface: string
@@ -236,6 +239,8 @@ export function createTheme(color: ColorScheme, brandOverrides?: Partial<ColorSc
 
 export const darkTheme: Theme = createTheme(darkScheme)
 export const lightTheme: Theme = createTheme(lightScheme)
+/** Customer mobile app — light, minimal, ink-primary, teal accent. */
+export const minimalTheme: Theme = createTheme(minimalScheme)
 
 /** Brand default is dark-first (the reference design). */
 export const defaultTheme: Theme = darkTheme

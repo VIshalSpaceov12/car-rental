@@ -21,8 +21,6 @@ type MotionButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, Conflicti
 const PAN_KEYFRAMES = '@keyframes cr-btn-gradient-pan { 0% { background-position: 0% 50% } 100% { background-position: 300% 50% } }'
 /** Panning-gradient cycle (ms) — matches the mockup's ~4s linear loop. */
 const PAN_DURATION = 4000
-/** Escalated hover glow blur radius / spread (one-off shadow dimensions). */
-const HOVER_GLOW = '0 12px 44px rgba(255,59,48,0.55)'
 
 /**
  * Primary action button — "Midnight GT" treatment: an animated 120° panning
@@ -40,6 +38,8 @@ export function Button({ children, style, disabled, fullWidth = true, radius = '
   const motionProps = props as HTMLMotionProps<'button'>
   const animated = !disabled && !reduce
   const baseGlow = `0 8px 30px ${theme.color.glow}`
+  // Escalated hover glow — same themed brand glow, wider blur/spread (follows the brand hue).
+  const hoverGlow = `0 12px 44px ${theme.color.glow}`
   return (
     <>
       <style>{PAN_KEYFRAMES}</style>
@@ -47,7 +47,7 @@ export function Button({ children, style, disabled, fullWidth = true, radius = '
         {...motionProps}
         disabled={disabled}
         whileTap={disabled || reduce ? undefined : { scale: 0.97 }}
-        whileHover={disabled ? undefined : { boxShadow: HOVER_GLOW }}
+        whileHover={disabled ? undefined : { boxShadow: hoverGlow }}
         transition={motionTokens.press}
         style={{
           background: disabled

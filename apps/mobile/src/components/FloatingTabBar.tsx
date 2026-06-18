@@ -1,28 +1,37 @@
-import { Pressable, View } from 'react-native'
+import { Pressable, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated'
-import { useEffect } from 'react'
-import { LinearGradient } from 'expo-linear-gradient'
+import { useTranslation } from 'react-i18next'
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs'
 import { useTheme } from '@car-rental/tokens'
 import { Icon, type IconName } from './Icon'
-import { useReducedMotion } from './useReducedMotion'
 
+// Per-route icon glyph + i18n label key for the floating tab bar.
 const TAB_ICON: Record<string, IconName> = {
   Home: 'home',
+  Favorites: 'heart',
   Bookings: 'calendar',
-  Settings: 'settings',
+  Settings: 'person',
+}
+const TAB_LABEL: Record<string, 'nav.home' | 'nav.favorites' | 'nav.bookings' | 'nav.profile'> = {
+  Home: 'nav.home',
+  Favorites: 'nav.favorites',
+  Bookings: 'nav.bookings',
+  Settings: 'nav.profile',
 }
 
-/** Floating pill tab bar (matches the reference): active tab = red circle. */
+// Tab control height — a one-off layout dimension for the floating pill.
+const TAB_HEIGHT = 48
+
+/**
+ * Floating tab bar: a dark RAISED pill (surfaceAlt) above the canvas. Inactive
+ * tabs are muted-light icons that stay legible on the dark bar; the ACTIVE tab
+ * expands into a brand (primary) pill with a white icon + label and a soft brand
+ * glow, so the highlight — not the bar — carries the brand color.
+ */
 export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
   const theme = useTheme()
   const insets = useSafeAreaInsets()
+  const { t } = useTranslation()
 
   return (
     <View
@@ -38,9 +47,12 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
       <View
         style={{
           flexDirection: 'row',
-          gap: theme.spacing.sm,
-          backgroundColor: theme.color.surface,
+          alignItems: 'center',
+          gap: theme.spacing.xs,
+          backgroundColor: theme.color.surfaceAlt,
           borderRadius: theme.radius.pill,
+          borderWidth: 1,
+          borderColor: theme.color.border,
           padding: theme.spacing.xs,
           ...theme.elevation.lg,
         }}
@@ -51,12 +63,13 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
             const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true })
             if (!focused && !event.defaultPrevented) navigation.navigate(route.name)
           }
+          const labelKey = TAB_LABEL[route.name]
           return (
             <TabItem
               key={route.key}
               focused={focused}
               icon={TAB_ICON[route.name] ?? 'home'}
-              label={route.name}
+              label={labelKey ? t(labelKey) : route.name}
               onPress={onPress}
             />
           )
@@ -67,9 +80,9 @@ export function FloatingTabBar({ state, navigation }: BottomTabBarProps) {
 }
 
 /**
- * Single tab cell. The active indicator is a gradient circle + glow that scales
- * in (and fades) when focused, giving the selection an animated pop instead of a
- * hard background swap. Reduce-motion renders the indicator at its final state.
+ * Single tab cell. Inactive: a muted-light icon-only target, legible on the dark
+ * bar. Active: a brand (primary) pill with a white icon + label and a soft brand
+ * glow, so the selected tab clearly stands out.
  */
 function TabItem({
   focused,
@@ -83,60 +96,47 @@ function TabItem({
   onPress: () => void
 }) {
   const theme = useTheme()
-  const reduced = useReducedMotion()
-  const progress = useSharedValue(focused ? 1 : 0)
 
-  useEffect(() => {
-    const target = focused ? 1 : 0
-    progress.value = reduced
-      ? target
-      : withTiming(target, {
-          // Overshoot/bounce so the active indicator pops in (mockup ease-spring).
-          duration: theme.motion.duration.base,
-          easing: Easing.bezier(...theme.motion.easing.spring),
-        })
-  }, [focused, reduced, progress, theme.motion])
-
-  const indicatorStyle = useAnimatedStyle(() => ({
-    opacity: progress.value,
-    transform: [{ scale: 0.6 + progress.value * 0.4 }],
-  }))
-
-  const SIZE = theme.size.control.md
+  if (focused) {
+    return (
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityState={{ selected: true }}
+        accessibilityLabel={label}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: theme.spacing.xs,
+          height: TAB_HEIGHT,
+          paddingHorizontal: theme.spacing.md,
+          borderRadius: theme.radius.pill,
+          backgroundColor: theme.color.primary,
+          // Brand glow so the active tab reads as lit, not just filled.
+          shadowColor: theme.color.primary,
+          shadowOpacity: 0.55,
+          shadowRadius: 12,
+          shadowOffset: { width: 0, height: 4 },
+          elevation: 8,
+        }}
+      >
+        <Icon name={icon} size={theme.size.icon.lg} color={theme.color.onPrimary} />
+        <Text style={{ color: theme.color.onPrimary, fontSize: theme.typography.caption.fontSize, fontWeight: '700' }}>
+          {label}
+        </Text>
+      </Pressable>
+    )
+  }
 
   return (
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityState={{ selected: focused }}
+      accessibilityState={{ selected: false }}
       accessibilityLabel={label}
-      style={{ width: SIZE, height: SIZE, alignItems: 'center', justifyContent: 'center' }}
+      style={{ width: TAB_HEIGHT, height: TAB_HEIGHT, alignItems: 'center', justifyContent: 'center' }}
     >
-      <Animated.View
-        pointerEvents="none"
-        style={[
-          indicatorStyle,
-          {
-            position: 'absolute',
-            width: SIZE,
-            height: SIZE,
-            borderRadius: theme.radius.pill,
-            shadowColor: theme.color.glow,
-            shadowOpacity: 1,
-            shadowRadius: theme.elevation.md.shadowRadius,
-            shadowOffset: theme.elevation.md.shadowOffset,
-            elevation: theme.elevation.md.elevation,
-          },
-        ]}
-      >
-        <LinearGradient
-          colors={theme.color.gradientPrimary}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{ width: SIZE, height: SIZE, borderRadius: theme.radius.pill }}
-        />
-      </Animated.View>
-      <Icon name={icon} size={theme.size.icon.xl} color={focused ? theme.color.onPrimary : theme.color.textMuted} />
+      <Icon name={icon} size={theme.size.icon.lg} color={theme.color.textMuted} />
     </Pressable>
   )
 }

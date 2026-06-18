@@ -1,28 +1,39 @@
-import { Pressable, Text, View } from 'react-native'
+import { I18nManager, Pressable, Text, View, type ViewStyle } from 'react-native'
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useTheme } from '@car-rental/tokens'
+import { Icon, type IconName } from './Icon'
 import { useReducedMotion } from './useReducedMotion'
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
-type Variant = 'primary' | 'surface'
+type Variant = 'primary' | 'pill' | 'secondary' | 'ghost'
 
 /**
- * Primary action. The `primary` variant fills the brand gradient + glow and
- * springs down on press; `surface` is a flat fallback. Disabled drops to a muted
- * fill. API (title/onPress/disabled) is unchanged so existing callers keep working.
+ * App action button. Variants:
+ *  - `primary`  — ink fill (gradientPrimary) + onPrimary text, rounded radius.lg,
+ *                 full-width by default (the "Book Now" CTA). Press-springs to 0.97.
+ *  - `pill`     — compact icon + label on the ink fill, radius.pill (the floating
+ *                 "Filter" button). Not full-width by default.
+ *  - `secondary`— surface fill + border, ink text.
+ *  - `ghost`    — transparent, ink text, no border.
+ * `icon` renders an inline-start glyph (mirrored in RTL is unnecessary — these are
+ * symmetric/semantic). Disabled drops the fill to a muted tone.
  */
 export function Button({
   title,
   onPress,
   disabled,
   variant = 'primary',
+  icon,
+  fullWidth,
 }: {
   title: string
   onPress: () => void
   disabled?: boolean
   variant?: Variant
+  icon?: IconName
+  fullWidth?: boolean
 }) {
   const theme = useTheme()
   const reduced = useReducedMotion()
@@ -37,24 +48,45 @@ export function Button({
     if (!reduced) scale.value = withSpring(1, theme.motion.spring.press)
   }
 
-  const radius = theme.radius.md
+  // `primary` is a block CTA → full-width; `pill` hugs its content unless asked.
+  const isFullWidth = fullWidth ?? variant === 'primary'
+  const useInk = (variant === 'primary' || variant === 'pill') && !disabled
+  const radius = variant === 'pill' ? theme.radius.pill : theme.radius.lg
+
+  const fg = useInk ? theme.color.onPrimary : disabled ? theme.color.textSubtle : theme.color.text
+
   const content = (
-    <Text style={{ color: theme.color.onPrimary, fontSize: theme.typography.body.fontSize, fontWeight: '600' }}>
-      {title}
-    </Text>
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: theme.spacing.sm,
+      }}
+    >
+      {icon ? (
+        <View style={{ transform: [{ scaleX: I18nManager.isRTL ? -1 : 1 }] }}>
+          <Icon name={icon} size={theme.size.icon.md} color={fg} />
+        </View>
+      ) : null}
+      <Text style={{ color: fg, fontSize: theme.typography.body.fontSize, fontWeight: '600' }}>{title}</Text>
+    </View>
   )
 
-  const inner = {
-    paddingVertical: theme.spacing.sm,
-    paddingHorizontal: theme.spacing.md,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
+  const inner: ViewStyle = {
+    paddingVertical: variant === 'pill' ? theme.spacing.sm : theme.spacing.md,
+    paddingHorizontal: variant === 'pill' ? theme.spacing.lg : theme.spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: radius,
   }
 
-  // Gradient + glow are reserved for the enabled primary variant; disabled and
-  // surface use a flat fill so they read as secondary.
-  const useGradient = variant === 'primary' && !disabled
+  const flatBg =
+    variant === 'ghost'
+      ? 'transparent'
+      : disabled
+        ? theme.color.surfaceAlt
+        : theme.color.surface
 
   return (
     <AnimatedPressable
@@ -65,8 +97,8 @@ export function Button({
       accessibilityRole="button"
       style={[
         animatedStyle,
-        { borderRadius: radius },
-        useGradient
+        { borderRadius: radius, alignSelf: isFullWidth ? 'stretch' : 'flex-start' },
+        useInk
           ? {
               shadowColor: theme.color.glow,
               shadowOpacity: 1,
@@ -77,7 +109,7 @@ export function Button({
           : null,
       ]}
     >
-      {useGradient ? (
+      {useInk ? (
         <LinearGradient
           colors={theme.color.gradientPrimary}
           start={{ x: 0, y: 0 }}
@@ -90,7 +122,9 @@ export function Button({
         <View
           style={{
             ...inner,
-            backgroundColor: disabled ? theme.color.textMuted : theme.color.surface,
+            backgroundColor: flatBg,
+            borderWidth: variant === 'secondary' ? 1 : 0,
+            borderColor: theme.color.border,
           }}
         >
           {content}

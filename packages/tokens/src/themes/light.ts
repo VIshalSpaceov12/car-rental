@@ -2,31 +2,34 @@ import type { ColorScheme } from '../theme'
 import { palette, alpha } from '../primitives'
 
 /**
- * Light scheme — sibling of dark with the same racing-red brand. Used by the
- * dashboard (data-dense admin) and available for a light mode on mobile.
- * Only the neutrals flip; brand + status hues stay identical across schemes.
+ * Light scheme — the "Electric Aurora" admin look used by the dashboard: a
+ * violet→cyan brand on indigo-navy, violet-tinted neutrals, with a neon violet
+ * glow. Distinct from the dark app brand (racing red) by design — the dashboard
+ * is the only consumer of this scheme. Layout primitives stay shared (reskin ≠
+ * relayout); white-label still overrides `primary` per provider at runtime.
  */
 export const lightScheme: ColorScheme = {
-  primary: palette.red[500],
-  primaryDark: palette.red[600],
+  primary: palette.violet[500],
+  primaryDark: palette.violet[600],
   onPrimary: palette.neutral.white,
+  accent: palette.cyan[500],
 
   background: palette.neutral.white,
-  surface: palette.neutral[50],
-  surfaceAlt: palette.neutral[100],
+  surface: palette.indigo[50],
+  surfaceAlt: palette.indigo[100],
 
-  text: palette.neutral[900],
-  textMuted: palette.neutral[500],
-  textSubtle: palette.neutral[350],
+  text: palette.indigo[900],
+  textMuted: palette.indigo[600],
+  textSubtle: palette.indigo[400],
 
-  border: palette.neutral[200],
+  border: palette.indigo[200],
 
-  danger: palette.alert[500],
-  success: palette.green[500],
+  danger: palette.rose[500],
+  success: palette.teal[400],
   warning: palette.gold[500],
 
-  overlay: alpha.scrimLightAdmin,
+  overlay: alpha.scrimAuroraAdmin,
 
-  gradientPrimary: [palette.ember[500], palette.red[450]],
-  glow: 'rgba(255,69,58,0.28)',
+  gradientPrimary: [palette.violet[500], palette.cyan[500]],
+  glow: 'rgba(124,92,255,0.25)',
 }

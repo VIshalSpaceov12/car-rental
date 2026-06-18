@@ -10,6 +10,7 @@ export const darkScheme: ColorScheme = {
   primary: palette.red[500],
   primaryDark: palette.red[600],
   onPrimary: palette.neutral.white,
+  accent: palette.green[500],
 
   background: palette.neutral[950],
   surface: palette.neutral[850],

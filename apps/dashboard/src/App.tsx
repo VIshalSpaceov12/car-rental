@@ -1,8 +1,7 @@
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 import { Provider } from 'react-redux'
 import { useTranslation } from 'react-i18next'
-import { ThemeProvider, createTheme, lightTheme, darkTheme, useTheme, type Theme } from '@car-rental/tokens'
-import type { ProviderBranding } from '@car-rental/types'
+import { ThemeProvider, lightTheme, useTheme, type Theme } from '@car-rental/tokens'
 import './i18n'
 import { store } from './store/store'
 import { useAppDispatch, useAppSelector } from './store/hooks'
@@ -12,35 +11,15 @@ import { AuthScreen } from './features/auth/AuthScreen'
 import { DashboardLayout } from './features/dashboard/DashboardLayout'
 import { ToastProvider } from './components/Toast'
 
-/** Perceived (sRGB-weighted) luminance test; unparseable colors read as light. */
-function isDarkColor(hex: string): boolean {
-  const hex6 = /^#?([0-9a-fA-F]{6})$/.exec(hex.trim())?.[1]
-  if (!hex6) return false
-  const n = parseInt(hex6, 16)
-  const r = (n >> 16) & 255
-  const g = (n >> 8) & 255
-  const b = n & 255
-  return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255 < 0.5
-}
-
 /**
- * Resolve the dashboard runtime theme from provider branding. The admin dashboard
- * is committed to the LIGHT neutral scheme (data-dense, legible — see `light.ts`),
- * so white-label rebrands the *hues* (primary), NOT the canvas. We deliberately do
- * not apply the provider's `background`/`text` neutrals here: a provider's dark
- * mobile-brand background (e.g. #0A0A0B) would otherwise sit under the light
- * scheme's near-black text and the UI would read as a blank canvas. `onPrimary`
- * flips by the primary's luminance so button labels stay legible on any brand hue.
- * Before login (no branding) we use the base `lightTheme`.
+ * The admin dashboard renders a FIXED "Electric Aurora" identity (the light
+ * scheme — see `light.ts`), the same for every tenant. White-label is deliberately
+ * NOT applied to the admin chrome's colors: per-provider hue recoloring was dropped
+ * so staff get one consistent tool across tenants. Branding still drives the
+ * customer mobile app and the dashboard's provider name/logo — just not its palette.
  */
-export function resolveTheme(branding: ProviderBranding | null): Theme {
-  if (!branding) return lightTheme
-  const { primary, primaryDark } = branding.colors
-  return createTheme(lightTheme.color, {
-    primary,
-    onPrimary: isDarkColor(primary) ? darkTheme.color.text : lightTheme.color.text,
-    ...(primaryDark ? { primaryDark } : {}),
-  })
+export function resolveTheme(): Theme {
+  return lightTheme
 }
 
 function SessionSplash() {
@@ -85,10 +64,8 @@ function Root() {
 }
 
 function ThemedApp() {
-  const branding = useAppSelector((s) => s.auth.branding)
-  const theme = useMemo(() => resolveTheme(branding), [branding])
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={resolveTheme()}>
       <ToastProvider>
         <Root />
       </ToastProvider>

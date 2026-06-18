@@ -34,9 +34,9 @@ export function LoginScreen({ onSwitch }: { onSwitch: () => void }) {
     <View>
       <Text
         style={{
-          color: theme.color.primary,
-          fontSize: theme.typography.heading.fontSize,
-          fontWeight: theme.typography.heading.fontWeight,
+          color: theme.color.text,
+          fontSize: theme.typography.title.fontSize,
+          fontWeight: '700',
           marginBottom: theme.spacing.lg,
         }}
       >
@@ -56,7 +56,13 @@ export function LoginScreen({ onSwitch }: { onSwitch: () => void }) {
       <Button title={isLoading ? t('auth.signingIn') : t('auth.signInAction')} onPress={submit} disabled={isLoading} />
       <Text
         onPress={onSwitch}
-        style={{ color: theme.color.primary, marginTop: theme.spacing.md, textAlign: 'center' }}
+        style={{
+          color: theme.color.accent,
+          marginTop: theme.spacing.md,
+          textAlign: 'center',
+          fontWeight: '600',
+          fontSize: theme.typography.caption.fontSize,
+        }}
       >
         {t('auth.switchToRegister')}
       </Text>

@@ -1,23 +1,11 @@
-import { Text, TextInput, View, type TextInputProps } from 'react-native'
-import { useTheme } from '@car-rental/tokens'
+import { type TextInputProps } from 'react-native'
+import { TextInput } from './TextInput'
 
+/**
+ * Labelled form field — kept as a thin alias over the unified {@link TextInput}
+ * so existing auth/booking/rating forms keep their `label`-required API while
+ * sharing the one light input style. New code should prefer `TextInput`.
+ */
 export function TextField({ label, ...props }: TextInputProps & { label: string }) {
-  const theme = useTheme()
-  return (
-    <View style={{ marginBottom: theme.spacing.md }}>
-      <Text style={{ color: theme.color.text, marginBottom: theme.spacing.xs }}>{label}</Text>
-      <TextInput
-        {...props}
-        placeholderTextColor={theme.color.textMuted}
-        style={{
-          borderWidth: 1,
-          borderColor: theme.color.textMuted,
-          borderRadius: theme.radius.sm,
-          padding: theme.spacing.sm,
-          color: theme.color.text,
-          fontSize: theme.typography.body.fontSize,
-        }}
-      />
-    </View>
-  )
+  return <TextInput label={label} {...props} />
 }

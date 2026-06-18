@@ -4,7 +4,7 @@ import { StatusBar } from 'expo-status-bar'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { Provider } from 'react-redux'
-import { ThemeProvider, createTheme, darkTheme, useTheme, type Theme } from '@car-rental/tokens'
+import { ThemeProvider, minimalTheme, useTheme } from '@car-rental/tokens'
 import { initLocaleFromStorage } from './src/i18n'
 import { store } from './src/store/store'
 import { useAppDispatch, useAppSelector } from './src/store/hooks'
@@ -54,25 +54,18 @@ function Root() {
 }
 
 /**
- * Resolve the single-brand theme at runtime: fetch the provider's white-label
- * `branding` and overlay its colors onto the dark scheme via `createTheme`.
- * Falls back to `darkTheme` while loading or when no branding is configured.
+ * The customer app renders a FIXED "Electric Aurora" dark theme (`minimalTheme` —
+ * see `minimal.ts`), the same for every tenant — colors are no longer overlaid from
+ * the provider brand (mirrors the dashboard's fixed admin theme). We still warm the
+ * `branding` fetch so name/logo consumers (e.g. Settings) read it from cache.
  */
 function Branded() {
-  const { data: branding } = useBrandingQuery()
-
-  const theme: Theme = branding
-    ? createTheme(darkTheme.color, {
-        primary: branding.colors.primary,
-        ...(branding.colors.primaryDark ? { primaryDark: branding.colors.primaryDark } : {}),
-        ...(branding.colors.background ? { background: branding.colors.background } : {}),
-      })
-    : darkTheme
+  useBrandingQuery()
 
   // ToastProvider sits inside ThemeProvider/SafeAreaProvider so toasts resolve
   // theme colors + safe-area insets, yet is high enough for any screen to fire one.
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={minimalTheme}>
       <ToastProvider>
         <Root />
       </ToastProvider>

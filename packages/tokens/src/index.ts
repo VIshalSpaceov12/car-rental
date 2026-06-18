@@ -5,6 +5,7 @@ export {
   createTheme,
   darkTheme,
   lightTheme,
+  minimalTheme,
   defaultTheme,
   type Theme,
   type ColorScheme,
