@@ -103,8 +103,13 @@
       "monthly": "Monthly",
       "long-term": "Long-term"
     },
-    "startDateLabel": "Start date (YYYY-MM-DD)",
-    "endDateLabel": "End date (YYYY-MM-DD)",
+    "startDateLabel": "Start date",
+    "endDateLabel": "End date",
+    "datePlaceholder": "Select a date",
+    "calendar": {
+      "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+      "weekdays": ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    },
     "pickupBranch": "Pickup branch",
     "dropoffBranch": "Drop-off branch",
     "discountCodeLabel": "Discount code (optional)",

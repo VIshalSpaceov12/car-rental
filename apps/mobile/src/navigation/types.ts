@@ -11,7 +11,8 @@ export type HomeTabParamList = {
 /** Root native stack: the tabs + the screens pushed over them. */
 export type RootStackParamList = {
   Tabs: NavigatorScreenParams<HomeTabParamList>
-  AllCars: undefined
+  // Optional brand pre-filters the list (tapping a brand chip on Home).
+  AllCars: { brand?: string } | undefined
   VehicleDetail: { vehicleId: string }
   Booking: { vehicleId: string }
   // Phase 5: keyless pickup (OTP + contract signing) and vehicle return.

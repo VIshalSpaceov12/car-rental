@@ -5,6 +5,8 @@ import { useTheme } from '@car-rental/tokens'
 import type { PaymentMethod, Quote, RentalPlan } from '@car-rental/types'
 import { Button } from '../../components/Button'
 import { TextField } from '../../components/TextField'
+import { DateField } from '../../components/DateField'
+import { todayYmd } from '../../components/dateGrid'
 import { Skeleton } from '../../components/Skeleton'
 import { useToast } from '../../components/Toast'
 import { useVehiclesQuery } from '../../store/fleetApi'
@@ -201,19 +203,19 @@ export function BookingFlow({
             })}
           </View>
 
-          <TextField
+          <DateField
             label={t('booking.startDateLabel')}
             value={draft.startDate}
-            onChangeText={(text) => update({ startDate: text })}
-            placeholder="2026-07-01"
-            autoCapitalize="none"
+            onChange={(date) => update({ startDate: date })}
+            minDate={todayYmd()}
+            placeholder={t('booking.datePlaceholder')}
           />
-          <TextField
+          <DateField
             label={t('booking.endDateLabel')}
             value={draft.endDate}
-            onChangeText={(text) => update({ endDate: text })}
-            placeholder="2026-07-04"
-            autoCapitalize="none"
+            onChange={(date) => update({ endDate: date })}
+            minDate={draft.startDate || todayYmd()}
+            placeholder={t('booking.datePlaceholder')}
           />
 
           <Text style={{ color: theme.color.text, marginBottom: theme.spacing.sm }}>{t('booking.pickupBranch')}</Text>

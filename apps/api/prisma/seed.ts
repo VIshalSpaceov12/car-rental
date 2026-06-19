@@ -82,17 +82,24 @@ async function main() {
     })
   }
 
-  const img = (seed: string) => [`https://picsum.photos/seed/${seed}/800/600`]
+  // Real, model-matching photos via Wikimedia Commons' stable Special:FilePath
+  // endpoint (`?width=` returns a CDN-resized JPEG) — one representative shot per
+  // model, so a card/detail image actually shows that brand + model.
+  const carPhoto = (file: string) => [
+    `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=800`,
+  ]
   const vehicles: Array<Prisma.VehicleCreateInput & { id: string }> = [
-    mkVehicle('veh-corolla', 'Toyota Corolla', 'cat-economy', 'AUTOMATIC', 'PETROL', 5, '120.00', img('corolla')),
-    mkVehicle('veh-sunny', 'Nissan Sunny', 'cat-economy', 'AUTOMATIC', 'PETROL', 5, '110.00', img('sunny')),
-    mkVehicle('veh-rav4', 'Toyota RAV4', 'cat-suv', 'AUTOMATIC', 'PETROL', 5, '220.00', img('rav4')),
-    mkVehicle('veh-patrol', 'Nissan Patrol', 'cat-suv', 'AUTOMATIC', 'PETROL', 7, '400.00', img('patrol')),
-    mkVehicle('veh-eclass', 'Mercedes E-Class', 'cat-luxury', 'AUTOMATIC', 'PETROL', 5, '600.00', img('eclass')),
-    mkVehicle('veh-model3', 'Tesla Model 3', 'cat-luxury', 'AUTOMATIC', 'ELECTRIC', 5, '500.00', img('model3')),
+    mkVehicle('veh-corolla', 'Toyota Corolla', 'cat-economy', 'AUTOMATIC', 'PETROL', 5, '120.00', carPhoto('Toyota_Corolla_Hybrid_(E210)_IMG_4338.jpg')),
+    mkVehicle('veh-sunny', 'Nissan Sunny', 'cat-economy', 'AUTOMATIC', 'PETROL', 5, '110.00', carPhoto('NISSAN_Sunny_B13.jpg')),
+    mkVehicle('veh-rav4', 'Toyota RAV4', 'cat-suv', 'AUTOMATIC', 'PETROL', 5, '220.00', carPhoto('2024_Toyota_RAV4_Prime_XSE_Premium_in_Silver_Sky_with_Midnight_Black_roof,_front_left.jpg')),
+    mkVehicle('veh-patrol', 'Nissan Patrol', 'cat-suv', 'AUTOMATIC', 'PETROL', 7, '400.00', carPhoto('2016_Nissan_Patrol_(Y62)_Ti-L_wagon_(2018-09-17)_01.jpg')),
+    mkVehicle('veh-eclass', 'Mercedes E-Class', 'cat-luxury', 'AUTOMATIC', 'PETROL', 5, '600.00', carPhoto('Mercedes-Benz_W214_1X7A1841.jpg')),
+    mkVehicle('veh-model3', 'Tesla Model 3', 'cat-luxury', 'AUTOMATIC', 'ELECTRIC', 5, '500.00', carPhoto('Tesla_Model_3_(2023)_Autofrühling_Ulm_IMG_9282.jpg')),
   ]
   for (const v of vehicles) {
-    await prisma.vehicle.upsert({ where: { id: v.id }, update: {}, create: v })
+    // Refresh images on re-seed (existing rows keep their bookings) — the empty
+    // `update: {}` previously left stale placeholder photos in place.
+    await prisma.vehicle.upsert({ where: { id: v.id }, update: { images: v.images }, create: v })
   }
 
   await prisma.user.upsert({

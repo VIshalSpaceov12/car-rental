@@ -79,20 +79,23 @@ export function BookingsScreen() {
   const past = pastBookings(bookings)
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: theme.color.background }}
-      contentContainerStyle={{
-        paddingTop: insets.top + theme.spacing.lg,
-        paddingHorizontal: theme.spacing.lg,
-        paddingBottom: insets.bottom + theme.spacing.xxl * 2,
-        gap: theme.spacing.md,
-      }}
-    >
-      <Text style={{ color: theme.color.text, fontSize: theme.typography.heading.fontSize, fontWeight: theme.typography.heading.fontWeight }}>
-        {t('bookings.title')}
-      </Text>
+    <View style={{ flex: 1, backgroundColor: theme.color.background }}>
+      {/* Pinned title — stays put while the bookings list scrolls. */}
+      <View style={{ paddingTop: insets.top + theme.spacing.lg, paddingHorizontal: theme.spacing.lg, paddingBottom: theme.spacing.sm }}>
+        <Text style={{ color: theme.color.text, fontSize: theme.typography.heading.fontSize, fontWeight: theme.typography.heading.fontWeight }}>
+          {t('bookings.title')}
+        </Text>
+      </View>
 
-      {active.length === 0 ? (
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: theme.spacing.lg,
+          paddingBottom: insets.bottom + theme.spacing.xxl * 2,
+          gap: theme.spacing.md,
+        }}
+      >
+        {active.length === 0 ? (
         <Text style={{ color: theme.color.textMuted, fontSize: theme.typography.body.fontSize }}>
           {t('bookings.noActive')}
         </Text>
@@ -139,9 +142,10 @@ export function BookingsScreen() {
             />
             </AnimatedListItem>
           ))}
-        </>
-      )}
-    </ScrollView>
+          </>
+        )}
+      </ScrollView>
+    </View>
   )
 }
 

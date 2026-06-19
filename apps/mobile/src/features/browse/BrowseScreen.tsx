@@ -8,7 +8,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { useTheme } from '@car-rental/tokens'
 import type { Vehicle, VehicleFilters } from '@car-rental/types'
 import { useVehiclesQuery } from '../../store/fleetApi'
-import { useAppSelector } from '../../store/hooks'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { toggleFavorite } from '../../store/favoritesSlice'
 import { LocationHeader } from '../../components/LocationHeader'
 import { SectionHeader } from '../../components/SectionHeader'
 import { BrandChip } from '../../components/BrandChip'
@@ -54,26 +55,31 @@ export function BrowseScreen({ navigation }: Props) {
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const { t } = useTranslation()
+  const dispatch = useAppDispatch()
   const user = useAppSelector((s) => s.auth.user)
+  const favoriteIds = useAppSelector((s) => s.favorites.ids)
   const { data: vehicles = [], isLoading, isError, refetch } = useVehiclesQuery(BASE_FILTERS)
 
   const brands = useMemo(() => brandsFrom(vehicles), [vehicles])
 
   const openDetail = (vehicleId: string) => navigation.navigate('VehicleDetail', { vehicleId })
   const openAllCars = () => navigation.navigate('AllCars')
+  const openBrand = (brand: string) => navigation.navigate('AllCars', { brand })
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.color.background }}>
+      {/* Pinned greeting header — stays put while the fleet scrolls. */}
+      <View style={{ paddingTop: insets.top + theme.spacing.md, paddingHorizontal: theme.spacing.lg }}>
+        <LocationHeader city={t('browse.location')} label={t('browse.tagline')} userName={user?.name} />
+      </View>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingTop: insets.top + theme.spacing.md,
           paddingHorizontal: theme.spacing.lg,
           paddingBottom: insets.bottom + theme.spacing.xxl * 2,
         }}
       >
-        <LocationHeader city={t('browse.location')} label={t('browse.tagline')} userName={user?.name} />
-
         {/* Hero heading. */}
         <Text
           style={{
@@ -115,7 +121,7 @@ export function BrowseScreen({ navigation }: Props) {
               contentContainerStyle={{ paddingHorizontal: theme.spacing.lg, gap: theme.spacing.lg }}
             >
               {brands.map((brand) => (
-                <BrandChip key={brand} name={brand} onPress={openAllCars} />
+                <BrandChip key={brand} name={brand} onPress={() => openBrand(brand)} />
               ))}
             </ScrollView>
 
@@ -123,7 +129,13 @@ export function BrowseScreen({ navigation }: Props) {
             <SectionHeader title={t('browse.allCollections')} onAction={openAllCars} actionLabel={t('browse.viewAll')} />
             {vehicles.map((v, i) => (
               <AnimatedListItem key={v.id} index={i}>
-                <CarCard vehicle={v} variant="collection" onPress={() => openDetail(v.id)} />
+                <CarCard
+                  vehicle={v}
+                  variant="collection"
+                  onPress={() => openDetail(v.id)}
+                  saved={favoriteIds.includes(v.id)}
+                  onToggleSave={() => dispatch(toggleFavorite(v.id))}
+                />
               </AnimatedListItem>
             ))}
           </>

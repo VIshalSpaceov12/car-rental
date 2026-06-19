@@ -51,27 +51,30 @@ export function SettingsScreen() {
   }
 
   return (
-    <ScrollView
-      style={{ flex: 1, backgroundColor: theme.color.background }}
-      contentContainerStyle={{
-        paddingTop: insets.top + theme.spacing.lg,
-        paddingHorizontal: theme.spacing.lg,
-        paddingBottom: insets.bottom + theme.spacing.xxl,
-        gap: theme.spacing.lg,
-      }}
-      refreshControl={
-        <RefreshControl
-          refreshing={isFetching}
-          onRefresh={() => void refetch()}
-          tintColor={theme.color.primary}
-        />
-      }
-    >
-      <Text style={{ color: theme.color.text, fontSize: theme.typography.heading.fontSize, fontWeight: theme.typography.heading.fontWeight }}>
-        {t('settings.title')}
-      </Text>
+    <View style={{ flex: 1, backgroundColor: theme.color.background }}>
+      {/* Pinned title — stays put while the settings content scrolls. */}
+      <View style={{ paddingTop: insets.top + theme.spacing.lg, paddingHorizontal: theme.spacing.lg, paddingBottom: theme.spacing.sm }}>
+        <Text style={{ color: theme.color.text, fontSize: theme.typography.heading.fontSize, fontWeight: theme.typography.heading.fontWeight }}>
+          {t('settings.title')}
+        </Text>
+      </View>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md }}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: theme.spacing.lg,
+          paddingBottom: insets.bottom + theme.spacing.xxl,
+          gap: theme.spacing.lg,
+        }}
+        refreshControl={
+          <RefreshControl
+            refreshing={isFetching}
+            onRefresh={() => void refetch()}
+            tintColor={theme.color.primary}
+          />
+        }
+      >
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md }}>
         <Avatar name={user?.name} />
         <View>
           <Text style={{ color: theme.color.text, fontSize: theme.typography.subtitle.fontSize, fontWeight: '600' }}>
@@ -127,7 +130,8 @@ export function SettingsScreen() {
         </Text>
       </View>
 
-      <Button title={t('auth.logout')} onPress={onLogout} />
-    </ScrollView>
+        <Button title={t('auth.logout')} onPress={onLogout} />
+      </ScrollView>
+    </View>
   )
 }

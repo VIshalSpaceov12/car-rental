@@ -9,8 +9,10 @@ import { initLocaleFromStorage } from './src/i18n'
 import { store } from './src/store/store'
 import { useAppDispatch, useAppSelector } from './src/store/hooks'
 import { hydrate } from './src/store/authSlice'
+import { hydrateFavorites } from './src/store/favoritesSlice'
 import { useBrandingQuery } from './src/store/authApi'
 import { loadAuth } from './src/storage/authStorage'
+import { loadFavorites, saveFavorites } from './src/storage/favoritesStorage'
 import { OnboardingScreen } from './src/features/onboarding/OnboardingScreen'
 import { AuthScreen } from './src/features/auth/AuthScreen'
 import { AppNavigator } from './src/navigation/AppNavigator'
@@ -20,12 +22,22 @@ function Root() {
   const theme = useTheme()
   const dispatch = useAppDispatch()
   const { token, hydrated } = useAppSelector((s) => s.auth)
+  const favoriteIds = useAppSelector((s) => s.favorites.ids)
+  const favoritesHydrated = useAppSelector((s) => s.favorites.hydrated)
   const [started, setStarted] = useState(false)
 
   // Restore a persisted session on launch before deciding which screen to show.
   useEffect(() => {
     loadAuth().then((auth) => dispatch(hydrate(auth)))
   }, [dispatch])
+
+  // Restore favorites once on launch, then persist whenever they change.
+  useEffect(() => {
+    loadFavorites().then((ids) => dispatch(hydrateFavorites(ids)))
+  }, [dispatch])
+  useEffect(() => {
+    if (favoritesHydrated) void saveFavorites(favoriteIds)
+  }, [favoriteIds, favoritesHydrated])
 
   // Apply the user's persisted language choice over the device default.
   useEffect(() => {

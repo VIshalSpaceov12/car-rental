@@ -6,6 +6,8 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { useTheme } from '@car-rental/tokens'
 import type { VehicleFilters } from '@car-rental/types'
 import { useVehiclesQuery } from '../../store/fleetApi'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { toggleFavorite } from '../../store/favoritesSlice'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { TextInput } from '../../components/TextInput'
 import { CarCard } from '../../components/CarCard'
@@ -26,13 +28,17 @@ const LIST_SKELETON_HEIGHT = 280
  * a scroll of taller car cards, and a floating "Filter" pill that opens the
  * existing FilterSheet. Search is a client-side name match over the fetched set.
  */
-export function AllCarsScreen({ navigation }: Props) {
+export function AllCarsScreen({ navigation, route }: Props) {
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const { t } = useTranslation()
+  const dispatch = useAppDispatch()
+  const favoriteIds = useAppSelector((s) => s.favorites.ids)
   const [filters, setFilters] = useState<VehicleFilters>(BASE_FILTERS)
   const [filterOpen, setFilterOpen] = useState(false)
-  const [query, setQuery] = useState('')
+  // Tapping a brand chip on Home opens here pre-filtered to that brand; the field
+  // stays editable so the customer can refine or clear it.
+  const [query, setQuery] = useState(route.params?.brand ?? '')
   const { data: vehicles = [], isLoading } = useVehiclesQuery(filters)
 
   const results = useMemo(() => {
@@ -83,7 +89,13 @@ export function AllCarsScreen({ navigation }: Props) {
         ) : (
           results.map((v, i) => (
             <AnimatedListItem key={v.id} index={i}>
-              <CarCard vehicle={v} variant="list" onPress={() => openDetail(v.id)} />
+              <CarCard
+                vehicle={v}
+                variant="list"
+                onPress={() => openDetail(v.id)}
+                saved={favoriteIds.includes(v.id)}
+                onToggleSave={() => dispatch(toggleFavorite(v.id))}
+              />
             </AnimatedListItem>
           ))
         )}

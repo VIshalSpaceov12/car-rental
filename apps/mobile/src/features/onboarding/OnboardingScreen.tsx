@@ -5,8 +5,10 @@ import { useTheme } from '@car-rental/tokens'
 import { Button } from '../../components/Button'
 import { AnimatedListItem } from '../../components/AnimatedListItem'
 
-// Placeholder hero; swap for branded art / a remote campaign image later.
-const HERO_IMAGE = 'https://picsum.photos/seed/car-rental-hero/900/1100'
+// Hero: a Lamborghini Aventador (Wikimedia Commons' stable Special:FilePath
+// endpoint) — fits the "luxury cars" copy. Swap for branded art per provider later.
+const HERO_IMAGE =
+  'https://commons.wikimedia.org/wiki/Special:FilePath/Lamborghini_Aventador_S_(44554).jpg?width=1000'
 // Hero photo fills the upper portion of the canvas above the headline block.
 const HERO_FLEX = 3
 const CONTENT_FLEX = 2
@@ -43,32 +45,38 @@ export function OnboardingScreen({ onGetStarted }: { onGetStarted: () => void })
         />
       </View>
 
-      <AnimatedListItem index={1}>
-        <View style={{ flex: CONTENT_FLEX, paddingHorizontal: theme.spacing.lg, gap: theme.spacing.md, justifyContent: 'center' }}>
-          <Text
-            style={{
-              color: theme.color.text,
-              fontSize: theme.typography.heading.fontSize,
-              fontWeight: '800',
-              lineHeight: theme.typography.heading.lineHeight,
-            }}
-          >
-            {t('onboarding.headline')}
-          </Text>
-          <Text
-            style={{
-              color: theme.color.textMuted,
-              fontSize: theme.typography.body.fontSize,
-              lineHeight: theme.typography.body.lineHeight,
-            }}
-          >
-            {t('onboarding.subtitle')}
-          </Text>
-          <View style={{ marginTop: theme.spacing.sm }}>
-            <Button title={t('onboarding.getStarted')} icon="car" onPress={onGetStarted} />
+      {/* Flex lives on this direct child of the root (which has a definite height)
+          so the content reserves its share; AnimatedListItem only animates the
+          natural-height block inside — otherwise `flex: 2` → flexBasis 0 inside the
+          auto-height Animated.View collapses the block and clips the CTA. */}
+      <View style={{ flex: CONTENT_FLEX, justifyContent: 'center' }}>
+        <AnimatedListItem index={1}>
+          <View style={{ paddingHorizontal: theme.spacing.lg, gap: theme.spacing.md }}>
+            <Text
+              style={{
+                color: theme.color.text,
+                fontSize: theme.typography.heading.fontSize,
+                fontWeight: '800',
+                lineHeight: theme.typography.heading.lineHeight,
+              }}
+            >
+              {t('onboarding.headline')}
+            </Text>
+            <Text
+              style={{
+                color: theme.color.textMuted,
+                fontSize: theme.typography.body.fontSize,
+                lineHeight: theme.typography.body.lineHeight,
+              }}
+            >
+              {t('onboarding.subtitle')}
+            </Text>
+            <View style={{ marginTop: theme.spacing.sm }}>
+              <Button title={t('onboarding.getStarted')} icon="car" onPress={onGetStarted} />
+            </View>
           </View>
-        </View>
-      </AnimatedListItem>
+        </AnimatedListItem>
+      </View>
     </View>
   )
 }

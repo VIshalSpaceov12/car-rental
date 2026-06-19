@@ -5,6 +5,8 @@ import { useTranslation } from 'react-i18next'
 import type { NativeStackScreenProps } from '@react-navigation/native-stack'
 import { useTheme } from '@car-rental/tokens'
 import { useVehicleQuery } from '../../store/fleetApi'
+import { useAppDispatch, useAppSelector } from '../../store/hooks'
+import { toggleFavorite } from '../../store/favoritesSlice'
 import { Icon } from '../../components/Icon'
 import { ScreenHeader } from '../../components/ScreenHeader'
 import { SpecCard } from '../../components/SpecCard'
@@ -25,7 +27,10 @@ export function VehicleDetailScreen({ route, navigation }: Props) {
   const theme = useTheme()
   const insets = useSafeAreaInsets()
   const { t } = useTranslation()
-  const { data: v, isLoading } = useVehicleQuery(route.params.vehicleId)
+  const dispatch = useAppDispatch()
+  const vehicleId = route.params.vehicleId
+  const isFavorite = useAppSelector((s) => s.favorites.ids.includes(vehicleId))
+  const { data: v, isLoading } = useVehicleQuery(vehicleId)
   const [selected, setSelected] = useState(0)
   const [expanded, setExpanded] = useState(false)
 
@@ -44,9 +49,9 @@ export function VehicleDetailScreen({ route, navigation }: Props) {
       <View style={{ paddingTop: insets.top + theme.spacing.sm, paddingHorizontal: theme.spacing.lg }}>
         <ScreenHeader
           onBack={() => navigation.goBack()}
-          actionIcon="heartOutline"
+          actionIcon={isFavorite ? 'heart' : 'heartOutline'}
           actionLabel={t('detail.save')}
-          onAction={() => {}}
+          onAction={() => dispatch(toggleFavorite(vehicleId))}
         />
       </View>
 
