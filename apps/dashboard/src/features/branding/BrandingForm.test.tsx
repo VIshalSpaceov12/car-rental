@@ -25,9 +25,11 @@ describe('BrandingForm', () => {
     renderForm()
     expect(screen.getByDisplayValue('Acme Rentals')).toBeInTheDocument()
     expect(screen.getByDisplayValue('https://example.com/logo.png')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('#c81e1e')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('#7f1010')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('#fafafa')).toBeInTheDocument()
+    // Each color has a picker well + a hex field sharing the value; assert the
+    // labelled hex field so the well's matching value doesn't make it ambiguous.
+    expect(screen.getByLabelText('Primary color')).toHaveValue('#c81e1e')
+    expect(screen.getByLabelText('Primary (dark)')).toHaveValue('#7f1010')
+    expect(screen.getByLabelText('Background color')).toHaveValue('#fafafa')
   })
 
   it('fires onSave with the entered values, dropping empty optional colors to undefined', () => {
@@ -36,7 +38,7 @@ describe('BrandingForm', () => {
     })
 
     fireEvent.change(screen.getByDisplayValue('Old'), { target: { value: 'New Co' } })
-    fireEvent.change(screen.getByDisplayValue('#000000'), { target: { value: '#112233' } })
+    fireEvent.change(screen.getByLabelText('Primary color'), { target: { value: '#112233' } })
 
     fireEvent.click(screen.getByRole('button', { name: /save branding/i }))
 

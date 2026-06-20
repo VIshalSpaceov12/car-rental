@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { FuelType, Transmission } from '@car-rental/types'
 import { useTheme } from '@car-rental/tokens'
@@ -13,6 +13,7 @@ import {
 } from '../../store/fleetApi'
 import { Button } from '../../components/Button'
 import { TextField } from '../../components/TextField'
+import { Panel } from '../../components/Panel'
 import { Skeleton } from '../../components/Skeleton'
 import { AnimatedTableBody, AnimatedTableRow } from '../../components/AnimatedRow'
 import { useToast } from '../../components/Toast'
@@ -44,7 +45,7 @@ const FUEL_LABEL_KEY: Record<
 // One-off layout dimensions (no semantic size fits) — kept as named consts here,
 // not as design tokens.
 const ADD_BUTTON_WIDTH = 120
-const FORM_MAX_WIDTH = 420
+const FORM_MAX_WIDTH = 560
 
 const EMPTY_FORM = {
   name: '',
@@ -54,6 +55,56 @@ const EMPTY_FORM = {
   seats: '5',
   pricePerDay: '150',
   currency: 'AED',
+}
+
+/** #RGB / #RRGGBB → rgba() at the given alpha; non-hex falls back to itself. */
+function rgba(hex: string, alpha: number): string {
+  const m = /^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.exec(hex.trim())
+  if (!m) return hex
+  const raw = m[1] ?? ''
+  const h = raw.length === 3 ? raw.replace(/./g, (c) => c + c) : raw
+  const r = parseInt(h.slice(0, 2), 16)
+  const g = parseInt(h.slice(2, 4), 16)
+  const b = parseInt(h.slice(4, 6), 16)
+  return `rgba(${r},${g},${b},${alpha})`
+}
+
+/** Labelled `<select>` mirroring TextField's label + bordered control. */
+function LabeledSelect({
+  label,
+  value,
+  onChange,
+  children,
+}: {
+  label: string
+  value: string
+  onChange: (value: string) => void
+  children: ReactNode
+}) {
+  const theme = useTheme()
+  return (
+    <label style={{ display: 'block', marginBottom: theme.spacing.md }}>
+      <span style={{ display: 'block', color: theme.color.text, marginBottom: theme.spacing.xs, fontSize: theme.typography.body.fontSize }}>
+        {label}
+      </span>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        style={{
+          width: '100%',
+          boxSizing: 'border-box',
+          padding: theme.spacing.sm,
+          borderRadius: theme.radius.sm,
+          border: `1px solid ${theme.color.border}`,
+          background: theme.color.background,
+          color: theme.color.text,
+          fontSize: theme.typography.body.fontSize,
+        }}
+      >
+        {children}
+      </select>
+    </label>
+  )
 }
 
 export function FleetPage() {
@@ -96,6 +147,7 @@ export function FleetPage() {
       pricePerDay: String(v.pricePerDay),
       currency: v.currency,
     })
+    if (typeof window !== 'undefined') window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' })
   }
 
   const addCategory = async (e: FormEvent) => {
@@ -163,41 +215,98 @@ export function FleetPage() {
     }
   }
 
-  const selectStyle = {
-    width: '100%',
-    boxSizing: 'border-box' as const,
-    padding: theme.spacing.sm,
-    borderRadius: theme.radius.sm,
-    border: `1px solid ${theme.color.textMuted}`,
-    marginBottom: theme.spacing.md,
-  }
-
   const saving = creating || updating
 
-  return (
-    <div>
-      <h1 style={{ color: theme.color.primary, marginTop: 0 }}>{t('fleet.title')}</h1>
-      {actionFailed && <p style={{ color: theme.color.danger }}>{t('fleet.actionFailed')}</p>}
+  const th: CSSProperties = {
+    textAlign: 'start',
+    color: theme.color.textMuted,
+    fontSize: theme.typography.caption.fontSize,
+    fontWeight: theme.typography.label.fontWeight,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    paddingBlock: theme.spacing.sm,
+    paddingInlineEnd: theme.spacing.md,
+    borderBottom: `1px solid ${theme.color.border}`,
+    whiteSpace: 'nowrap',
+  }
+  const td: CSSProperties = {
+    paddingBlock: theme.spacing.md,
+    paddingInlineEnd: theme.spacing.md,
+    borderBottom: `1px solid ${theme.color.surfaceAlt}`,
+    color: theme.color.text,
+    fontSize: theme.typography.body.fontSize,
+    verticalAlign: 'middle',
+  }
 
-      <section style={{ marginBottom: theme.spacing.xl }}>
-        <h2 style={{ color: theme.color.text }}>{t('fleet.categories')}</h2>
-        <ul style={{ color: theme.color.text }}>
-          {categories.map((c) => (
-            <li key={c.id} style={{ marginBottom: theme.spacing.xs }}>
-              {c.name}{' '}
-              <a
-                onClick={() => onDeleteCategory(c.id)}
-                style={{ color: theme.color.danger, cursor: 'pointer' }}
+  // Scoped hover affordances (the codebase styles inline; :hover needs CSS).
+  const hoverCss = `
+    .cr-fleet-row { transition: background-color 140ms ease; }
+    .cr-fleet-row:hover { background-color: ${rgba(theme.color.primary, 0.05)}; }
+    .cr-act { border: none; background: transparent; cursor: pointer; border-radius: ${theme.radius.pill}px;
+      padding: 4px 10px; font-size: ${theme.typography.caption.fontSize}px; font-weight: ${theme.typography.label.fontWeight};
+      transition: background-color 140ms ease; }
+    .cr-act:hover { background-color: ${theme.color.surfaceAlt}; }
+    .cr-chip-x { border: none; background: transparent; cursor: pointer; line-height: 1; padding: 0 2px;
+      color: ${theme.color.textMuted}; font-size: ${theme.typography.body.fontSize}px; transition: color 140ms ease; }
+    .cr-chip-x:hover { color: ${theme.color.danger}; }
+  `
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.lg }}>
+      <style>{hoverCss}</style>
+
+      {/* Page header */}
+      <div>
+        <h1 style={{ margin: 0, color: theme.color.text, fontSize: theme.typography.heading.fontSize, fontWeight: theme.typography.display.fontWeight, letterSpacing: -0.5 }}>
+          {t('fleet.title')}
+        </h1>
+        <p style={{ margin: `${theme.spacing.xs}px 0 0`, color: theme.color.textMuted, fontSize: theme.typography.body.fontSize }}>
+          {t('fleet.subtitle')}
+        </p>
+      </div>
+
+      {actionFailed && (
+        <p style={{ margin: 0, color: theme.color.danger, fontSize: theme.typography.body.fontSize }}>{t('fleet.actionFailed')}</p>
+      )}
+
+      {/* Categories */}
+      <Panel title={t('fleet.categories')}>
+        {categories.length === 0 ? (
+          <p style={{ margin: 0, color: theme.color.textMuted, fontSize: theme.typography.body.fontSize }}>{t('fleet.noCategories')}</p>
+        ) : (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: theme.spacing.sm }}>
+            {categories.map((c) => (
+              <span
+                key={c.id}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: theme.spacing.xs,
+                  background: rgba(theme.color.primary, 0.08),
+                  color: theme.color.text,
+                  border: `1px solid ${rgba(theme.color.primary, 0.2)}`,
+                  borderRadius: theme.radius.pill,
+                  paddingBlock: 4,
+                  paddingInline: theme.spacing.sm,
+                  fontSize: theme.typography.caption.fontSize,
+                  fontWeight: theme.typography.label.fontWeight,
+                }}
               >
-                {t('common.remove')}
-              </a>
-            </li>
-          ))}
-          {categories.length === 0 && (
-            <li style={{ color: theme.color.textMuted }}>{t('fleet.noCategories')}</li>
-          )}
-        </ul>
-        <form onSubmit={addCategory} style={{ display: 'flex', gap: theme.spacing.sm, alignItems: 'flex-end' }}>
+                {c.name}
+                <button
+                  type="button"
+                  className="cr-chip-x"
+                  onClick={() => onDeleteCategory(c.id)}
+                  aria-label={`${t('common.remove')} ${c.name}`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+          </div>
+        )}
+
+        <form onSubmit={addCategory} style={{ display: 'flex', gap: theme.spacing.sm, alignItems: 'flex-end', marginBlockStart: theme.spacing.lg, maxWidth: FORM_MAX_WIDTH }}>
           <div style={{ flex: 1 }}>
             <TextField label={t('fleet.newCategory')} value={catName} onChange={(e) => setCatName(e.target.value)} />
           </div>
@@ -205,10 +314,10 @@ export function FleetPage() {
             <Button type="submit">{t('common.add')}</Button>
           </div>
         </form>
-      </section>
+      </Panel>
 
-      <section style={{ marginBottom: theme.spacing.xl }}>
-        <h2 style={{ color: theme.color.text }}>{t('fleet.vehicles', { count: vehicles.length })}</h2>
+      {/* Vehicles */}
+      <Panel title={t('fleet.vehicles', { count: vehicles.length })}>
         {vehiclesLoading && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
             {Array.from({ length: 3 }).map((_, i) => (
@@ -216,114 +325,107 @@ export function FleetPage() {
             ))}
           </div>
         )}
-        {vehiclesError && <p style={{ color: theme.color.danger }}>{t('fleet.loadFailed')}</p>}
+        {vehiclesError && <p style={{ margin: 0, color: theme.color.danger }}>{t('fleet.loadFailed')}</p>}
         {!vehiclesLoading && !vehiclesError && (
-          <table style={{ width: '100%', borderCollapse: 'collapse', color: theme.color.text }}>
-            <thead>
-              <tr style={{ textAlign: 'start', color: theme.color.textMuted }}>
-                <th>{t('fleet.colName')}</th>
-                <th>{t('fleet.colCategory')}</th>
-                <th>{t('fleet.colTransmission')}</th>
-                <th>{t('fleet.colFuel')}</th>
-                <th>{t('fleet.colSeats')}</th>
-                <th>{t('fleet.colPrice')}</th>
-                <th />
-              </tr>
-            </thead>
-            <AnimatedTableBody>
-              {vehicles.map((v) => (
-                <AnimatedTableRow key={v.id} style={{ borderTop: `1px solid ${theme.color.surface}` }}>
-                  <td>{v.name}</td>
-                  <td>{v.category}</td>
-                  <td>{t(TRANSMISSION_LABEL_KEY[v.transmission])}</td>
-                  <td>{t(FUEL_LABEL_KEY[v.fuelType])}</td>
-                  <td>{v.seats}</td>
-                  <td>
-                    {v.pricePerDay} {v.currency}
-                  </td>
-                  <td>
-                    <a
-                      onClick={() => startEdit(v.id)}
-                      style={{ color: theme.color.primary, cursor: 'pointer', marginInlineEnd: theme.spacing.sm }}
-                    >
-                      {t('common.edit')}
-                    </a>
-                    <a
-                      onClick={() => onDeleteVehicle(v.id)}
-                      style={{ color: theme.color.danger, cursor: 'pointer' }}
-                    >
-                      {t('common.delete')}
-                    </a>
-                  </td>
-                </AnimatedTableRow>
-              ))}
-              {vehicles.length === 0 && (
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
+              <thead>
                 <tr>
-                  <td colSpan={7} style={{ color: theme.color.textMuted, paddingTop: theme.spacing.sm }}>
-                    {t('fleet.noVehicles')}
-                  </td>
+                  <th style={th}>{t('fleet.colName')}</th>
+                  <th style={th}>{t('fleet.colCategory')}</th>
+                  <th style={th}>{t('fleet.colTransmission')}</th>
+                  <th style={th}>{t('fleet.colFuel')}</th>
+                  <th style={th}>{t('fleet.colSeats')}</th>
+                  <th style={th}>{t('fleet.colPrice')}</th>
+                  <th style={{ ...th, textAlign: 'end', paddingInlineEnd: 0 }} />
                 </tr>
-              )}
-            </AnimatedTableBody>
-          </table>
+              </thead>
+              <AnimatedTableBody>
+                {vehicles.map((v) => (
+                  <AnimatedTableRow key={v.id} className="cr-fleet-row">
+                    <td style={{ ...td, fontWeight: theme.typography.label.fontWeight }}>{v.name}</td>
+                    <td style={td}>
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          background: theme.color.surfaceAlt,
+                          color: theme.color.textMuted,
+                          borderRadius: theme.radius.pill,
+                          paddingBlock: 2,
+                          paddingInline: theme.spacing.sm,
+                          fontSize: theme.typography.caption.fontSize,
+                        }}
+                      >
+                        {v.category}
+                      </span>
+                    </td>
+                    <td style={td}>{t(TRANSMISSION_LABEL_KEY[v.transmission])}</td>
+                    <td style={td}>{t(FUEL_LABEL_KEY[v.fuelType])}</td>
+                    <td style={td}>{v.seats}</td>
+                    <td style={{ ...td, fontWeight: theme.typography.label.fontWeight, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                      {v.pricePerDay}{' '}
+                      <span style={{ color: theme.color.textMuted, fontWeight: theme.typography.body.fontWeight }}>{v.currency}</span>
+                    </td>
+                    <td style={{ ...td, textAlign: 'end', paddingInlineEnd: 0, whiteSpace: 'nowrap' }}>
+                      <button type="button" className="cr-act" onClick={() => startEdit(v.id)} style={{ color: theme.color.primary }}>
+                        {t('common.edit')}
+                      </button>
+                      <button type="button" className="cr-act" onClick={() => onDeleteVehicle(v.id)} style={{ color: theme.color.danger }}>
+                        {t('common.delete')}
+                      </button>
+                    </td>
+                  </AnimatedTableRow>
+                ))}
+                {vehicles.length === 0 && (
+                  <tr>
+                    <td colSpan={7} style={{ ...td, color: theme.color.textMuted, borderBottom: 'none' }}>
+                      {t('fleet.noVehicles')}
+                    </td>
+                  </tr>
+                )}
+              </AnimatedTableBody>
+            </table>
+          </div>
         )}
-      </section>
+      </Panel>
 
-      <section>
-        <h2 style={{ color: theme.color.text }}>{editingId ? t('fleet.editVehicle') : t('fleet.addVehicle')}</h2>
-        <form onSubmit={submitVehicle} style={{ maxWidth: FORM_MAX_WIDTH }}>
-          <TextField label={t('fleet.name')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <label style={{ color: theme.color.text }}>{t('fleet.category')}</label>
-          <select
-            value={form.categoryId}
-            onChange={(e) => setForm({ ...form, categoryId: e.target.value })}
-            style={selectStyle}
-          >
-            <option value="">{t('fleet.selectCategory')}</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <label style={{ color: theme.color.text }}>{t('fleet.transmission')}</label>
-          <select
-            value={form.transmission}
-            onChange={(e) => setForm({ ...form, transmission: e.target.value as Transmission })}
-            style={selectStyle}
-          >
+      {/* Add / edit vehicle */}
+      <Panel title={editingId ? t('fleet.editVehicle') : t('fleet.addVehicle')}>
+        <form
+          onSubmit={submitVehicle}
+          style={{ maxWidth: FORM_MAX_WIDTH, display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', columnGap: theme.spacing.md, rowGap: 0 }}
+        >
+          <div style={{ gridColumn: '1 / -1' }}>
+            <TextField label={t('fleet.name')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </div>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <LabeledSelect label={t('fleet.category')} value={form.categoryId} onChange={(value) => setForm({ ...form, categoryId: value })}>
+              <option value="">{t('fleet.selectCategory')}</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </LabeledSelect>
+          </div>
+          <LabeledSelect label={t('fleet.transmission')} value={form.transmission} onChange={(value) => setForm({ ...form, transmission: value as Transmission })}>
             {TRANSMISSIONS.map((tr) => (
               <option key={tr} value={tr}>
                 {t(TRANSMISSION_LABEL_KEY[tr])}
               </option>
             ))}
-          </select>
-          <label style={{ color: theme.color.text }}>{t('fleet.fuel')}</label>
-          <select
-            value={form.fuelType}
-            onChange={(e) => setForm({ ...form, fuelType: e.target.value as FuelType })}
-            style={selectStyle}
-          >
+          </LabeledSelect>
+          <LabeledSelect label={t('fleet.fuel')} value={form.fuelType} onChange={(value) => setForm({ ...form, fuelType: value as FuelType })}>
             {FUELS.map((f) => (
               <option key={f} value={f}>
                 {t(FUEL_LABEL_KEY[f])}
               </option>
             ))}
-          </select>
-          <TextField
-            label={t('fleet.seats')}
-            type="number"
-            value={form.seats}
-            onChange={(e) => setForm({ ...form, seats: e.target.value })}
-          />
-          <TextField
-            label={t('fleet.pricePerDay')}
-            type="number"
-            value={form.pricePerDay}
-            onChange={(e) => setForm({ ...form, pricePerDay: e.target.value })}
-          />
-          <div style={{ display: 'flex', gap: theme.spacing.sm }}>
-            <Button type="submit" disabled={saving || !form.categoryId}>
+          </LabeledSelect>
+          <TextField label={t('fleet.seats')} type="number" value={form.seats} onChange={(e) => setForm({ ...form, seats: e.target.value })} />
+          <TextField label={t('fleet.pricePerDay')} type="number" value={form.pricePerDay} onChange={(e) => setForm({ ...form, pricePerDay: e.target.value })} />
+          <div style={{ gridColumn: '1 / -1', display: 'flex', gap: theme.spacing.sm, marginBlockStart: theme.spacing.sm }}>
+            <Button type="submit" fullWidth={false} disabled={saving || !form.categoryId}>
               {saving
                 ? editingId
                   ? t('fleet.saving')
@@ -333,13 +435,13 @@ export function FleetPage() {
                   : t('fleet.addVehicle')}
             </Button>
             {editingId && (
-              <Button type="button" onClick={resetForm}>
+              <Button type="button" fullWidth={false} onClick={resetForm}>
                 {t('common.cancel')}
               </Button>
             )}
           </div>
         </form>
-      </section>
+      </Panel>
     </div>
   )
 }

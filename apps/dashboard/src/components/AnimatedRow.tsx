@@ -15,16 +15,17 @@ import { useMotion } from './motion'
 interface ListProps {
   children: ReactNode
   style?: React.CSSProperties
+  className?: string
 }
 
-export function AnimatedList({ children, style }: ListProps) {
+export function AnimatedList({ children, style, className }: ListProps) {
   const m = useMotion()
   const variants: Variants = {
     hidden: {},
     show: { transition: { staggerChildren: m.stagger } },
   }
   return (
-    <motion.div variants={variants} initial="hidden" animate="show" style={style}>
+    <motion.div variants={variants} initial="hidden" animate="show" style={style} className={className}>
       {children}
     </motion.div>
   )
@@ -33,30 +34,31 @@ export function AnimatedList({ children, style }: ListProps) {
 interface RowProps {
   children: ReactNode
   style?: React.CSSProperties
+  className?: string
 }
 
-export function AnimatedRow({ children, style }: RowProps) {
+export function AnimatedRow({ children, style, className }: RowProps) {
   const m = useMotion()
   const variants: Variants = {
     hidden: { opacity: 0, y: m.riseY },
     show: { opacity: 1, y: 0, transition: m.enter },
   }
   return (
-    <motion.div variants={variants} style={style}>
+    <motion.div variants={variants} style={style} className={className}>
       {children}
     </motion.div>
   )
 }
 
 /** `<tr>` variant for table bodies — same variants, valid table markup. */
-export function AnimatedTableRow({ children, style }: RowProps) {
+export function AnimatedTableRow({ children, style, className }: RowProps) {
   const m = useMotion()
   const variants: Variants = {
     hidden: { opacity: 0, y: m.riseY },
     show: { opacity: 1, y: 0, transition: m.enter },
   }
   return (
-    <motion.tr variants={variants} style={style}>
+    <motion.tr variants={variants} style={style} className={className}>
       {children}
     </motion.tr>
   )

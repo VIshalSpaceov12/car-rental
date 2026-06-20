@@ -8,12 +8,13 @@ import {
 } from '../../store/fleetApi'
 import { Button } from '../../components/Button'
 import { TextField } from '../../components/TextField'
+import { Panel } from '../../components/Panel'
 import { Skeleton } from '../../components/Skeleton'
 import { AnimatedList, AnimatedRow } from '../../components/AnimatedRow'
 import { useToast } from '../../components/Toast'
 
 // One-off form width (no semantic size fits) — named const, not a token.
-const FORM_MAX_WIDTH = 420
+const FORM_MAX_WIDTH = 560
 
 export function BranchesPage() {
   const theme = useTheme()
@@ -57,57 +58,90 @@ export function BranchesPage() {
     }
   }
 
-  return (
-    <div>
-      <h1 style={{ color: theme.color.primary, marginTop: 0 }}>{t('branches.title')}</h1>
-      {branchesLoading ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm, marginBottom: theme.spacing.md }}>
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} height={theme.spacing.lg} />
-          ))}
-        </div>
-      ) : (
-        <AnimatedList style={{ color: theme.color.text }}>
-          {branches.map((b) => (
-            <AnimatedRow key={b.id} style={{ marginBottom: theme.spacing.xs }}>
-              <strong>{b.name}</strong> — {b.address} ({b.hours}){' '}
-              <a onClick={() => onDelete(b.id)} style={{ color: theme.color.danger, cursor: 'pointer' }}>
-                {t('common.remove')}
-              </a>
-            </AnimatedRow>
-          ))}
-          {branches.length === 0 && <div style={{ color: theme.color.textMuted }}>{t('branches.noBranches')}</div>}
-        </AnimatedList>
-      )}
+  const hoverCss = `
+    .cr-act { border: none; background: transparent; cursor: pointer; border-radius: ${theme.radius.pill}px;
+      padding: 4px 10px; font-size: ${theme.typography.caption.fontSize}px; font-weight: ${theme.typography.label.fontWeight};
+      transition: background-color 140ms ease; }
+    .cr-act:hover { background-color: ${theme.color.surfaceAlt}; }
+  `
 
-      <h2 style={{ color: theme.color.text }}>{t('branches.addBranch')}</h2>
-      <form onSubmit={add} style={{ maxWidth: FORM_MAX_WIDTH }}>
-        <TextField label={t('branches.name')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-        <TextField
-          label={t('branches.address')}
-          value={form.address}
-          onChange={(e) => setForm({ ...form, address: e.target.value })}
-        />
-        <TextField
-          label={t('branches.lat')}
-          type="number"
-          step="any"
-          value={form.lat}
-          onChange={(e) => setForm({ ...form, lat: e.target.value })}
-        />
-        <TextField
-          label={t('branches.lng')}
-          type="number"
-          step="any"
-          value={form.lng}
-          onChange={(e) => setForm({ ...form, lng: e.target.value })}
-        />
-        <TextField label={t('branches.hours')} value={form.hours} onChange={(e) => setForm({ ...form, hours: e.target.value })} />
-        {error && <p style={{ color: theme.color.danger }}>{error}</p>}
-        <Button type="submit" disabled={isLoading}>
-          {isLoading ? t('branches.adding') : t('branches.addBranch')}
-        </Button>
-      </form>
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.lg }}>
+      <style>{hoverCss}</style>
+
+      <div>
+        <h1 style={{ margin: 0, color: theme.color.text, fontSize: theme.typography.heading.fontSize, fontWeight: theme.typography.display.fontWeight, letterSpacing: -0.5 }}>
+          {t('branches.title')}
+        </h1>
+        <p style={{ margin: `${theme.spacing.xs}px 0 0`, color: theme.color.textMuted, fontSize: theme.typography.body.fontSize }}>
+          {t('branches.subtitle')}
+        </p>
+      </div>
+
+      <Panel>
+        {branchesLoading ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} height={theme.spacing.lg} />
+            ))}
+          </div>
+        ) : branches.length === 0 ? (
+          <p style={{ margin: 0, color: theme.color.textMuted, fontSize: theme.typography.body.fontSize }}>{t('branches.noBranches')}</p>
+        ) : (
+          <AnimatedList>
+            {branches.map((b, i) => (
+              <AnimatedRow
+                key={b.id}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: theme.spacing.md,
+                  paddingBlock: theme.spacing.md,
+                  borderTop: i === 0 ? 'none' : `1px solid ${theme.color.surfaceAlt}`,
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ color: theme.color.text, fontWeight: theme.typography.label.fontWeight, fontSize: theme.typography.body.fontSize }}>
+                    {b.name}
+                  </div>
+                  <div style={{ color: theme.color.textMuted, fontSize: theme.typography.caption.fontSize }}>
+                    {b.address} · {b.hours}
+                  </div>
+                </div>
+                <button type="button" className="cr-act" onClick={() => onDelete(b.id)} style={{ color: theme.color.danger, whiteSpace: 'nowrap' }}>
+                  {t('common.remove')}
+                </button>
+              </AnimatedRow>
+            ))}
+          </AnimatedList>
+        )}
+      </Panel>
+
+      <Panel title={t('branches.addBranch')}>
+        <form
+          onSubmit={add}
+          style={{ maxWidth: FORM_MAX_WIDTH, display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', columnGap: theme.spacing.md, rowGap: 0 }}
+        >
+          <div style={{ gridColumn: '1 / -1' }}>
+            <TextField label={t('branches.name')} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </div>
+          <div style={{ gridColumn: '1 / -1' }}>
+            <TextField label={t('branches.address')} value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+          </div>
+          <TextField label={t('branches.lat')} type="number" step="any" value={form.lat} onChange={(e) => setForm({ ...form, lat: e.target.value })} />
+          <TextField label={t('branches.lng')} type="number" step="any" value={form.lng} onChange={(e) => setForm({ ...form, lng: e.target.value })} />
+          <div style={{ gridColumn: '1 / -1' }}>
+            <TextField label={t('branches.hours')} value={form.hours} onChange={(e) => setForm({ ...form, hours: e.target.value })} />
+          </div>
+          {error && <p style={{ gridColumn: '1 / -1', margin: `0 0 ${theme.spacing.md}px`, color: theme.color.danger }}>{error}</p>}
+          <div style={{ gridColumn: '1 / -1' }}>
+            <Button type="submit" fullWidth={false} disabled={isLoading}>
+              {isLoading ? t('branches.adding') : t('branches.addBranch')}
+            </Button>
+          </div>
+        </form>
+      </Panel>
     </div>
   )
 }

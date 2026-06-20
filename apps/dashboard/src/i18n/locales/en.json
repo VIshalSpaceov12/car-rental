@@ -98,6 +98,7 @@
   },
   "fleet": {
     "title": "Fleet",
+    "subtitle": "Manage your vehicles, categories and pricing.",
     "loading": "Loading vehicles…",
     "loadFailed": "Failed to load vehicles.",
     "noVehicles": "No vehicles yet — add your first vehicle.",
@@ -136,6 +137,7 @@
   },
   "branches": {
     "title": "Branches",
+    "subtitle": "Add and manage your pickup and drop-off locations.",
     "noBranches": "No branches yet.",
     "addBranch": "Add branch",
     "adding": "Adding…",
