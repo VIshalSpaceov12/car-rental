@@ -1,4 +1,5 @@
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native'
+import { useCallback, useState } from 'react'
+import { ActivityIndicator, RefreshControl, ScrollView, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import { useNavigation } from '@react-navigation/native'
@@ -40,6 +41,18 @@ export function BookingsScreen() {
   const navigation = useNavigation<Nav>()
   const { data: bookings, isLoading, isError, refetch } = useGetBookingsQuery()
   const [cancelBooking, cancelling] = useCancelBookingMutation()
+
+  // Pull-to-refresh. Local `refreshing` keeps the spinner tied to a user pull,
+  // so background refetches (cancel mutations, socket invalidations) don't flash it.
+  const [refreshing, setRefreshing] = useState(false)
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      await refetch()
+    } finally {
+      setRefreshing(false)
+    }
+  }, [refetch])
 
   const onCancel = async (id: string) => {
     try {
@@ -89,6 +102,15 @@ export function BookingsScreen() {
 
       <ScrollView
         style={{ flex: 1 }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={theme.color.primary}
+            colors={[theme.color.primary]}
+            progressBackgroundColor={theme.color.surface}
+          />
+        }
         contentContainerStyle={{
           paddingHorizontal: theme.spacing.lg,
           paddingBottom: insets.bottom + theme.spacing.xxl * 2,

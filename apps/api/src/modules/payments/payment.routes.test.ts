@@ -7,7 +7,7 @@ const app = createApp()
 // Seeded demo tenant (apps/api/prisma/seed.ts).
 const CUSTOMER = { email: 'customer@demo.test', password: 'Password123!' }
 const PROVIDER = { email: 'provider@demo.test', password: 'Password123!' }
-const VEHICLE = 'veh-corolla' // economy, 120/day AED, provider "demo-provider"
+const VEHICLE = 'veh-corolla' // BMW M4, 900/day AED, provider "demo-provider"
 const PICKUP = 'branch-downtown'
 const DROPOFF = 'branch-airport'
 
@@ -72,7 +72,7 @@ describe('payments — pay a reserved booking', () => {
     expect(res.status).toBe(201)
     expect(res.body.status).toBe('paid')
     expect(res.body.method).toBe('card-mock')
-    expect(res.body.amount).toBe(378)
+    expect(res.body.amount).toBe(2835)
     expect(res.body.bookingId).toBe(booking.id)
     expect(res.body.gatewayRef).toBe(`mock_${booking.id}`)
 

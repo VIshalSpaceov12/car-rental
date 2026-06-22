@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import { useTheme } from '@car-rental/tokens'
-import type { PaymentMethod, Quote, RentalPlan } from '@car-rental/types'
+import type { PaymentMethod, Quote } from '@car-rental/types'
 import { Button } from '../../components/Button'
 import { TextField } from '../../components/TextField'
 import { DateField } from '../../components/DateField'
@@ -18,7 +19,6 @@ import {
 } from '../../store/bookingApi'
 import { emptyDraft, toCreateRequest, toQuoteRequest, validateDraft, type BookingDraft } from './bookingDraft'
 
-const PLANS: RentalPlan[] = ['daily', 'weekly', 'monthly', 'long-term']
 const PAYMENT_METHODS: PaymentMethod[] = ['card-mock', 'cash-on-delivery']
 
 type Step = 'vehicle' | 'customize' | 'review' | 'checkout' | 'done'
@@ -61,6 +61,7 @@ export function BookingFlow({
   onClose: () => void
 }) {
   const theme = useTheme()
+  const insets = useSafeAreaInsets()
   const { t } = useTranslation()
   const toast = useToast()
   // With a vehicle preselected from Details, skip the generic picker.
@@ -140,7 +141,11 @@ export function BookingFlow({
   return (
     <ScrollView
       style={{ flex: 1, backgroundColor: theme.color.background }}
-      contentContainerStyle={{ padding: theme.spacing.lg }}
+      contentContainerStyle={{
+        paddingTop: insets.top + theme.spacing.lg,
+        paddingHorizontal: theme.spacing.lg,
+        paddingBottom: theme.spacing.lg,
+      }}
     >
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: theme.spacing.lg }}>
         <Text style={{ color: theme.color.primary, ...heading }}>{t('booking.title')}</Text>
@@ -180,29 +185,6 @@ export function BookingFlow({
 
       {step === 'customize' && (
         <View>
-          <Text style={{ color: theme.color.text, marginBottom: theme.spacing.sm }}>{t('booking.plan')}</Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm, marginBottom: theme.spacing.md }}>
-            {PLANS.map((p) => {
-              const selected = draft.plan === p
-              return (
-                <Pressable
-                  key={p}
-                  onPress={() => update({ plan: p })}
-                  style={{
-                    paddingVertical: theme.spacing.xs,
-                    paddingHorizontal: theme.spacing.md,
-                    borderRadius: theme.radius.md,
-                    backgroundColor: selected ? theme.color.primary : theme.color.surface,
-                  }}
-                >
-                  <Text style={{ color: selected ? theme.color.onPrimary : theme.color.text }}>
-                    {t(`booking.plans.${p}`)}
-                  </Text>
-                </Pressable>
-              )
-            })}
-          </View>
-
           <DateField
             label={t('booking.startDateLabel')}
             value={draft.startDate}

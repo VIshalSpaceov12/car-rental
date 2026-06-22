@@ -1,4 +1,4 @@
-import { useState, type CSSProperties, type FormEvent, type ReactNode } from 'react'
+import { useState, type FormEvent, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { FuelType, Transmission } from '@car-rental/types'
 import { useTheme } from '@car-rental/tokens'
@@ -15,37 +15,20 @@ import { Button } from '../../components/Button'
 import { TextField } from '../../components/TextField'
 import { Panel } from '../../components/Panel'
 import { Skeleton } from '../../components/Skeleton'
-import { AnimatedTableBody, AnimatedTableRow } from '../../components/AnimatedRow'
+import { AnimatedList, AnimatedRow } from '../../components/AnimatedRow'
+import { FUEL_LABEL_KEY, TRANSMISSION_LABEL_KEY, VehicleCard } from '../../components/VehicleCard'
 import { useToast } from '../../components/Toast'
 
 const TRANSMISSIONS: Transmission[] = ['automatic', 'manual']
 const FUELS: FuelType[] = ['petrol', 'diesel', 'electric', 'hybrid']
 
-// Enum values are localized for display; the raw enum is the wire/storage value.
-const TRANSMISSION_LABEL_KEY: Record<
-  Transmission,
-  'fleet.transmissionValue.automatic' | 'fleet.transmissionValue.manual'
-> = {
-  automatic: 'fleet.transmissionValue.automatic',
-  manual: 'fleet.transmissionValue.manual',
-}
-const FUEL_LABEL_KEY: Record<
-  FuelType,
-  | 'fleet.fuelValue.petrol'
-  | 'fleet.fuelValue.diesel'
-  | 'fleet.fuelValue.electric'
-  | 'fleet.fuelValue.hybrid'
-> = {
-  petrol: 'fleet.fuelValue.petrol',
-  diesel: 'fleet.fuelValue.diesel',
-  electric: 'fleet.fuelValue.electric',
-  hybrid: 'fleet.fuelValue.hybrid',
-}
-
 // One-off layout dimensions (no semantic size fits) — kept as named consts here,
 // not as design tokens.
 const ADD_BUTTON_WIDTH = 120
 const FORM_MAX_WIDTH = 560
+// Responsive auto-fit grid for the vehicle cards.
+const VEHICLE_MIN_COL = 260
+const SKELETON_CARD_HEIGHT = 300
 
 const EMPTY_FORM = {
   name: '',
@@ -217,35 +200,8 @@ export function FleetPage() {
 
   const saving = creating || updating
 
-  const th: CSSProperties = {
-    textAlign: 'start',
-    color: theme.color.textMuted,
-    fontSize: theme.typography.caption.fontSize,
-    fontWeight: theme.typography.label.fontWeight,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    paddingBlock: theme.spacing.sm,
-    paddingInlineEnd: theme.spacing.md,
-    borderBottom: `1px solid ${theme.color.border}`,
-    whiteSpace: 'nowrap',
-  }
-  const td: CSSProperties = {
-    paddingBlock: theme.spacing.md,
-    paddingInlineEnd: theme.spacing.md,
-    borderBottom: `1px solid ${theme.color.surfaceAlt}`,
-    color: theme.color.text,
-    fontSize: theme.typography.body.fontSize,
-    verticalAlign: 'middle',
-  }
-
   // Scoped hover affordances (the codebase styles inline; :hover needs CSS).
   const hoverCss = `
-    .cr-fleet-row { transition: background-color 140ms ease; }
-    .cr-fleet-row:hover { background-color: ${rgba(theme.color.primary, 0.05)}; }
-    .cr-act { border: none; background: transparent; cursor: pointer; border-radius: ${theme.radius.pill}px;
-      padding: 4px 10px; font-size: ${theme.typography.caption.fontSize}px; font-weight: ${theme.typography.label.fontWeight};
-      transition: background-color 140ms ease; }
-    .cr-act:hover { background-color: ${theme.color.surfaceAlt}; }
     .cr-chip-x { border: none; background: transparent; cursor: pointer; line-height: 1; padding: 0 2px;
       color: ${theme.color.textMuted}; font-size: ${theme.typography.body.fontSize}px; transition: color 140ms ease; }
     .cr-chip-x:hover { color: ${theme.color.danger}; }
@@ -319,73 +275,26 @@ export function FleetPage() {
       {/* Vehicles */}
       <Panel title={t('fleet.vehicles', { count: vehicles.length })}>
         {vehiclesLoading && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: theme.spacing.sm }}>
+          <div style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${VEHICLE_MIN_COL}px, 1fr))`, gap: theme.spacing.lg }}>
             {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} height={theme.spacing.xl} />
+              <Skeleton key={i} height={SKELETON_CARD_HEIGHT} radius={theme.radius.card} />
             ))}
           </div>
         )}
         {vehiclesError && <p style={{ margin: 0, color: theme.color.danger }}>{t('fleet.loadFailed')}</p>}
-        {!vehiclesLoading && !vehiclesError && (
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
-              <thead>
-                <tr>
-                  <th style={th}>{t('fleet.colName')}</th>
-                  <th style={th}>{t('fleet.colCategory')}</th>
-                  <th style={th}>{t('fleet.colTransmission')}</th>
-                  <th style={th}>{t('fleet.colFuel')}</th>
-                  <th style={th}>{t('fleet.colSeats')}</th>
-                  <th style={th}>{t('fleet.colPrice')}</th>
-                  <th style={{ ...th, textAlign: 'end', paddingInlineEnd: 0 }} />
-                </tr>
-              </thead>
-              <AnimatedTableBody>
-                {vehicles.map((v) => (
-                  <AnimatedTableRow key={v.id} className="cr-fleet-row">
-                    <td style={{ ...td, fontWeight: theme.typography.label.fontWeight }}>{v.name}</td>
-                    <td style={td}>
-                      <span
-                        style={{
-                          display: 'inline-block',
-                          background: theme.color.surfaceAlt,
-                          color: theme.color.textMuted,
-                          borderRadius: theme.radius.pill,
-                          paddingBlock: 2,
-                          paddingInline: theme.spacing.sm,
-                          fontSize: theme.typography.caption.fontSize,
-                        }}
-                      >
-                        {v.category}
-                      </span>
-                    </td>
-                    <td style={td}>{t(TRANSMISSION_LABEL_KEY[v.transmission])}</td>
-                    <td style={td}>{t(FUEL_LABEL_KEY[v.fuelType])}</td>
-                    <td style={td}>{v.seats}</td>
-                    <td style={{ ...td, fontWeight: theme.typography.label.fontWeight, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
-                      {v.pricePerDay}{' '}
-                      <span style={{ color: theme.color.textMuted, fontWeight: theme.typography.body.fontWeight }}>{v.currency}</span>
-                    </td>
-                    <td style={{ ...td, textAlign: 'end', paddingInlineEnd: 0, whiteSpace: 'nowrap' }}>
-                      <button type="button" className="cr-act" onClick={() => startEdit(v.id)} style={{ color: theme.color.primary }}>
-                        {t('common.edit')}
-                      </button>
-                      <button type="button" className="cr-act" onClick={() => onDeleteVehicle(v.id)} style={{ color: theme.color.danger }}>
-                        {t('common.delete')}
-                      </button>
-                    </td>
-                  </AnimatedTableRow>
-                ))}
-                {vehicles.length === 0 && (
-                  <tr>
-                    <td colSpan={7} style={{ ...td, color: theme.color.textMuted, borderBottom: 'none' }}>
-                      {t('fleet.noVehicles')}
-                    </td>
-                  </tr>
-                )}
-              </AnimatedTableBody>
-            </table>
-          </div>
+        {!vehiclesLoading && !vehiclesError && vehicles.length === 0 && (
+          <p style={{ margin: 0, color: theme.color.textMuted, fontSize: theme.typography.body.fontSize }}>{t('fleet.noVehicles')}</p>
+        )}
+        {!vehiclesLoading && !vehiclesError && vehicles.length > 0 && (
+          <AnimatedList
+            style={{ display: 'grid', gridTemplateColumns: `repeat(auto-fill, minmax(${VEHICLE_MIN_COL}px, 1fr))`, gap: theme.spacing.lg }}
+          >
+            {vehicles.map((v) => (
+              <AnimatedRow key={v.id} style={{ height: '100%' }}>
+                <VehicleCard vehicle={v} onEdit={startEdit} onDelete={onDeleteVehicle} />
+              </AnimatedRow>
+            ))}
+          </AnimatedList>
         )}
       </Panel>
 

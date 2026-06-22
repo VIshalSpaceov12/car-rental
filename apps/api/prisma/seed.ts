@@ -1,6 +1,7 @@
 import 'dotenv/config'
 import { PrismaClient, type Prisma } from '@prisma/client'
 import bcrypt from 'bcrypt'
+import { carImages } from './carImages'
 
 // Deterministic ids keep re-seeding idempotent (upsert by id) without needing
 // extra unique constraints. Demo tenant: one provider, two branches, three
@@ -68,38 +69,49 @@ async function main() {
     })
   }
 
-  // Category names stay within the @car-rental/types VehicleCategory union.
+  // Sports-car demo fleet. Category display names are provider-defined (not the
+  // @car-rental/types union). `update` refreshes the name so a re-seed renames
+  // existing rows.
   const categories = [
-    { id: 'cat-economy', name: 'economy' },
-    { id: 'cat-suv', name: 'suv' },
-    { id: 'cat-luxury', name: 'luxury' },
+    { id: 'cat-economy', name: 'sports' },
+    { id: 'cat-suv', name: 'supercar' },
+    { id: 'cat-luxury', name: 'hypercar' },
   ]
   for (const c of categories) {
     await prisma.vehicleCategory.upsert({
       where: { id: c.id },
-      update: {},
+      update: { name: c.name },
       create: { ...c, providerId: provider.id },
     })
   }
 
-  // Real, model-matching photos via Wikimedia Commons' stable Special:FilePath
-  // endpoint (`?width=` returns a CDN-resized JPEG) — one representative shot per
-  // model, so a card/detail image actually shows that brand + model.
-  const carPhoto = (file: string) => [
-    `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=800`,
-  ]
+  // Sports/supercar demo fleet. Names match the embedded cutout images in
+  // `carImages` (transparent PNGs); vehicles without an entry fall back to the
+  // card UI's clean car icon (e.g. the Rimac).
   const vehicles: Array<Prisma.VehicleCreateInput & { id: string }> = [
-    mkVehicle('veh-corolla', 'Toyota Corolla', 'cat-economy', 'AUTOMATIC', 'PETROL', 5, '120.00', carPhoto('Toyota_Corolla_Hybrid_(E210)_IMG_4338.jpg')),
-    mkVehicle('veh-sunny', 'Nissan Sunny', 'cat-economy', 'AUTOMATIC', 'PETROL', 5, '110.00', carPhoto('NISSAN_Sunny_B13.jpg')),
-    mkVehicle('veh-rav4', 'Toyota RAV4', 'cat-suv', 'AUTOMATIC', 'PETROL', 5, '220.00', carPhoto('2024_Toyota_RAV4_Prime_XSE_Premium_in_Silver_Sky_with_Midnight_Black_roof,_front_left.jpg')),
-    mkVehicle('veh-patrol', 'Nissan Patrol', 'cat-suv', 'AUTOMATIC', 'PETROL', 7, '400.00', carPhoto('2016_Nissan_Patrol_(Y62)_Ti-L_wagon_(2018-09-17)_01.jpg')),
-    mkVehicle('veh-eclass', 'Mercedes E-Class', 'cat-luxury', 'AUTOMATIC', 'PETROL', 5, '600.00', carPhoto('Mercedes-Benz_W214_1X7A1841.jpg')),
-    mkVehicle('veh-model3', 'Tesla Model 3', 'cat-luxury', 'AUTOMATIC', 'ELECTRIC', 5, '500.00', carPhoto('Tesla_Model_3_(2023)_Autofrühling_Ulm_IMG_9282.jpg')),
+    mkVehicle('veh-corolla', 'BMW M2 Competition', 'cat-economy', 'AUTOMATIC', 'PETROL', 4, '900.00', carImages['veh-corolla'] ?? []),
+    mkVehicle('veh-sunny', 'Ferrari 812 Superfast', 'cat-suv', 'AUTOMATIC', 'PETROL', 2, '1200.00', carImages['veh-sunny'] ?? []),
+    mkVehicle('veh-rav4', 'Lamborghini Aventador', 'cat-suv', 'AUTOMATIC', 'PETROL', 2, '2200.00', carImages['veh-rav4'] ?? []),
+    mkVehicle('veh-patrol', 'Lamborghini Huracán', 'cat-suv', 'AUTOMATIC', 'PETROL', 2, '3500.00', carImages['veh-patrol'] ?? []),
+    mkVehicle('veh-eclass', 'Bugatti Chiron', 'cat-luxury', 'AUTOMATIC', 'PETROL', 2, '4000.00', carImages['veh-eclass'] ?? []),
+    mkVehicle('veh-model3', 'Rimac Nevera', 'cat-luxury', 'AUTOMATIC', 'ELECTRIC', 2, '9000.00', carImages['veh-model3'] ?? []),
   ]
   for (const v of vehicles) {
-    // Refresh images on re-seed (existing rows keep their bookings) — the empty
-    // `update: {}` previously left stale placeholder photos in place.
-    await prisma.vehicle.upsert({ where: { id: v.id }, update: { images: v.images }, create: v })
+    // Re-seed refreshes the mutable card fields on existing rows (bookings are
+    // preserved via their own upsert below).
+    await prisma.vehicle.upsert({
+      where: { id: v.id },
+      update: {
+        name: v.name,
+        pricePerDay: v.pricePerDay,
+        seats: v.seats,
+        transmission: v.transmission,
+        fuelType: v.fuelType,
+        category: v.category,
+        images: v.images,
+      },
+      create: v,
+    })
   }
 
   await prisma.user.upsert({
@@ -155,18 +167,18 @@ async function main() {
     paid: boolean
     prepReadyAt?: Date
   }> = [
-    { id: 'bk-reserved', vehicleId: 'veh-model3', perDay: 500, start: addDays(14), end: addDays(17), status: 'RESERVED', paid: false },
-    { id: 'bk-confirmed', vehicleId: 'veh-sunny', perDay: 110, start: addDays(3), end: addDays(6), status: 'CONFIRMED', paid: true },
-    { id: 'bk-prepared', vehicleId: 'veh-rav4', perDay: 220, start: addDays(1), end: addDays(4), status: 'VEHICLE_PREPARED', paid: true, prepReadyAt: addDays(1) },
-    { id: 'bk-pickedup', vehicleId: 'veh-patrol', perDay: 400, start: addDays(-1), end: addDays(2), status: 'PICKED_UP', paid: true },
-    { id: 'bk-completed', vehicleId: 'veh-eclass', perDay: 600, start: addDays(-10), end: addDays(-7), status: 'COMPLETED', paid: true },
+    { id: 'bk-reserved', vehicleId: 'veh-model3', perDay: 9000, start: addDays(14), end: addDays(17), status: 'RESERVED', paid: false },
+    { id: 'bk-confirmed', vehicleId: 'veh-sunny', perDay: 1200, start: addDays(3), end: addDays(6), status: 'CONFIRMED', paid: true },
+    { id: 'bk-prepared', vehicleId: 'veh-rav4', perDay: 2200, start: addDays(1), end: addDays(4), status: 'VEHICLE_PREPARED', paid: true, prepReadyAt: addDays(1) },
+    { id: 'bk-pickedup', vehicleId: 'veh-patrol', perDay: 3500, start: addDays(-1), end: addDays(2), status: 'PICKED_UP', paid: true },
+    { id: 'bk-completed', vehicleId: 'veh-eclass', perDay: 4000, start: addDays(-10), end: addDays(-7), status: 'COMPLETED', paid: true },
   ]
 
   for (const b of demoBookings) {
     const p = priceOf(b.perDay, b.start, b.end)
     await prisma.booking.upsert({
       where: { id: b.id },
-      update: { status: b.status },
+      update: { status: b.status, subtotal: p.subtotal, tax: p.tax, total: p.total },
       create: {
         id: b.id,
         customerId: 'user-customer',
@@ -190,7 +202,7 @@ async function main() {
     if (b.paid) {
       await prisma.payment.upsert({
         where: { id: `pay-${b.id}` },
-        update: {},
+        update: { amount: p.total },
         create: {
           id: `pay-${b.id}`,
           bookingId: b.id,

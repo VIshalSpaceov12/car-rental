@@ -7,7 +7,7 @@ const app = createApp()
 // Seeded demo tenant (apps/api/prisma/seed.ts).
 const CUSTOMER = { email: 'customer@demo.test', password: 'Password123!' }
 const PROVIDER = { email: 'provider@demo.test', password: 'Password123!' }
-const VEHICLE = 'veh-corolla' // economy, 120/day AED, provider "demo-provider"
+const VEHICLE = 'veh-corolla' // BMW M4, 900/day AED, provider "demo-provider"
 const PICKUP = 'branch-downtown'
 const DROPOFF = 'branch-airport'
 
@@ -67,9 +67,9 @@ describe('bookings — quote', () => {
       .send({ vehicleId: VEHICLE, plan: 'daily', ...DATES })
     expect(res.status).toBe(200)
     expect(res.body.days).toBe(3)
-    expect(res.body.subtotal).toBe(360)
-    expect(res.body.tax).toBe(18)
-    expect(res.body.total).toBe(378)
+    expect(res.body.subtotal).toBe(2700)
+    expect(res.body.tax).toBe(135)
+    expect(res.body.total).toBe(2835)
     expect(res.body.currency).toBe('AED')
   })
 
@@ -113,7 +113,7 @@ describe('bookings — create', () => {
     expect(res.body.status).toBe('reserved')
     expect(res.body.providerId).toBe('demo-provider')
     expect(res.body.vehicleId).toBe(VEHICLE)
-    expect(res.body.total).toBe(378)
+    expect(res.body.total).toBe(2835)
     expect(typeof res.body.id).toBe('string')
   })
 
